@@ -1,0 +1,261 @@
+{
+	"$schema": "https://schemas.wp.org/wp/6.7/theme.json",
+	"version": 3,
+	"settings": {
+		"appearanceTools": true,
+		"useRootPaddingAwareAlignments": true,
+		"color": {
+			"defaultPalette": false,
+			"defaultGradients": false,
+			"defaultDuotone": false,
+			"palette": [
+				{ "slug": "base", "name": "Base", "color": "#ffffff" },
+				{ "slug": "surface", "name": "Surface", "color": "#f4f5f7" },
+				{ "slug": "contrast", "name": "Contrast", "color": "#16181d" },
+				{ "slug": "muted", "name": "Muted", "color": "#5b606b" },
+				{ "slug": "accent", "name": "Accent", "color": "#2f5bd3" },
+				{ "slug": "accent-contrast", "name": "Accent contrast", "color": "#ffffff" },
+				{ "slug": "highlight", "name": "Highlight", "color": "#ffc83d" },
+				{ "slug": "highlight-contrast", "name": "Highlight contrast", "color": "#16181d" },
+				{ "slug": "tint-1", "name": "Tint 1", "color": "#eaf0fc" },
+				{ "slug": "tint-2", "name": "Tint 2", "color": "#fff1cc" },
+				{ "slug": "strong", "name": "Strong", "color": "#16181d" },
+				{ "slug": "strong-contrast", "name": "Strong contrast", "color": "#ffffff" },
+				{ "slug": "border", "name": "Border", "color": "#d9dce1" },
+				{ "slug": "border-strong", "name": "Border strong", "color": "#868c96" },
+				{ "slug": "error", "name": "Error", "color": "#c8302c" },
+				{ "slug": "success", "name": "Success", "color": "#1f7a4d" }
+			]
+		},
+		"dimensions": {
+			"defaultAspectRatios": false
+		},
+		"custom": {
+			"radius": {
+				"small": "6px",
+				"large": "10px"
+			}
+		},
+		"layout": {
+			"contentSize": "760px",
+			"wideSize": "1240px"
+		},
+		"shadow": {
+			"defaultPresets": false,
+			"presets": [
+				{ "slug": "card", "name": "Card", "shadow": "0 1px 3px rgba(22, 24, 29, 0.08)" }
+			]
+		},
+		"spacing": {
+			"units": [ "px", "rem", "%", "vw", "vh" ],
+			"defaultSpacingSizes": false,
+			"spacingScale": { "steps": 0 },
+			"spacingSizes": [
+				{ "slug": "20", "name": "2X-Small", "size": "0.5rem" },
+				{ "slug": "30", "name": "X-Small", "size": "0.75rem" },
+				{ "slug": "40", "name": "Small", "size": "1rem" },
+				{ "slug": "50", "name": "Medium", "size": "1.5rem" },
+				{ "slug": "60", "name": "Large", "size": "2.5rem" },
+				{ "slug": "70", "name": "X-Large", "size": "4rem" },
+				{ "slug": "80", "name": "2X-Large", "size": "clamp(3.5rem, 8vw, 6rem)" }
+			]
+		},
+		"typography": {
+			"fluid": true,
+			"defaultFontSizes": false,
+			"fontFamilies": [
+				{
+					"slug": "body",
+					"name": "Inter",
+					"fontFamily": "\"Inter\", \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif",
+					"fontFace": [
+						{
+							"fontFamily": "Inter",
+							"fontStyle": "normal",
+							"fontWeight": "400",
+							"fontDisplay": "swap",
+							"src": [ "file:./assets/fonts/inter/inter-latin-400-normal.woff2" ],
+							"unicodeRange": "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+						},
+						{
+							"fontFamily": "Inter",
+							"fontStyle": "normal",
+							"fontWeight": "500",
+							"fontDisplay": "swap",
+							"src": [ "file:./assets/fonts/inter/inter-latin-500-normal.woff2" ],
+							"unicodeRange": "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+						},
+						{
+							"fontFamily": "Inter",
+							"fontStyle": "normal",
+							"fontWeight": "600",
+							"fontDisplay": "swap",
+							"src": [ "file:./assets/fonts/inter/inter-latin-600-normal.woff2" ],
+							"unicodeRange": "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+						},
+						{
+							"fontFamily": "Inter",
+							"fontStyle": "normal",
+							"fontWeight": "700",
+							"fontDisplay": "swap",
+							"src": [ "file:./assets/fonts/inter/inter-latin-700-normal.woff2" ],
+							"unicodeRange": "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"
+						},
+						{
+							"fontFamily": "Inter",
+							"fontStyle": "normal",
+							"fontWeight": "400",
+							"fontDisplay": "swap",
+							"src": [ "file:./assets/fonts/inter/inter-latin-ext-400-normal.woff2" ],
+							"unicodeRange": "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+						},
+						{
+							"fontFamily": "Inter",
+							"fontStyle": "normal",
+							"fontWeight": "500",
+							"fontDisplay": "swap",
+							"src": [ "file:./assets/fonts/inter/inter-latin-ext-500-normal.woff2" ],
+							"unicodeRange": "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+						},
+						{
+							"fontFamily": "Inter",
+							"fontStyle": "normal",
+							"fontWeight": "600",
+							"fontDisplay": "swap",
+							"src": [ "file:./assets/fonts/inter/inter-latin-ext-600-normal.woff2" ],
+							"unicodeRange": "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+						},
+						{
+							"fontFamily": "Inter",
+							"fontStyle": "normal",
+							"fontWeight": "700",
+							"fontDisplay": "swap",
+							"src": [ "file:./assets/fonts/inter/inter-latin-ext-700-normal.woff2" ],
+							"unicodeRange": "U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF"
+						}
+					]
+				},
+				{
+					"slug": "heading",
+					"name": "Inter",
+					"fontFamily": "\"Inter\", \"Inter Fallback\", system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif"
+				}
+			],
+			"fontSizes": [
+				{ "slug": "small", "name": "Small", "size": "0.875rem", "fluid": false },
+				{ "slug": "medium", "name": "Medium", "size": "1rem", "fluid": false },
+				{ "slug": "large", "name": "Large", "size": "1.25rem", "fluid": { "min": "1.125rem", "max": "1.25rem" } },
+				{ "slug": "x-large", "name": "Extra large", "size": "1.75rem", "fluid": { "min": "1.5rem", "max": "1.75rem" } },
+				{ "slug": "xx-large", "name": "Huge", "size": "2.5rem", "fluid": { "min": "2rem", "max": "2.5rem" } }
+			]
+		}
+	},
+	"styles": {
+		"color": {
+			"background": "var:preset|color|base",
+			"text": "var:preset|color|contrast"
+		},
+		"spacing": {
+			"blockGap": "var:preset|spacing|40",
+			"padding": {
+				"left": "var:preset|spacing|50",
+				"right": "var:preset|spacing|50"
+			}
+		},
+		"typography": {
+			"fontFamily": "var:preset|font-family|body",
+			"fontSize": "var:preset|font-size|medium",
+			"lineHeight": "1.6"
+		},
+		"elements": {
+			"link": {
+				"color": { "text": "var:preset|color|accent" },
+				":hover": { "typography": { "textDecoration": "none" } }
+			},
+			"heading": {
+				"typography": {
+					"fontFamily": "var:preset|font-family|heading",
+					"fontWeight": "700",
+					"lineHeight": "1.2"
+				}
+			},
+			"h1": { "typography": { "fontSize": "var:preset|font-size|xx-large" } },
+			"h2": { "typography": { "fontSize": "var:preset|font-size|x-large" } },
+			"h3": { "typography": { "fontSize": "var:preset|font-size|large" } },
+			"button": {
+				"color": {
+					"background": "var:preset|color|accent",
+					"text": "var:preset|color|accent-contrast"
+				},
+				"border": {
+					"color": "var:preset|color|accent",
+					"radius": "6px",
+					"style": "solid",
+					"width": "2px"
+				},
+				"spacing": {
+					"padding": {
+						"top": "var:preset|spacing|30",
+						"right": "var:preset|spacing|50",
+						"bottom": "var:preset|spacing|30",
+						"left": "var:preset|spacing|50"
+					}
+				},
+				"typography": {
+					"fontFamily": "var:preset|font-family|heading",
+					"fontSize": "var:preset|font-size|medium",
+					"fontWeight": "700",
+					"lineHeight": "1.2",
+					"textTransform": "none"
+				}
+			},
+			"caption": {
+				"color": { "text": "var:preset|color|muted" },
+				"typography": { "fontSize": "var:preset|font-size|small" }
+			}
+		},
+		"blocks": {
+			"core/site-title": {
+				"typography": { "fontWeight": "700", "fontSize": "var:preset|font-size|large" },
+				"elements": { "link": { "color": { "text": "var:preset|color|contrast" } } }
+			},
+			"core/navigation": {
+				"elements": { "link": { "color": { "text": "var:preset|color|contrast" } } }
+			},
+			"core/button": {
+				"variations": {
+					"outline": {
+						"color": {
+							"background": "var:preset|color|base",
+							"text": "var:preset|color|accent"
+						},
+						"border": {
+							"color": "var:preset|color|accent",
+							"style": "solid",
+							"width": "2px"
+						},
+						"spacing": {
+							"padding": {
+								"top": "var:preset|spacing|30",
+								"right": "var:preset|spacing|50",
+								"bottom": "var:preset|spacing|30",
+								"left": "var:preset|spacing|50"
+							}
+						}
+					}
+				}
+			},
+			"core/separator": {
+				"color": { "text": "var:preset|color|border" }
+			}
+		}
+	},
+	"templateParts": [
+		{ "name": "header", "title": "Header", "area": "header" },
+		{ "name": "footer", "title": "Footer", "area": "footer" },
+		{ "name": "promises", "title": "Promises", "area": "uncategorized" },
+		{ "name": "announcement", "title": "Announcement", "area": "uncategorized" },
+		{ "name": "order-next-steps", "title": "Order next steps", "area": "uncategorized" },
+		{ "name": "order-help", "title": "Order help", "area": "uncategorized" }
+	]
+}

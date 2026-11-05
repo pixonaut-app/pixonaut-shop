@@ -1,0 +1,221 @@
+name: CI
+
+# Not on pull requests or pushes: a change is checked locally
+# before it merges, with the suites `pnpm ci:affected:local` names, and CI
+# runs the whole suite on `main` after a batch of merges and nightly.
+on:
+  # By hand once a batch of merges is in: gh workflow run ci.yml --ref main
+  workflow_dispatch:
+  # Nightly, outside working hours. It runs nothing when the commit it finds
+  # already passed a full run, so a night without merges costs one short job.
+  schedule:
+    - cron: '0 3 * * *'
+
+# A newer run on the same ref supersedes an older one.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Kept in step with .github/workflows/release.yml, .wp-env.json's
+  # phpVersion and package.json's engines.
+  PHP_VERSION: '8.5'
+  NODE_VERSION: 24
+
+jobs:
+  changes:
+    name: What to run
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Reads this workflow's earlier runs (scripts/ci/affected-cli.ts).
+      actions: read
+    outputs:
+      php: ${{ steps.affected.outputs.php }}
+      js: ${{ steps.affected.outputs.js }}
+      shell_scripts: ${{ steps.affected.outputs.shell_scripts }}
+      integration: ${{ steps.affected.outputs.integration }}
+      e2e: ${{ steps.affected.outputs.e2e }}
+      e2e_specs: ${{ steps.affected.outputs.e2e_specs }}
+      e2e_shards: ${{ steps.affected.outputs.e2e_shards }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # No install: the classifier needs only Node and git.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - id: affected
+        run: pnpm -s ci:affected
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          GITHUB_TOKEN: ${{ github.token }}
+
+  php:
+    name: PHP
+    needs: changes
+    if: needs.changes.outputs.php == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+          tools: composer:v2
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+
+      - run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Check formatting
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
+      - name: Static analysis
+        run: vendor/bin/phpstan analyse --memory-limit=2G
+
+      - name: Coding standards
+        run: vendor/bin/phpcs
+
+      - name: Unit tests
+        run: vendor/bin/phpunit --testsuite unit
+
+  js:
+    name: JavaScript
+    needs: changes
+    if: needs.changes.outputs.js == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test:ts
+      - run: pnpm build
+
+  shell-scripts:
+    name: Shell scripts
+    needs: changes
+    if: needs.changes.outputs.shell_scripts == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # shellcheck ships with the ubuntu runner image.
+      - run: shellcheck scripts/docker/host-user.sh scripts/docker/wp-env-after-start.sh
+
+  integration:
+    name: Integration and translation catalogue
+    needs: changes
+    if: needs.changes.outputs.integration == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/wp-env
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          node-version: ${{ env.NODE_VERSION }}
+
+      - run: pnpm test:integration
+
+      # Compares strings only, so a line reference that moved is not a
+      # stale catalogue.
+      - name: Regenerate the POT file
+        run: pnpm i18n:pot
+      - name: Fail when the catalogue is stale
+        run: pnpm i18n:check
+
+  e2e:
+    name: End-to-end (${{ matrix.shard }}/${{ strategy.job-total }})
+    needs: changes
+    if: needs.changes.outputs.e2e == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.changes.outputs.e2e_shards) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/wp-env
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Read the Playwright version
+        id: playwright
+        # `--version` prints "Version 1.x.y"; the key takes the number alone.
+        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        id: browsers
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+      # The cache holds the browser, not the system libraries it needs.
+      - if: steps.browsers.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+      - if: steps.browsers.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      # The spec list comes through the environment, never interpolated
+      # into the script, and holds only spec files that exist.
+      - run: |
+          read -ra SPECS <<< "$E2E_SPECS"
+          pnpm test:e2e --shard="$SHARD/$SHARDS" "${SPECS[@]}"
+        env:
+          SHARD: ${{ matrix.shard }}
+          SHARDS: ${{ strategy.job-total }}
+          E2E_SPECS: ${{ needs.changes.outputs.e2e_specs }}
+
+  ci:
+    name: CI
+    needs: [changes, php, js, shell-scripts, integration, e2e]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      # Fails unless the classifier ran and wrote the outputs the jobs are
+      # gated on, and every job an output of "true" selected actually ran: a
+      # misspelt or missing output, or a typo in a job's `if:`, would skip
+      # its job and pass.
+      - name: Every job that had to run passed
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -e '
+            . as $n
+            | .changes.result == "success"
+            and ([.changes.outputs | .php, .js, .shell_scripts, .integration, .e2e]
+                 | all(. == "true" or . == "false"))
+            and (.changes.outputs.e2e_shards | fromjson | type == "array")
+            and ([["php", "php"], ["js", "js"], ["shell_scripts", "shell-scripts"],
+                  ["integration", "integration"], ["e2e", "e2e"]]
+                 | all(.[0] as $output | .[1] as $job
+                       | $n.changes.outputs[$output] != "true"
+                         or $n[$job].result != "skipped"))
+            and ([to_entries[] | .value.result]
+                 | all(. == "success" or . == "skipped"))
+          ' > /dev/null || {
+            echo "::error::A job failed or was cancelled, or the changes job's outputs are not what the jobs are gated on."
+            echo "$NEEDS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+            exit 1
+          }

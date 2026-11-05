@@ -1,0 +1,62 @@
+{
+	"$schema": "https://schemas.wp.org/wp/6.7/theme.json",
+	"version": 3,
+	"title": "Nature",
+	"settings": {
+		"color": {
+			"palette": [
+				{ "slug": "base", "name": "Base", "color": "#fffdf8" },
+				{ "slug": "surface", "name": "Surface", "color": "#f3efe5" },
+				{ "slug": "contrast", "name": "Contrast", "color": "#23281f" },
+				{ "slug": "muted", "name": "Muted", "color": "#5f6555" },
+				{ "slug": "accent", "name": "Accent", "color": "#3f6b45" },
+				{ "slug": "accent-contrast", "name": "Accent contrast", "color": "#ffffff" },
+				{ "slug": "highlight", "name": "Highlight", "color": "#c9a24a" },
+				{ "slug": "highlight-contrast", "name": "Highlight contrast", "color": "#23281f" },
+				{ "slug": "tint-1", "name": "Tint 1", "color": "#dce5d3" },
+				{ "slug": "tint-2", "name": "Tint 2", "color": "#e8e1cf" },
+				{ "slug": "strong", "name": "Strong", "color": "#2e4733" },
+				{ "slug": "strong-contrast", "name": "Strong contrast", "color": "#f3efe5" },
+				{ "slug": "border", "name": "Border", "color": "#ddd6c6" },
+				{ "slug": "border-strong", "name": "Border strong", "color": "#8c8574" },
+				{ "slug": "error", "name": "Error", "color": "#a23b2a" },
+				{ "slug": "success", "name": "Success", "color": "#3f6b45" }
+			]
+		},
+		"custom": {
+			"radius": {
+				"small": "4px",
+				"large": "6px"
+			}
+		},
+		"shadow": {
+			"presets": [
+				{ "slug": "card", "name": "Card", "shadow": "none" }
+			]
+		},
+		"typography": {
+			"fontFamilies": [
+				{
+					"slug": "body",
+					"name": "Figtree",
+					"fontFamily": "\"Figtree\", \"Figtree Fallback\", system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif"
+				},
+				{
+					"slug": "heading",
+					"name": "Figtree",
+					"fontFamily": "\"Figtree\", \"Figtree Fallback\", system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif"
+				}
+			]
+		}
+	},
+	"styles": {
+		"elements": {
+			"heading": {
+				"typography": { "fontWeight": "600" }
+			},
+			"button": {
+				"border": { "radius": "4px" }
+			}
+		}
+	}
+}

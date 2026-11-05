@@ -1,0 +1,874 @@
+/*
+ * The product page around the designer: the preview or gallery beside the
+ * purchase panel, the add-to-cart form and its price row, the description
+ * panel, the related products and the promises band. Pixonaut for
+ * WooCommerce's markup is styled through its documented classes only: `.pixonaut-preview`, its `.pixonaut-preview__frame` per side
+ * and the side's `#pixonaut-preview-<side>`,
+ * `.pixonaut-form`, `.pixonaut-tabs`, `.pixonaut-approval` and
+ * `.pixonaut-cart-row`, with the parts its storefront documentation names,
+ * its `--pixonaut-preview-height` and `--pixonaut-views-gap`, and the
+ * `--pixonaut-preview-aspect` it prints on each frame.
+ *
+ * The frame's shape is the one the store picks as a style of the Product
+ * Image Gallery block, which `Product\PreviewFrame` prints as
+ * `--ps-frame-aspect` (width per unit of height) on a wrapper; without one it
+ * is the shape the plugin opens the first side at, and the gallery's square.
+ *
+ * Phones are Pixonaut for WooCommerce's breakpoint here, not WordPress's:
+ * below 768px, written as max-width 767px, where the plugin lays its preview
+ * out for a phone. The two columns stack there too, rather than at
+ * WordPress's 782px (the template turns its stacking off), so there is no
+ * width where the preview is full width in a frame the plugin sized for a
+ * column. When the plugin moves its breakpoint, move this one.
+ *
+ * WooCommerce's classic stylesheet styles the gallery and the form with
+ * selectors of four classes and up to four elements (`.woocommerce
+ * div.product div.images …`), and may load after this one; where these
+ * rules must win, a class repeats.
+ */
+
+/*
+ * The check in a ticked box, drawn as a mask in the box's text colour. The
+ * box is the design's checkbox size, in _components.css, 0.625rem from its
+ * label. The preview's note and the approval's error lead with a 1.125rem
+ * line icon: an eye, and the info icon turned upside down into a warning.
+ *
+ * A variable product's options take the sizes Pixonaut's designer draws its
+ * own fields at, so they read as one form with it: its 40px menus, its
+ * labels 0.5rem above them, its 36px option chips, and a choice that cannot
+ * be picked at 35% opacity. On a phone, the preview and the mark under it are
+ * at most 80vh tall, the cap Pixonaut for WooCommerce sets there. The price
+ * row's quantity is 4.5rem of content with its padding and border around it.
+ */
+:root {
+	--ps-phone-preview-height: 80vh;
+	--ps-designer-field-height: 2.5rem;
+	--ps-designer-label-gap: 0.5rem;
+	--ps-chip-height: 2.25rem;
+	--ps-quantity-width: 5.625rem;
+	--ps-unavailable-opacity: 0.35;
+	--ps-checkbox-gap: 0.625rem;
+	--ps-inline-icon-size: 1.125rem;
+	--ps-icon-eye: url( "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.6'%3E%3Cpath d='M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E" );
+	--ps-icon-check: url( "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9.5 16.2 5.3 12l-1.4 1.4 5.6 5.6 11-11-1.4-1.4Z'/%3E%3C/svg%3E" );
+}
+
+/* ---------- The page's sections ---------- */
+
+.pixonaut-shop-product-page {
+	padding-bottom: 0;
+}
+
+.pixonaut-shop-product-page > * + * {
+	margin-block-start: var( --wp--preset--spacing--60 );
+}
+
+.pixonaut-shop-product-page > :where( .wp-block-woocommerce-breadcrumbs ) {
+	margin-block-start: var( --wp--preset--spacing--40 );
+}
+
+.pixonaut-shop-product-page > :where( .wp-block-woocommerce-breadcrumbs ) + * {
+	margin-block-start: var( --wp--preset--spacing--40 );
+}
+
+/* An empty store-notices block takes no room between the breadcrumbs and the product. */
+.pixonaut-shop-product-page
+> .wp-block-woocommerce-store-notices:not(
+	:has(
+		.wc-block-components-notice-banner,
+		.woocommerce-message,
+		.woocommerce-error,
+		.woocommerce-info
+	)
+) {
+	display: none;
+}
+
+/* ---------- Product description panel (pixonaut-shop/product-description) ---------- */
+
+.pixonaut-shop-product-description > * {
+	margin-block: 0;
+}
+
+.pixonaut-shop-product-description > * + * {
+	margin-block-start: var( --wp--preset--spacing--40 );
+}
+
+/* A product with neither a description nor attributes shows no empty panel. */
+.pixonaut-shop-product-description:not(
+	:has(
+		.wp-block-woocommerce-product-description > *,
+		.wp-block-woocommerce-product-specifications
+	)
+) {
+	display: none;
+}
+
+.pixonaut-shop-product-description .wp-block-woocommerce-product-details {
+	margin-inline: 0;
+	margin-block-end: 0;
+}
+
+.pixonaut-shop-product-description .wp-block-woocommerce-product-description > :first-child {
+	margin-top: 0;
+}
+
+.pixonaut-shop-product-description .wp-block-woocommerce-product-specifications {
+	margin: 0;
+}
+
+.pixonaut-shop-product-description .wp-block-woocommerce-product-specifications table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.pixonaut-shop-product-description .wp-block-product-specifications-item :is( th, td ) {
+	padding: var( --wp--preset--spacing--30 ) 0;
+	border: 0;
+	border-bottom: 1px solid var( --wp--preset--color--border );
+	text-align: start;
+	vertical-align: top;
+}
+
+.pixonaut-shop-product-description .wp-block-product-specifications-item th {
+	width: 35%;
+	padding-right: var( --wp--preset--spacing--40 );
+	font-weight: 700;
+}
+
+.pixonaut-shop-product-description .wp-block-product-specifications-item :where( td ) > p {
+	margin: 0;
+}
+
+/* ---------- The two columns: preview or gallery, and the purchase panel ---------- */
+
+.pixonaut-shop-product.wp-block-columns {
+	align-items: flex-start;
+}
+
+/*
+ * Stacked on a phone. WordPress's stacking holds the row with `!important`,
+ * so the columns stack as a column of the row rather than by wrapping it,
+ * each its own height.
+ */
+@media ( max-width: 767px ) {
+	.pixonaut-shop-product.wp-block-columns {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.pixonaut-shop-product.wp-block-columns.is-not-stacked-on-mobile > .wp-block-column {
+		flex: none;
+	}
+}
+
+.pixonaut-shop-product-info > * {
+	margin-block: 0;
+}
+
+.pixonaut-shop-product-info > * + * {
+	margin-block-start: var( --wp--preset--spacing--40 );
+}
+
+.pixonaut-shop-product-info .wp-block-post-title {
+	font-size: var( --wp--preset--font-size--x-large );
+}
+
+/* The short description, as a lede under the title. */
+.pixonaut-shop-product-info .wc-block-components-product-summary > p {
+	margin-block: 0;
+}
+
+/* ---------- Gallery, without the plugin (woocommerce/product-image-gallery) ---------- */
+
+/* WooCommerce caps the block at 512px; it fills its column here. */
+.pixonaut-shop-product
+.wp-block-woocommerce-product-image-gallery.wp-block-woocommerce-product-image-gallery {
+	max-width: none;
+}
+
+.pixonaut-shop-product
+	.wp-block-woocommerce-product-image-gallery.wp-block-woocommerce-product-image-gallery
+	span.onsale {
+	top: var( --wp--preset--spacing--40 );
+	left: var( --wp--preset--spacing--40 );
+	min-width: 0;
+	min-height: 0;
+	margin: 0;
+	padding: 0.25rem var( --wp--preset--spacing--30 );
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--highlight );
+	color: var( --wp--preset--color--highlight-contrast );
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 700;
+	line-height: 1.3;
+}
+
+.pixonaut-shop-product .woocommerce-product-gallery.woocommerce-product-gallery.images {
+	display: flex;
+	float: none;
+	flex-direction: column;
+	gap: var( --wp--preset--spacing--30 );
+	width: 100%;
+	margin: 0;
+}
+
+/* The gallery's picture, or each side of the plugin's preview, on a panel. */
+.pixonaut-shop-product .woocommerce-product-gallery .flex-viewport,
+.pixonaut-shop-product
+	.woocommerce-product-gallery:not( :has( .flex-viewport ) )
+	.woocommerce-product-gallery__wrapper,
+.pixonaut-shop-product .pixonaut-preview [ id^="pixonaut-preview-" ] {
+	overflow: hidden;
+	border: 1px solid var( --wp--preset--color--border );
+	border-radius: var( --wp--custom--radius--large );
+	background: var( --wp--preset--color--base );
+	box-shadow: var( --wp--preset--shadow--card );
+}
+
+.pixonaut-shop-product .woocommerce-product-gallery__image img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: var( --ps-frame-aspect, 1 );
+	object-fit: contain;
+}
+
+/* The Site Editor's placeholder gallery, at the frame style the store picks. */
+.pixonaut-shop-product .wc-block-editor-product-gallery > img {
+	aspect-ratio: var( --ps-frame-aspect, 1 );
+	object-fit: cover;
+}
+
+/* Before the slider's script runs, only the first picture shows. */
+.pixonaut-shop-product
+	.woocommerce-product-gallery:not( :has( .flex-viewport ) )
+	.woocommerce-product-gallery__image:not( :first-child ) {
+	display: none;
+}
+
+.pixonaut-shop-product
+	.woocommerce-product-gallery.woocommerce-product-gallery
+	.woocommerce-product-gallery__trigger {
+	display: none;
+}
+
+.pixonaut-shop-product .flex-control-thumbs {
+	display: grid;
+	grid-template-columns: repeat( 5, minmax( 0, 1fr ) );
+	gap: var( --wp--preset--spacing--30 );
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pixonaut-shop-product
+	.woocommerce-product-gallery.woocommerce-product-gallery
+	.flex-control-thumbs.flex-control-thumbs
+	li {
+	float: none;
+	width: auto;
+	margin: 0;
+}
+
+.pixonaut-shop-product
+	.woocommerce-product-gallery.woocommerce-product-gallery
+	.flex-control-thumbs.flex-control-thumbs
+	img {
+	display: block;
+	width: 100%;
+	aspect-ratio: 1;
+	object-fit: cover;
+	border: 2px solid transparent;
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--base );
+	cursor: pointer;
+	opacity: 1;
+}
+
+.pixonaut-shop-product
+	.woocommerce-product-gallery.woocommerce-product-gallery
+	.flex-control-thumbs.flex-control-thumbs
+	img.flex-active {
+	border-color: var( --wp--preset--color--accent );
+}
+
+/* ---------- The plugin's preview and form ---------- */
+
+/*
+ * The plugin hides its parts with `hidden` (a variation bought without a
+ * design, another approval mode); a display set here never overrides that.
+ */
+
+.pixonaut-shop-product .pixonaut-preview:not( [ hidden ] ) {
+	display: flex;
+	flex-direction: column;
+	gap: var( --wp--preset--spacing--30 );
+}
+
+/*
+ * Each side's preview is held at the frame's shape, the store's or the one
+ * the plugin opens it at, whatever view it shows later: the plugin holds its
+ * preview element at `--pixonaut-preview-height`, here the frame's width
+ * over that shape, and the SDK draws the preview contained in it, so
+ * switching side, view or variant never moves the page. The SDK's strip of
+ * views, and the one the plugin prints until it is drawn, keep
+ * `--pixonaut-views-gap` above them, at the page's rhythm.
+ */
+.pixonaut-shop-product .pixonaut-preview {
+	--pixonaut-views-gap: var( --wp--preset--spacing--30 );
+}
+
+.pixonaut-shop-product .pixonaut-preview .pixonaut-preview__frame {
+	--ps-frame-shape: var( --ps-frame-aspect, var( --pixonaut-preview-aspect, 1 ) );
+	--pixonaut-preview-height: calc( 100cqi / var( --ps-frame-shape ) );
+	container-type: inline-size;
+}
+
+/* The panel's border stays inside the frame, level with the form's card. */
+.pixonaut-shop-product .pixonaut-preview [ id^="pixonaut-preview-" ] {
+	box-sizing: border-box;
+}
+
+/*
+ * On a phone the frame spans the column, up to the width that makes it and
+ * the plugin's mark (`--pixonaut-preview-mark`, unset where no mark shows)
+ * 80vh tall at its shape, so only a design taller than about 5:7 narrows. A
+ * preview the plugin pins (`data-pixonaut-pinned`) never covers the form under
+ * it: its column is only as tall as the preview, so it has nowhere to stick.
+ */
+@media ( max-width: 767px ) {
+	.pixonaut-shop-product .pixonaut-preview .pixonaut-preview__frame {
+		max-width: calc(
+			( var( --ps-phone-preview-height ) - var( --pixonaut-preview-mark, 0px ) ) *
+			var( --ps-frame-shape )
+		);
+	}
+}
+
+.pixonaut-shop-product-info .pixonaut-form:not( [ hidden ] ) {
+	display: flex;
+	flex-direction: column;
+	gap: var( --wp--preset--spacing--40 );
+	margin-bottom: var( --wp--preset--spacing--40 );
+}
+
+/* The note under the preview: small and muted, behind an eye, centred. */
+.pixonaut-shop-product .pixonaut-preview__note {
+	display: flex;
+	gap: var( --wp--preset--spacing--20 );
+	align-items: center;
+	justify-content: center;
+	margin: 0;
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+	opacity: 1;
+}
+
+.pixonaut-preview__note::before {
+	content: "";
+	flex: none;
+	width: var( --ps-inline-icon-size );
+	height: var( --ps-inline-icon-size );
+	background-color: currentColor;
+	mask: var( --ps-icon-eye ) center / contain no-repeat;
+}
+
+/*
+ * The side tabs: one row on a hairline, the selected side underlined in
+ * `accent` over it. The plugin underlines the selected tab with
+ * `text-decoration`, and where it finds the theme's presets draws every tab
+ * as a bordered choice and the selected one with an inset ring, from
+ * selectors of up to four classes and attributes; these carry five, so the
+ * one underline is the only mark whichever stylesheet loads last.
+ */
+.pixonaut-tabs:not( [ hidden ] ) {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var( --wp--preset--spacing--40 );
+	margin: 0;
+	border-bottom: 1px solid var( --wp--preset--color--border );
+}
+
+.pixonaut-form .pixonaut-tabs .pixonaut-tabs__tab.pixonaut-tabs__tab[ aria-selected ] {
+	min-height: 0;
+	margin-bottom: -1px;
+	padding: var( --wp--preset--spacing--20 ) 0;
+	border: 0;
+	border-bottom: 2px solid transparent;
+	border-radius: 0;
+	background: none;
+	box-shadow: none;
+	color: var( --wp--preset--color--muted );
+	font: inherit;
+	font-weight: 600;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.pixonaut-form
+	.pixonaut-tabs
+	.pixonaut-tabs__tab.pixonaut-tabs__tab[ aria-selected="false" ]:hover {
+	color: var( --wp--preset--color--contrast );
+}
+
+.pixonaut-form .pixonaut-tabs .pixonaut-tabs__tab.pixonaut-tabs__tab[ aria-selected="true" ] {
+	border-bottom-color: var( --wp--preset--color--accent );
+	color: var( --wp--preset--color--accent );
+}
+
+/* The approval box, as the design's checkbox. */
+.pixonaut-approval:not( [ hidden ] ) {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var( --wp--preset--spacing--30 );
+	align-items: center;
+}
+
+.pixonaut-approval > label {
+	display: flex;
+	gap: var( --ps-checkbox-gap );
+	align-items: flex-start;
+	cursor: pointer;
+}
+
+.pixonaut-approval__box {
+	display: inline-grid;
+	flex: none;
+	place-items: center;
+	width: var( --ps-checkbox-size );
+	height: var( --ps-checkbox-size );
+	margin: 0;
+	border: 1px solid var( --wp--preset--color--border-strong );
+	border-radius: calc( var( --wp--custom--radius--small ) / 2 );
+	background: var( --wp--preset--color--base );
+	color: var( --wp--preset--color--accent-contrast );
+	cursor: pointer;
+	appearance: none;
+}
+
+.pixonaut-approval__box:checked {
+	border-color: var( --wp--preset--color--accent );
+	background: var( --wp--preset--color--accent );
+}
+
+.pixonaut-approval__box:checked::before {
+	content: "";
+	width: 80%;
+	height: 80%;
+	background-color: currentColor;
+	mask: var( --ps-icon-check ) center / contain no-repeat;
+}
+
+/*
+ * The box sent unticked: the plugin marks it `aria-invalid`; without its
+ * script the browser's own `:user-invalid` stands in. The plugin draws the
+ * box itself for a theme with these presets, from a selector of four
+ * classes and attributes, so this one carries five to keep the error's
+ * border whichever stylesheet loads last.
+ */
+.pixonaut-form
+	.pixonaut-approval
+	.pixonaut-approval__box.pixonaut-approval__box:is( :user-invalid, [ aria-invalid="true" ] ) {
+	border-color: var( --wp--preset--color--error );
+	box-shadow: 0 0 0 1px var( --wp--preset--color--error );
+}
+
+/*
+ * The plugin's error under the box, as the design's checkbox error: in
+ * `error`, behind a warning icon, lined up with the label's text. It keeps
+ * its `hidden` until the form is sent unticked.
+ */
+.pixonaut-approval__error:not( [ hidden ] ) {
+	display: flex;
+	flex-basis: 100%;
+	gap: var( --wp--preset--spacing--20 );
+	align-items: flex-start;
+	margin: 0 0 0 calc( var( --ps-checkbox-size ) + var( --ps-checkbox-gap ) );
+	color: var( --wp--preset--color--error );
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 600;
+}
+
+.pixonaut-approval__error::before {
+	content: "";
+	flex: none;
+	width: var( --ps-inline-icon-size );
+	height: var( --ps-inline-icon-size );
+	background-color: currentColor;
+	mask: var( --ps-icon-info ) center / contain no-repeat;
+	transform: rotate( 180deg );
+}
+
+.pixonaut-approval__proof {
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var( --wp--preset--color--accent );
+	font: inherit;
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 600;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+/*
+ * The cart row the plugin gathers the approval box, the chosen variation's
+ * box and the price row into, once its designer has drawn it on its last
+ * step: the parts at the form's rhythm, as they were under it, and nothing
+ * left under the form.
+ */
+.pixonaut-shop-product-info .pixonaut-form:not( [ hidden ] ):has( .pixonaut-cart-row ) {
+	margin-bottom: 0;
+}
+
+.pixonaut-shop-product-info
+	.pixonaut-form
+	.pixonaut-cart-row
+	> .pixonaut-approval:not( [ hidden ] ) {
+	margin: 0 0 var( --wp--preset--spacing--40 );
+}
+
+/* ---------- The add-to-cart form ---------- */
+
+.pixonaut-shop-product-info form.cart {
+	display: flex;
+	flex-direction: column;
+	gap: var( --wp--preset--spacing--40 );
+}
+
+/*
+ * Nothing under the form, so the purchase panel's padding is the same at its
+ * foot as at its sides: WooCommerce's stylesheet puts 2em there, and clears
+ * its floats with an empty box at each end, which in a flex column would
+ * take a gap of its own; both from selectors of three classes and three
+ * elements.
+ */
+.pixonaut-shop-product .pixonaut-shop-product-info form.cart.cart {
+	margin: 0;
+}
+
+.pixonaut-shop-product .pixonaut-shop-product-info form.cart.cart::before,
+.pixonaut-shop-product .pixonaut-shop-product-info form.cart.cart::after {
+	display: none;
+}
+
+.pixonaut-shop-product-info :where( form.cart, .single_variation_wrap ) > * {
+	margin: 0;
+}
+
+.pixonaut-shop-product-info .single_variation_wrap {
+	display: flex;
+	flex-direction: column;
+}
+
+/*
+ * The chosen variation's description, price and stock, spaced from the
+ * designer and the price row under them only when there is one to show:
+ * WooCommerce shows the box, with an inline display, as empty boxes when
+ * there is none, and spaces it from a selector of four classes and three
+ * elements.
+ */
+.pixonaut-shop-product
+	.pixonaut-shop-product-info.pixonaut-shop-product-info
+	.single_variation_wrap
+	.single_variation.single_variation {
+	margin: 0;
+}
+
+.pixonaut-shop-product
+	.pixonaut-shop-product-info.pixonaut-shop-product-info
+	.single_variation_wrap
+	.single_variation.single_variation:has( > :not( :empty ) ) {
+	margin-bottom: var( --wp--preset--spacing--40 );
+}
+
+.pixonaut-shop-product-info .stock {
+	margin: 0;
+	color: var( --wp--preset--color--success );
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 600;
+}
+
+.pixonaut-shop-product-info .stock.out-of-stock {
+	color: var( --wp--preset--color--error );
+}
+
+/*
+ * A variable product's options, drawn as the designer draws its fields: the
+ * label over its menu, with WooCommerce's Clear link at the end of the
+ * first option's label row rather than on a line of its own under the menu,
+ * where it held the room it takes even while hidden. WooCommerce's
+ * stylesheet spaces the table and styles the link from selectors of up to
+ * three classes and two elements; the ones here carry more.
+ */
+.pixonaut-shop-product
+	.pixonaut-shop-product-info.pixonaut-shop-product-info
+	:is( table.variations.variations, table.variations.variations tbody ) {
+	display: block;
+	width: 100%;
+	margin: 0;
+	border-collapse: collapse;
+}
+
+.pixonaut-shop-product-info table.variations tr {
+	display: grid;
+	grid-template-columns: minmax( 0, 1fr ) auto;
+	gap: var( --ps-designer-label-gap ) var( --wp--preset--spacing--30 );
+	align-items: baseline;
+}
+
+.pixonaut-shop-product-info table.variations tr + tr {
+	margin-top: var( --wp--preset--spacing--40 );
+}
+
+.pixonaut-shop-product
+	.pixonaut-shop-product-info.pixonaut-shop-product-info
+	table.variations.variations
+	th {
+	display: block;
+	grid-column: 1;
+	padding: 0;
+	border: 0;
+	line-height: inherit;
+	text-align: start;
+}
+
+/* The menu, its chips and the Clear link are laid out in the row's grid. */
+.pixonaut-shop-product
+	.pixonaut-shop-product-info.pixonaut-shop-product-info
+	table.variations.variations
+	td {
+	display: contents;
+}
+
+.pixonaut-shop-product
+	.pixonaut-shop-product-info.pixonaut-shop-product-info
+	table.variations.variations
+	th
+	label {
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 600;
+}
+
+.pixonaut-shop-product
+	.pixonaut-shop-product-info.pixonaut-shop-product-info
+	table.variations.variations
+	select {
+	grid-column: 1 / -1;
+	width: 100%;
+	min-width: 0;
+	height: var( --ps-designer-field-height );
+	margin: 0;
+	padding: 0 var( --wp--preset--spacing--30 );
+	border: 1px solid var( --wp--preset--color--border );
+	border-radius: var( --wp--custom--radius--small );
+	background-color: var( --wp--preset--color--base );
+	color: var( --wp--preset--color--contrast );
+	font: inherit;
+	font-size: var( --wp--preset--font-size--small );
+}
+
+/* The menu the swatches stand in for, which WooCommerce's stylesheet would show. */
+.pixonaut-shop-product
+	.pixonaut-shop-product-info.pixonaut-shop-product-info
+	table.variations.variations
+	select[ hidden ] {
+	display: none;
+}
+
+.pixonaut-shop-product
+	.pixonaut-shop-product-info.pixonaut-shop-product-info
+	table.variations.variations
+	.reset_variations {
+	grid-row: 1;
+	grid-column: 2;
+	margin: 0;
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+}
+
+/*
+ * The Use swatches style's chips (`Product\VariationSwatches`), as the
+ * designer draws its option chips: a hairline ring, the chosen one ringed
+ * in `accent` and heavier, one WooCommerce cannot sell faded.
+ */
+.pixonaut-shop-swatches {
+	display: flex;
+	grid-column: 1 / -1;
+	flex-wrap: wrap;
+	gap: var( --wp--preset--spacing--20 );
+}
+
+.pixonaut-shop-swatch {
+	display: inline-flex;
+	position: relative;
+	align-items: center;
+	justify-content: center;
+	min-width: var( --ps-tile-size );
+	height: var( --ps-chip-height );
+	padding: 0 var( --wp--preset--spacing--30 );
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--base );
+	box-shadow: inset 0 0 0 1px var( --wp--preset--color--border );
+	color: var( --wp--preset--color--contrast );
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.pixonaut-shop-swatch:has( :checked ) {
+	box-shadow: inset 0 0 0 2px var( --wp--preset--color--accent );
+	font-weight: 600;
+}
+
+.pixonaut-shop-swatch:has( :focus-visible ) {
+	outline: 2px solid var( --wp--preset--color--accent );
+	outline-offset: 2px;
+}
+
+.pixonaut-shop-swatch:has( :disabled ) {
+	opacity: var( --ps-unavailable-opacity );
+	cursor: default;
+}
+
+/* The radio itself, over its chip so it keeps its focus and its click, unseen. */
+.pixonaut-shop-swatch__input {
+	position: absolute;
+	inset: 0;
+	margin: 0;
+	opacity: 0;
+	cursor: inherit;
+}
+
+/* ---------- The price row (Product\PriceRow): price, quantity, button ---------- */
+
+/* WooCommerce lays the quantity and button out as a flex row; the row holds them now. */
+.pixonaut-shop-product-info
+:is( form.cart, .woocommerce-variation-add-to-cart ):has( > .pixonaut-shop-buy-row ) {
+	display: block;
+}
+
+.pixonaut-shop-buy-row {
+	display: flex;
+	container: pixonaut-shop-buy-row / inline-size;
+	flex-wrap: wrap;
+	gap: var( --wp--preset--spacing--30 );
+	align-items: center;
+	padding-top: var( --wp--preset--spacing--40 );
+	border-top: 1px solid var( --wp--preset--color--border );
+}
+
+.pixonaut-shop-price {
+	margin-right: auto;
+	color: var( --wp--preset--color--accent );
+	font-family: var( --wp--preset--font-family--heading );
+	font-size: var( --wp--preset--font-size--x-large );
+	font-weight: 700;
+	line-height: 1.2;
+}
+
+.pixonaut-shop-price del {
+	color: var( --wp--preset--color--muted );
+	font-size: 0.6em;
+	font-weight: 400;
+}
+
+.pixonaut-shop-price ins {
+	text-decoration: none;
+}
+
+.pixonaut-shop-buy-row__actions {
+	display: flex;
+	flex: 1 1 auto;
+	gap: var( --wp--preset--spacing--30 );
+	justify-content: flex-end;
+	max-width: 100%;
+}
+
+.pixonaut-shop-buy-row .quantity {
+	align-self: center;
+	margin: 0;
+}
+
+.pixonaut-shop-buy-row .quantity .qty {
+	box-sizing: border-box;
+	width: var( --ps-quantity-width );
+	min-height: var( --ps-control-height );
+	margin: 0;
+	padding: 0 var( --wp--preset--spacing--20 );
+	border: 1px solid var( --wp--preset--color--border-strong );
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--base );
+	color: var( --wp--preset--color--contrast );
+	font: inherit;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums lining-nums;
+	text-align: center;
+}
+
+/*
+ * What sits beside the quantity takes the button's room, whether it is
+ * WooCommerce's button, a plugin's button in that place, or a message saying
+ * why there is none.
+ */
+.pixonaut-shop-buy-row .pixonaut-shop-buy-row__actions > :not( .quantity ) {
+	flex: 0 1 16rem;
+	margin: 0;
+}
+
+/* A quantity WooCommerce hides (sold one at a time) leaves the button the room. */
+.pixonaut-shop-buy-row .quantity:has( input[ type="hidden" ] ) {
+	display: none;
+}
+
+@media ( max-width: 767px ) {
+	.pixonaut-shop-price {
+		flex: 1 0 100%;
+	}
+
+	.pixonaut-shop-buy-row .pixonaut-shop-buy-row__actions > :not( .quantity ) {
+		flex: 1 1 auto;
+	}
+
+	.pixonaut-shop-product .woocommerce-product-gallery .flex-control-thumbs {
+		grid-template-columns: repeat( 4, minmax( 0, 1fr ) );
+	}
+}
+
+/*
+ * In a row too narrow for the quantity and two buttons side by side, each
+ * takes an equal share of its line and a button keeps its label on one line,
+ * so a second button moves to a line of its own rather than squeezing the first.
+ */
+@container pixonaut-shop-buy-row ( max-width: 30rem ) {
+	.pixonaut-shop-buy-row__actions {
+		flex-wrap: wrap;
+		justify-content: flex-start;
+	}
+
+	.pixonaut-shop-buy-row .pixonaut-shop-buy-row__actions > :not( .quantity ) {
+		flex: 1 1 0;
+	}
+
+	.pixonaut-shop-buy-row__actions > .button {
+		white-space: nowrap;
+	}
+}
+
+/* ---------- Related products (pixonaut-shop/related-products) ---------- */
+
+.pixonaut-shop-related-products > .wp-block-heading {
+	margin: 0 0 var( --wp--preset--spacing--50 );
+}
+
+/* ---------- The promises band ---------- */
+
+.pixonaut-shop-product-page > .is-style-band-tint-1 {
+	padding-block: var( --wp--preset--spacing--60 );
+}
+
+/* A store that has not written its promises yet shows no empty band. */
+.pixonaut-shop-product-page > .is-style-band-tint-1:not( :has( .wp-block-template-part > * ) ) {
+	display: none;
+}

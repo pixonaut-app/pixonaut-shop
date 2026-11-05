@@ -1,0 +1,17 @@
+includes:
+	- vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+	level: max
+	# The oldest PHP the theme supports (style.css's Requires PHP), so a
+	# newer language feature fails here even though the tools run on 8.5.
+	phpVersion: 80200
+	paths:
+		- inc
+		- functions.php
+		- patterns
+		- src/blocks
+	scanFiles:
+		- vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
+		- vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+	treatPhpDocTypesAsCertain: false

@@ -1,0 +1,55 @@
+/*
+ * What holds a typeface's room while it loads: a face on the system's own
+ * Arial or a font drawn to its measures (Liberation Sans, Arimo), scaled and
+ * given the line metrics of the typeface it stands in for, so the swap barely
+ * shows. Each family in theme.json and the Nature variation names
+ * its own right after the typeface. A device with none of these fonts goes on
+ * to the rest of the stack.
+ *
+ * The values are the typeface's own: the average width of mixed Latin text
+ * against the fallback's at the same weight, and its ascent and descent, over
+ * that scale. Regular covers the weights up to 500 and bold the rest. Bold
+ * draws the prices as well as the headings, and Arial's digits are narrower
+ * against these typefaces' than its letters, so its scale is halfway between
+ * the two, which leaves both a little off rather than a price far off.
+ */
+
+@font-face {
+	font-family: "Inter Fallback";
+	font-weight: 100 500;
+	src: local( "Arial" ), local( "Liberation Sans" ), local( "Arimo" );
+	size-adjust: 106.74%;
+	ascent-override: 90.78%;
+	descent-override: 22.58%;
+	line-gap-override: 0%;
+}
+
+@font-face {
+	font-family: "Inter Fallback";
+	font-weight: 600 900;
+	src: local( "Arial Bold" ), local( "Liberation Sans Bold" ), local( "Arimo Bold" );
+	size-adjust: 107.06%;
+	ascent-override: 90.51%;
+	descent-override: 22.51%;
+	line-gap-override: 0%;
+}
+
+@font-face {
+	font-family: "Figtree Fallback";
+	font-weight: 100 500;
+	src: local( "Arial" ), local( "Liberation Sans" ), local( "Arimo" );
+	size-adjust: 100.37%;
+	ascent-override: 94.65%;
+	descent-override: 24.91%;
+	line-gap-override: 0%;
+}
+
+@font-face {
+	font-family: "Figtree Fallback";
+	font-weight: 600 900;
+	src: local( "Arial Bold" ), local( "Liberation Sans Bold" ), local( "Arimo Bold" );
+	size-adjust: 99.71%;
+	ascent-override: 95.28%;
+	descent-override: 25.07%;
+	line-gap-override: 0%;
+}

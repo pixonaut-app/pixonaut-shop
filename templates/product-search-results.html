@@ -1,0 +1,63 @@
+<!-- wp:template-part {"slug":"header","tagName":"header"} /-->
+
+<!-- wp:group {"tagName":"main","className":"pixonaut-shop-archive pixonaut-shop-search","layout":{"type":"constrained"}} -->
+<main class="wp-block-group pixonaut-shop-archive pixonaut-shop-search">
+	<!-- wp:group {"className":"is-style-panel pixonaut-shop-search-panel","align":"wide","layout":{"type":"default"}} -->
+	<div class="wp-block-group alignwide is-style-panel pixonaut-shop-search-panel">
+		<!-- wp:query-title {"type":"search","showSearchTerm":false,"level":1} /-->
+
+		<!-- wp:search {"showLabel":false,"query":{"post_type":"product"},"namespace":"woocommerce/product-search","className":"pixonaut-shop-search-field"} /-->
+
+		<!-- wp:pattern {"slug":"pixonaut-shop/search-no-results"} /-->
+	</div>
+	<!-- /wp:group -->
+
+	<!-- wp:woocommerce/store-notices {"align":"wide"} /-->
+
+	<!-- wp:group {"className":"pixonaut-shop-archive-toolbar","align":"wide","layout":{"type":"flex","flexWrap":"nowrap","justifyContent":"space-between"}} -->
+	<div class="wp-block-group alignwide pixonaut-shop-archive-toolbar">
+		<!-- wp:woocommerce/product-results-count {"textColor":"muted","fontSize":"small"} /-->
+
+		<!-- wp:woocommerce/catalog-sorting /-->
+	</div>
+	<!-- /wp:group -->
+
+	<!-- wp:woocommerce/product-collection {"queryId":0,"query":{"woocommerceAttributes":[],"woocommerceStockStatus":["instock","outofstock","onbackorder"],"taxQuery":{},"isProductCollectionBlock":true,"perPage":12,"pages":0,"offset":0,"postType":"product","order":"asc","orderBy":"title","author":"","search":"","exclude":[],"sticky":"","inherit":true},"tagName":"div","displayLayout":{"type":"flex","columns":4,"shrinkColumns":false},"dimensions":{"widthType":"fill"},"queryContextIncludes":["collection"],"align":"wide"} -->
+	<div class="wp-block-woocommerce-product-collection alignwide">
+		<!-- wp:woocommerce/product-template -->
+			<!-- wp:woocommerce/product-image {"showSaleBadge":false,"isDescendentOfQueryLoop":true} -->
+				<!-- wp:woocommerce/product-sale-badge {"isDescendentOfQueryLoop":true,"align":"left"} /-->
+			<!-- /wp:woocommerce/product-image -->
+
+			<!-- wp:post-title {"level":2,"isLink":true,"__woocommerceNamespace":"woocommerce/product-collection/product-title"} /-->
+
+			<!-- wp:woocommerce/product-summary {"isDescendentOfQueryLoop":true} /-->
+
+			<!-- wp:woocommerce/product-price {"isDescendentOfQueryLoop":true} /-->
+		<!-- /wp:woocommerce/product-template -->
+
+		<!-- wp:query-pagination {"className":"pixonaut-shop-search-pagination","layout":{"type":"flex","justifyContent":"center"}} -->
+			<!-- wp:query-pagination-previous /-->
+
+			<!-- wp:query-pagination-numbers /-->
+
+			<!-- wp:query-pagination-next /-->
+		<!-- /wp:query-pagination -->
+	</div>
+	<!-- /wp:woocommerce/product-collection -->
+
+	<!-- wp:group {"className":"pixonaut-shop-archive-popular","align":"wide","layout":{"type":"default"}} -->
+	<div class="wp-block-group alignwide pixonaut-shop-archive-popular">
+		<!-- wp:pattern {"slug":"pixonaut-shop/popular-products"} /-->
+	</div>
+	<!-- /wp:group -->
+
+	<!-- wp:group {"className":"is-style-band-tint-1 pixonaut-shop-archive-promises","align":"full","layout":{"type":"constrained"}} -->
+	<div class="wp-block-group alignfull is-style-band-tint-1 pixonaut-shop-archive-promises">
+		<!-- wp:template-part {"slug":"promises","align":"wide"} /-->
+	</div>
+	<!-- /wp:group -->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","tagName":"footer"} /-->

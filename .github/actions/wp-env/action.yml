@@ -1,0 +1,56 @@
+name: wp-env
+description: >
+  The theme built and running in wp-env with WooCommerce, activated on both
+  the development and tests sites. Shared by the integration job and every
+  end-to-end shard, so they cannot drift apart.
+
+inputs:
+  php-version:
+    description: PHP version for Composer on the runner (ci.yml's PHP_VERSION).
+    required: true
+  node-version:
+    description: Node version (ci.yml's NODE_VERSION).
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: pnpm
+
+    - uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ inputs.php-version }}
+        coverage: none
+        tools: composer:v2
+
+    - uses: actions/cache@v4
+      with:
+        path: ~/.composer/cache
+        key: composer-${{ hashFiles('composer.lock') }}
+
+    # The integration suite runs vendor/bin/phpunit inside the wp-env
+    # container, and the e2e suite's fixtures load through the theme's
+    # autoloader, so the checkout needs vendor/ with its dev dependencies.
+    - shell: bash
+      run: composer install --no-interaction --no-progress --prefer-dist
+
+    - shell: bash
+      run: pnpm install --frozen-lockfile
+
+    - shell: bash
+      run: pnpm build
+
+    - shell: bash
+      run: pnpm env:start
+
+    # The integration suite runs against the tests site and the e2e suite
+    # against the development one, so the theme is activated on both.
+    - shell: bash
+      run: pnpm env:activate
+    - shell: bash
+      run: pnpm env:activate-tests

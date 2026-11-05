@@ -1,0 +1,8 @@
+/*
+ * The note under the mini-cart's subtotal: small text in the colour of the
+ * text around it.
+ */
+.wp-block-pixonaut-shop-free-shipping-note {
+	margin: 0;
+	font-size: var( --wp--preset--font-size--small );
+}

@@ -1,0 +1,47 @@
+/*
+ * A line icon at the size of the design's 24px grid, in the colour of the
+ * text around it. In a circle it is drawn in the accent colour on `tint-1`,
+ * or on `base` inside a band, whose ground is a tint already.
+ */
+.wp-block-pixonaut-shop-icon {
+	--ps-icon-size: 1.5rem;
+	--ps-icon-circle-size: 3rem;
+	display: inline-grid;
+	flex: none;
+	place-items: center;
+	width: var( --ps-icon-size );
+	height: var( --ps-icon-size );
+	line-height: 1;
+}
+
+.wp-block-pixonaut-shop-icon svg {
+	display: block;
+	width: var( --ps-icon-size );
+	height: var( --ps-icon-size );
+}
+
+.wp-block-pixonaut-shop-icon.has-circle {
+	width: var( --ps-icon-circle-size );
+	height: var( --ps-icon-circle-size );
+	border-radius: 50%;
+	background: var( --wp--preset--color--tint-1 );
+}
+
+.wp-block-pixonaut-shop-icon.has-circle:not( .has-text-color ) {
+	color: var( --wp--preset--color--accent );
+}
+
+:where( .is-style-band-tint-1, .is-style-band-tint-2 ) .wp-block-pixonaut-shop-icon.has-circle {
+	background: var( --wp--preset--color--base );
+}
+
+/*
+ * The editor wraps the server-rendered icon in the block's own wrapper, which
+ * carries the size, circle and colour; the inner one only passes them on.
+ * Listed with `.has-circle` so it also outranks the circle's accent colour.
+ */
+.wp-block-pixonaut-shop-icon .wp-block-pixonaut-shop-icon,
+.wp-block-pixonaut-shop-icon .wp-block-pixonaut-shop-icon.has-circle {
+	display: contents;
+	color: inherit;
+}

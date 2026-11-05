@@ -1,0 +1,45 @@
+<!-- wp:template-part {"slug":"header","tagName":"header"} /-->
+
+<!-- wp:group {"tagName":"main","className":"pixonaut-shop-product-page","layout":{"type":"constrained"}} -->
+<main class="wp-block-group pixonaut-shop-product-page">
+	<!-- wp:woocommerce/breadcrumbs {"align":"wide"} /-->
+
+	<!-- wp:woocommerce/store-notices {"align":"wide"} /-->
+
+	<!-- wp:columns {"isStackedOnMobile":false,"align":"wide","className":"pixonaut-shop-product","style":{"spacing":{"blockGap":{"left":"var:preset|spacing|60"}}}} -->
+	<div class="wp-block-columns alignwide is-not-stacked-on-mobile pixonaut-shop-product">
+		<!-- wp:column -->
+		<div class="wp-block-column">
+			<!-- wp:woocommerce/product-image-gallery /-->
+		</div>
+		<!-- /wp:column -->
+
+		<!-- wp:column -->
+		<div class="wp-block-column">
+			<!-- wp:group {"className":"is-style-panel pixonaut-shop-product-info","layout":{"type":"default"}} -->
+			<div class="wp-block-group is-style-panel pixonaut-shop-product-info">
+				<!-- wp:post-title {"level":1,"fontSize":"x-large","__woocommerceNamespace":"woocommerce/product-query/product-title"} /-->
+
+				<!-- wp:woocommerce/product-summary {"isDescendentOfSingleProductTemplate":true,"textColor":"muted","fontSize":"small"} /-->
+
+				<!-- wp:woocommerce/add-to-cart-form /-->
+			</div>
+			<!-- /wp:group -->
+		</div>
+		<!-- /wp:column -->
+	</div>
+	<!-- /wp:columns -->
+
+	<!-- wp:pattern {"slug":"pixonaut-shop/product-description"} /-->
+
+	<!-- wp:pattern {"slug":"pixonaut-shop/related-products"} /-->
+
+	<!-- wp:group {"align":"full","className":"is-style-band-tint-1","layout":{"type":"constrained"}} -->
+	<div class="wp-block-group alignfull is-style-band-tint-1">
+		<!-- wp:template-part {"slug":"promises","align":"wide"} /-->
+	</div>
+	<!-- /wp:group -->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","tagName":"footer"} /-->

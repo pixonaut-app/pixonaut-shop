@@ -1,0 +1,619 @@
+/*
+ * The order received page (templates/order-confirmation.html), and an
+ * order's details wherever WooCommerce prints them: its lines with their
+ * personalisation, state and tracking, its totals and its addresses. My
+ * account's order view shows the same, from WooCommerce's classic order
+ * table and customer details and the theme's overview
+ * (inc/Account/ViewOrder.php), in the last section.
+ *
+ * WooCommerce's order-confirmation blocks print the markup and the words;
+ * this gives them the design's look with presets only. Pixonaut for
+ * WooCommerce's rows are WooCommerce's item meta rows, with the line's state
+ * and tracking marked by the theme's classes (inc/Pixonaut/Integration.php).
+ */
+
+/*
+ * The check badge's size, the design's 4.5rem circle, which its check fills
+ * as the design's icon does on its 24px grid, and the next steps' 3rem
+ * number tiles. The lede keeps to the design's 40rem measure; the account
+ * offer wraps under the button below 20rem. A label sits a hairline
+ * (0.125rem) above its value, and a line's details a quarter line below it.
+ */
+:root {
+	--ps-check-badge-size: 4.5rem;
+	--ps-step-number-size: 3rem;
+	--ps-lede-measure: 40rem;
+	--ps-account-offer-min-width: 20rem;
+	--ps-hairline-gap: 0.125rem;
+	--ps-details-gap: 0.25rem;
+	--ps-icon-check: url( "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M16.7 7.1l-6.3 8.5-3.3-2.5-.9 1.2 4.5 3.4L17.9 8z'/%3E%3C/svg%3E" );
+}
+
+/* ---------- The band: badge, pill, status and overview ---------- */
+
+.pixonaut-shop-order-received {
+	text-align: center;
+}
+
+.pixonaut-shop-check-badge {
+	display: grid;
+	place-items: center;
+	width: var( --ps-check-badge-size );
+	height: var( --ps-check-badge-size );
+	margin-bottom: var( --wp--preset--spacing--40 );
+	border-radius: 50%;
+	background: var( --wp--preset--color--highlight );
+}
+
+.pixonaut-shop-check-badge::before {
+	content: "";
+	width: 100%;
+	height: 100%;
+	background-color: var( --wp--preset--color--highlight-contrast );
+	mask: var( --ps-icon-check ) center / contain no-repeat;
+}
+
+/* The pill is as wide as its text, so it centres as a box rather than as text. */
+.pixonaut-shop-order-received .pixonaut-shop-order-number {
+	display: flex;
+	width: fit-content;
+}
+
+/* WooCommerce's status: the store's thank-you heading and its intro, as a lede. */
+.wc-block-order-confirmation-status h1 {
+	margin: 0 0 var( --wp--preset--spacing--40 );
+}
+
+.wc-block-order-confirmation-status p,
+.wc-block-order-confirmation-status-description p {
+	max-width: var( --ps-lede-measure );
+	margin: 0 auto;
+	color: var( --wp--preset--color--muted );
+}
+
+/* WooCommerce sets the overview wide; the design keeps it to the content's width. */
+.pixonaut-shop-order-received
+> .wc-block-order-confirmation-summary.wc-block-order-confirmation-summary {
+	max-width: var( --wp--style--global--content-size );
+	margin-top: var( --wp--preset--spacing--60 );
+	margin-bottom: 0;
+}
+
+/*
+ * The overview: the order's facts in a white panel, label over value. Each
+ * as wide as its value, so an address or a long date never breaks mid-word,
+ * sharing what is left of the row.
+ */
+.wc-block-order-confirmation-summary-list.wc-block-order-confirmation-summary-list {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-start;
+	gap: var( --wp--preset--spacing--40 );
+	margin: 0;
+	padding: var( --wp--preset--spacing--50 );
+	border: 1px solid var( --wp--preset--color--border );
+	border-radius: var( --wp--custom--radius--large );
+	background: var( --wp--preset--color--base );
+	box-shadow: var( --wp--preset--shadow--card );
+	list-style: none;
+	text-align: left;
+}
+
+.wc-block-order-confirmation-summary-list-item.wc-block-order-confirmation-summary-list-item {
+	display: flex;
+	flex-direction: column;
+	gap: var( --ps-hairline-gap );
+	flex: 1 1 auto;
+	min-width: 0;
+	width: auto;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+.wc-block-order-confirmation-summary ul li > .wc-block-order-confirmation-summary-list-item__key {
+	font-weight: 400;
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+}
+
+.wc-block-order-confirmation-summary ul li > .wc-block-order-confirmation-summary-list-item__value {
+	/* A value longer than the panel, such as a long email, breaks rather than overflows. */
+	overflow-wrap: anywhere;
+	font-family: var( --wp--preset--font-family--heading );
+	font-weight: 700;
+}
+
+/* ---------- What happens next: the store's steps, numbered ---------- */
+
+.pixonaut-shop-order-next-steps:empty {
+	display: none;
+}
+
+.pixonaut-shop-steps {
+	counter-reset: pixonaut-shop-step;
+}
+
+.pixonaut-shop-step {
+	display: grid;
+	grid-template-columns: var( --ps-step-number-size ) minmax( 0, 1fr );
+	column-gap: var( --wp--preset--spacing--30 );
+	align-content: start;
+	counter-increment: pixonaut-shop-step;
+}
+
+.pixonaut-shop-step::before {
+	content: counter( pixonaut-shop-step );
+	display: grid;
+	grid-row: 1 / span 2;
+	place-items: center;
+	width: var( --ps-step-number-size );
+	height: var( --ps-step-number-size );
+	border-radius: 50%;
+	background: var( --wp--preset--color--tint-1 );
+	color: var( --wp--preset--color--accent );
+	font-family: var( --wp--preset--font-family--heading );
+	font-weight: 700;
+}
+
+.pixonaut-shop-step > * {
+	grid-column: 2;
+	margin-block: 0;
+}
+
+.pixonaut-shop-step > * + * {
+	margin-block-start: var( --ps-hairline-gap );
+}
+
+/* ---------- The order's details: lines, totals and addresses ---------- */
+
+.pixonaut-shop-order-section {
+	padding-top: var( --wp--preset--spacing--60 );
+	padding-bottom: var( --wp--preset--spacing--70 );
+}
+
+/* The store's steps end on their own spacing. */
+.pixonaut-shop-order-next-steps:not( :empty ) + .pixonaut-shop-order-section {
+	padding-top: 0;
+}
+
+.pixonaut-shop-order-details > * + * {
+	margin-block-start: var( --wp--preset--spacing--50 );
+}
+
+.pixonaut-shop-order-details :where( h2, h3 ) {
+	margin: 0 0 var( --wp--preset--spacing--40 );
+	font-size: var( --wp--preset--font-size--large );
+}
+
+.wc-block-order-confirmation-totals {
+	margin-top: 0;
+}
+
+/* WooCommerce's own rules are two classes deep; these repeat its block's class to win wherever they load. */
+.wc-block-order-confirmation-totals .wc-block-order-confirmation-totals__table {
+	width: 100%;
+	margin: 0;
+	border: 0;
+	border-collapse: collapse;
+}
+
+.wc-block-order-confirmation-totals .wc-block-order-confirmation-totals__table :is( th, td ) {
+	padding: var( --wp--preset--spacing--30 ) 0;
+	border-width: 0 0 1px;
+	border-style: solid;
+	border-color: var( --wp--preset--color--border );
+	text-align: left;
+	vertical-align: top;
+}
+
+.wc-block-order-confirmation-totals__table thead th {
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 700;
+}
+
+.wc-block-order-confirmation-totals
+	.wc-block-order-confirmation-totals__table
+	:is( td, th ).wc-block-order-confirmation-totals__total,
+.wc-block-order-confirmation-totals .wc-block-order-confirmation-totals__table tfoot td {
+	padding-left: var( --wp--preset--spacing--40 );
+	text-align: right;
+	white-space: nowrap;
+}
+
+.wc-block-order-confirmation-totals__product > a {
+	color: var( --wp--preset--color--contrast );
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.wc-block-order-confirmation-totals__product .product-quantity {
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 400;
+}
+
+.wc-block-order-confirmation-totals__table tfoot th {
+	font-weight: 600;
+}
+
+.wc-block-order-confirmation-totals
+	.wc-block-order-confirmation-totals__table
+	tfoot
+	tr:last-child
+	:is( th, td ) {
+	border-bottom-width: 0;
+	font-size: var( --wp--preset--font-size--large );
+	font-weight: 700;
+}
+
+.wc-block-order-confirmation-totals__table tfoot tr:last-child td {
+	color: var( --wp--preset--color--accent );
+	font-family: var( --wp--preset--font-family--heading );
+}
+
+/*
+ * A line's detail rows, WooCommerce's and Pixonaut for WooCommerce's alike:
+ * a design's field values, its state and its tracking. Small and muted, the
+ * label in the text colour.
+ */
+.wc-item-meta,
+.wc-block-order-confirmation-totals table .wc-item-meta {
+	margin: var( --ps-details-gap ) 0 0;
+	padding: 0;
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+	list-style: none;
+}
+
+.wc-item-meta li {
+	margin: var( --ps-hairline-gap ) 0 0;
+}
+
+.wc-item-meta li > p {
+	display: inline;
+	margin: 0;
+}
+
+.wc-item-meta-label {
+	color: var( --wp--preset--color--contrast );
+	font-weight: 600;
+}
+
+/* The line's state, in Pixonaut for WooCommerce's words, as a pill. */
+.pixonaut-shop-line-state {
+	display: inline-block;
+	padding: var( --ps-hairline-gap ) var( --wp--preset--spacing--30 );
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--tint-2 );
+	color: var( --wp--preset--color--contrast );
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.pixonaut-shop-line-tracking a {
+	color: var( --wp--preset--color--accent );
+	font-weight: 600;
+}
+
+.pixonaut-shop-order-addresses.pixonaut-shop-order-addresses {
+	gap: var( --wp--preset--spacing--50 );
+}
+
+.pixonaut-shop-order-addresses :where( h2, h3 ) {
+	margin-bottom: calc( var( --ps-hairline-gap ) * 3 );
+	font-size: var( --wp--preset--font-size--medium );
+}
+
+.pixonaut-shop-order-addresses
+	:is(
+		.wc-block-order-confirmation-shipping-address,
+		.wc-block-order-confirmation-billing-address
+	) {
+	padding: 0;
+	border: 0;
+	color: var( --wp--preset--color--muted );
+}
+
+.pixonaut-shop-order-addresses.wc-block-order-confirmation-address-wrapper {
+	margin-block-start: var( --wp--preset--spacing--50 );
+}
+
+/* ---------- The way on: back to the shop, or an account ---------- */
+
+.pixonaut-shop-order-actions {
+	margin-top: var( --wp--preset--spacing--50 );
+}
+
+/*
+ * WooCommerce's offer to create an account, in its own words, as one line
+ * beside the button: its note first, then its button as a link. WooCommerce
+ * draws it as a tinted box with `!important` margins.
+ */
+.pixonaut-shop-order-actions .wc-block-order-confirmation-create-account {
+	flex: 1 1 var( --ps-account-offer-min-width );
+	/* biome-ignore lint/complexity/noImportantStyles: only !important outranks WooCommerce's own !important margins. */
+	margin: 0 !important;
+	padding: 0;
+	background: none;
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+}
+
+.pixonaut-shop-order-actions .wc-block-order-confirmation-create-account form {
+	flex-flow: row wrap;
+	gap: 0 var( --wp--preset--spacing--20 );
+	align-items: baseline;
+	justify-content: flex-end;
+}
+
+.pixonaut-shop-order-actions
+	.wc-block-order-confirmation-create-account
+	form
+	.wc-block-order-confirmation-create-account-description {
+	order: -1;
+}
+
+.pixonaut-shop-order-actions
+	.wc-block-order-confirmation-create-account
+	form
+	.wc-block-order-confirmation-create-account-description
+	p {
+	font-size: inherit;
+	text-align: right;
+}
+
+.pixonaut-shop-order-actions
+	.wc-block-order-confirmation-create-account
+	form
+	.wc-block-components-button {
+	width: auto;
+	min-height: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var( --wp--preset--color--accent );
+	font: inherit;
+	text-decoration: underline;
+}
+
+/* ---------- My account's order view: the same look, on WooCommerce's classic markup ---------- */
+
+/*
+ * WooCommerce's classic rules reach a class, an element and two more
+ * classes deep; these start from the body's `woocommerce-account`, as the
+ * account's own rules do.
+ */
+.woocommerce-account .woocommerce ul.ps-order-overview {
+	display: grid;
+	grid-template-columns: repeat( 4, minmax( 0, 1fr ) );
+	gap: var( --wp--preset--spacing--40 );
+	width: auto;
+	margin: 0;
+	padding: var( --wp--preset--spacing--50 );
+	border: 1px solid var( --wp--preset--color--border );
+	border-radius: var( --wp--custom--radius--large );
+	background: var( --wp--preset--color--base );
+	box-shadow: var( --wp--preset--shadow--card );
+	font-size: inherit;
+	list-style: none;
+}
+
+.woocommerce-account .woocommerce ul.ps-order-overview li {
+	display: flex;
+	flex-direction: column;
+	gap: var( --ps-hairline-gap );
+	min-width: 0;
+	margin: 0;
+	text-transform: none;
+}
+
+.woocommerce-account .woocommerce ul.ps-order-overview .ps-order-overview__label {
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+}
+
+.woocommerce-account .woocommerce ul.ps-order-overview li > strong {
+	overflow-wrap: anywhere;
+	font-family: var( --wp--preset--font-family--heading );
+	font-weight: 700;
+}
+
+/* The panel's padding is the only space around WooCommerce's details. */
+.woocommerce-account .woocommerce .ps-order-panel > * {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+.woocommerce-account .woocommerce .ps-order-panel > * + * {
+	margin-block-start: var( --wp--preset--spacing--50 );
+}
+
+.woocommerce-account .woocommerce .ps-order-panel .woocommerce-order-details__title {
+	margin: 0 0 var( --wp--preset--spacing--40 );
+}
+
+.woocommerce-account .woocommerce table.woocommerce-table--order-details.order_details {
+	width: 100%;
+	margin: 0;
+	border: 0;
+	border-collapse: collapse;
+	border-radius: 0;
+}
+
+.woocommerce-account
+	.woocommerce
+	table.woocommerce-table--order-details.order_details
+	:is( th, td ) {
+	padding: var( --wp--preset--spacing--30 ) 0;
+	border-width: 0 0 1px;
+	border-style: solid;
+	border-color: var( --wp--preset--color--border );
+	background: none;
+	text-align: left;
+	vertical-align: top;
+}
+
+.woocommerce-account .woocommerce table.woocommerce-table--order-details.order_details thead th {
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 700;
+}
+
+/*
+ * Amounts on the right, kept on one line; a customer's note or a payment
+ * method's description in the foot still wraps.
+ */
+.woocommerce-account
+	.woocommerce
+	table.woocommerce-table--order-details.order_details
+	:is( .product-total, tfoot td ) {
+	padding-left: var( --wp--preset--spacing--40 );
+	font-weight: 400;
+	text-align: right;
+}
+
+.woocommerce-account
+	.woocommerce
+	table.woocommerce-table--order-details.order_details
+	:is( .product-total, tfoot td )
+	.woocommerce-Price-amount {
+	white-space: nowrap;
+}
+
+.woocommerce-account
+	.woocommerce
+	table.woocommerce-table--order-details.order_details
+	.product-name
+	> a {
+	color: var( --wp--preset--color--contrast );
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.woocommerce-account
+	.woocommerce
+	table.woocommerce-table--order-details.order_details
+	.product-quantity {
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 400;
+}
+
+.woocommerce-account .woocommerce table.woocommerce-table--order-details.order_details tfoot th {
+	font-weight: 600;
+}
+
+/*
+ * The foot's last row has no line under it. The total is the last row
+ * with an amount: WooCommerce may add the customer's note and the order's
+ * actions after it.
+ */
+.woocommerce-account
+	.woocommerce
+	table.woocommerce-table--order-details.order_details
+	tfoot
+	tr:last-child
+	:is( th, td ) {
+	border-bottom-width: 0;
+}
+
+.woocommerce-account
+	.woocommerce
+	table.woocommerce-table--order-details.order_details
+	tfoot
+	tr:has( .woocommerce-Price-amount ):not( :has( ~ tr .woocommerce-Price-amount ) )
+	:is( th, td ) {
+	font-size: var( --wp--preset--font-size--large );
+	font-weight: 700;
+}
+
+.woocommerce-account
+	.woocommerce
+	table.woocommerce-table--order-details.order_details
+	tfoot
+	tr:has( .woocommerce-Price-amount ):not( :has( ~ tr .woocommerce-Price-amount ) )
+	td {
+	color: var( --wp--preset--color--accent );
+	font-family: var( --wp--preset--font-family--heading );
+}
+
+/* The billing and shipping addresses side by side, as the order received page shows them. */
+.woocommerce-account .woocommerce .woocommerce-customer-details .addresses {
+	display: grid;
+	grid-template-columns: repeat( 2, minmax( 0, 1fr ) );
+	gap: var( --wp--preset--spacing--50 );
+}
+
+/* WooCommerce's clearfix would take the grid's first cell. */
+.woocommerce-account .woocommerce .woocommerce-customer-details .addresses::before,
+.woocommerce-account .woocommerce .woocommerce-customer-details .addresses::after {
+	content: none;
+}
+
+.woocommerce-account .woocommerce .woocommerce-customer-details .addresses > .woocommerce-column {
+	float: none;
+	width: auto;
+}
+
+.woocommerce-account .woocommerce .woocommerce-customer-details .woocommerce-column__title {
+	margin: 0 0 calc( var( --ps-hairline-gap ) * 3 );
+	font-size: var( --wp--preset--font-size--medium );
+	font-weight: 700;
+}
+
+.woocommerce-account .woocommerce .woocommerce-customer-details address {
+	width: auto;
+	padding: 0;
+	border: 0;
+	color: var( --wp--preset--color--muted );
+	font-style: normal;
+}
+
+/* The email and phone are lines of the address, without WooCommerce's icons. */
+.woocommerce-account
+	.woocommerce
+	.woocommerce-customer-details
+	address
+	:is( .woocommerce-customer-details--email, .woocommerce-customer-details--phone ) {
+	margin: 0;
+	padding: 0;
+}
+
+.woocommerce-account
+	.woocommerce
+	.woocommerce-customer-details
+	address
+	:is( .woocommerce-customer-details--email, .woocommerce-customer-details--phone )::before {
+	content: none;
+}
+
+/* ---------- Phones: WordPress's 782px breakpoint ---------- */
+
+@media ( max-width: 781px ) {
+	/* Two facts to a row, the design's phone overview. */
+	.wc-block-order-confirmation-summary-list-item.wc-block-order-confirmation-summary-list-item {
+		flex-basis: 40%;
+	}
+
+	.woocommerce-account .woocommerce ul.ps-order-overview {
+		grid-template-columns: repeat( 2, minmax( 0, 1fr ) );
+	}
+
+	.woocommerce-account .woocommerce .woocommerce-customer-details .addresses {
+		grid-template-columns: minmax( 0, 1fr );
+	}
+
+	.pixonaut-shop-order-actions .wc-block-order-confirmation-create-account form {
+		justify-content: flex-start;
+	}
+
+	.pixonaut-shop-order-actions
+		.wc-block-order-confirmation-create-account
+		form
+		.wc-block-order-confirmation-create-account-description
+		p {
+		text-align: left;
+	}
+}

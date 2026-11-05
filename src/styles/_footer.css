@@ -1,0 +1,99 @@
+/*
+ * The footer part: the store's name and tagline and two menus, then the
+ * copyright line and the legal menu, on the `strong` ground.
+ */
+
+.pixonaut-shop-footer a,
+.pixonaut-shop-footer .wp-block-navigation-item__content {
+	color: inherit;
+	text-decoration: none;
+}
+
+.pixonaut-shop-footer a:hover,
+.pixonaut-shop-footer .wp-block-navigation-item__content:hover {
+	text-decoration: underline;
+}
+
+.pixonaut-shop-footer__menus {
+	display: grid;
+	/* The name and tagline take half the row, each menu a quarter. */
+	grid-template-columns: 2fr 1fr 1fr;
+	gap: var( --wp--preset--spacing--60 );
+}
+
+/* The grid spaces its columns; the flow layout's top margins would only misalign them. */
+.pixonaut-shop-footer .pixonaut-shop-footer__menus > * {
+	margin-block: 0;
+}
+
+.pixonaut-shop-footer .wp-block-site-tagline {
+	/* A short paragraph's comfortable measure. */
+	max-inline-size: 40ch;
+	margin-block-start: var( --wp--preset--spacing--30 );
+}
+
+/*
+ * In the Site Editor the heading sits beside the menu, in a wrapper of its
+ * own (`src/editor/menu-heading.js`), stacked as the menu stacks it on the
+ * front end.
+ */
+.pixonaut-shop-footer .pixonaut-shop-headed-menu__preview {
+	display: flex;
+	flex-direction: column;
+	gap: var( --wp--preset--spacing--30 );
+}
+
+.pixonaut-shop-footer .pixonaut-shop-headed-menu {
+	gap: var( --wp--preset--spacing--30 );
+}
+
+.pixonaut-shop-footer .pixonaut-shop-headed-menu .wp-block-navigation__container {
+	gap: var( --wp--preset--spacing--20 );
+}
+
+.pixonaut-shop-footer .pixonaut-shop-headed-menu__heading {
+	margin: 0;
+	color: inherit;
+	font-size: var( --wp--preset--font-size--medium );
+	font-weight: 700;
+}
+
+.pixonaut-shop-footer .pixonaut-shop-footer__base {
+	margin-block-start: var( --wp--preset--spacing--60 );
+	padding-block-start: var( --wp--preset--spacing--50 );
+	/* A hairline a quarter as strong as the footer's text. */
+	border-block-start: 1px solid
+		color-mix( in srgb, var( --wp--preset--color--strong-contrast ) 25%, transparent );
+}
+
+.pixonaut-shop-footer__base p {
+	margin: 0;
+}
+
+.pixonaut-shop-footer .pixonaut-shop-footer__legal {
+	gap: var( --wp--preset--spacing--20 );
+}
+
+.pixonaut-shop-footer__legal .wp-block-navigation-item__content {
+	text-decoration: underline;
+}
+
+.pixonaut-shop-footer__legal .wp-block-navigation-item + .wp-block-navigation-item::before {
+	content: "·" / "";
+	margin-inline-end: var( --wp--preset--spacing--20 );
+}
+
+/* Phones, from WordPress's own 782px breakpoint: the name on top, the menus side by side. */
+@media ( max-width: 781px ) {
+	.pixonaut-shop-footer__menus {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	.pixonaut-shop-footer__about {
+		grid-column: 1 / -1;
+	}
+
+	.pixonaut-shop-footer .wp-block-site-title {
+		font-size: var( --wp--preset--font-size--medium );
+	}
+}

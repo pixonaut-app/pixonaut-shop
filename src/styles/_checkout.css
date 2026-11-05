@@ -1,0 +1,436 @@
+/*
+ * The checkout page and WooCommerce's Checkout block: the title row, each
+ * step of the form in its own panel with its number, when the store shows
+ * step numbers, in a badge, the terms and the place-order button in a last
+ * panel, and the order summary in a sticky panel beside the form.
+ *
+ * WooCommerce sizes the block by its own width and names the size on its
+ * layout (`is-large` when the summary fits beside the form). Below that it
+ * shows the summary collapsed above the form, which keeps WooCommerce's
+ * look, and prints the whole summary inside the place-order area; that one
+ * goes below the form here.
+ *
+ * WooCommerce's stylesheets may load after this one, so a rule that
+ * overrides one of theirs is more specific: it repeats a class of the
+ * element it styles.
+ */
+
+/*
+ * The badge a step's number sits in, 2rem round, and the lock before the
+ * secure payment line, a line icon at the text's size.
+ */
+:root {
+	--ps-checkout-step-badge: 2rem;
+	--ps-checkout-lock-size: 1rem;
+	--ps-icon-lock: url( "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6'%3E%3Cpath d='M6 10.5h12V20H6zM8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5'/%3E%3C/svg%3E" );
+}
+
+/* ---------- Title row (patterns/checkout-title.php) ---------- */
+
+.pixonaut-shop-checkout-head.pixonaut-shop-checkout-head {
+	margin-top: var( --wp--preset--spacing--40 );
+}
+
+/* ---------- Two columns: the form, and the summary beside it ---------- */
+
+.wc-block-checkout.wc-block-components-sidebar-layout.is-large {
+	display: grid;
+	grid-template-columns: minmax( 0, 1fr ) minmax( var( --ps-aside-min ), var( --ps-aside-max ) );
+	gap: var( --wp--preset--spacing--60 );
+	align-items: start;
+	margin: 0;
+}
+
+.wc-block-checkout.wc-block-components-sidebar-layout
+	> :is( .wc-block-components-main, .wc-block-components-sidebar ).wc-block-checkout__main,
+.wc-block-checkout.wc-block-components-sidebar-layout
+	> :is( .wc-block-components-main, .wc-block-components-sidebar ).wc-block-checkout__sidebar {
+	width: auto;
+	margin: 0;
+	padding: 0;
+}
+
+.wc-block-checkout.wc-block-components-sidebar-layout.is-large > .wc-block-checkout__main {
+	grid-column: 1;
+	grid-row: 1;
+}
+
+.wc-block-checkout.wc-block-components-sidebar-layout.is-large > .wc-block-checkout__sidebar {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+.wc-block-checkout__sidebar.wc-block-checkout__sidebar.is-sticky {
+	top: var( --wp--preset--spacing--40 );
+}
+
+/* The notices WooCommerce shows above the form when an order is refused. */
+.wp-block-woocommerce-checkout > .wc-block-components-notices:not( :empty ) {
+	margin-bottom: var( --wp--preset--spacing--50 );
+}
+
+/* ---------- The panels ---------- */
+
+/*
+ * The form's parts in order, one under another. The place-order area is a
+ * box of its own only for WooCommerce's layout; its parts take their places
+ * among the form's, so the summary it holds on a narrow block can go last.
+ */
+.wc-block-checkout .wc-block-checkout__form.wc-block-checkout__form {
+	display: flex;
+	flex-direction: column;
+}
+
+.wc-block-checkout .wc-block-checkout__form > .wc-block-checkout__actions {
+	display: contents;
+}
+
+/*
+ * Each step, numbered or not, and the whole summary (beside the form, or
+ * below it on a narrow block): the Panel block style's look. The order note
+ * is a step too, but it belongs to the last panel. A store's Checkout block
+ * has its step numbers off unless the store turns them on, so nothing here
+ * depends on them but the badge.
+ */
+.wc-block-checkout
+	.wc-block-checkout__form
+	> .wc-block-components-checkout-step:not( .wc-block-checkout__order-notes ),
+.wc-block-checkout.is-large
+	.wc-block-checkout__sidebar
+	.wp-block-woocommerce-checkout-order-summary-block,
+.wc-block-checkout
+	.wp-block-woocommerce-checkout-order-summary-block.checkout-order-summary-block-fill-wrapper {
+	margin: 0 0 var( --wp--preset--spacing--50 );
+	padding: var( --wp--preset--spacing--60 );
+	border: 1px solid var( --wp--preset--color--border );
+	border-radius: var( --wp--custom--radius--large );
+	background: var( --wp--preset--color--base );
+	box-shadow: var( --wp--preset--shadow--card );
+}
+
+/*
+ * The last panel is drawn from the parts after the steps: the order note,
+ * the terms, the place-order button and any paragraph, image or separator
+ * the store adds there. Each draws its own slice of the panel; the first
+ * the top, the last the bottom, and the shadow is cut where two slices
+ * meet so no seam shows. The step these follow is matched through
+ * `:where()` so it weighs as one class. A paragraph is matched by its
+ * element: WordPress adds `.wp-block-paragraph` to it only from 7.0.
+ */
+.wc-block-checkout
+	.wc-block-components-checkout-step:where( :not( .wc-block-checkout__order-notes ) )
+	~ :is(
+		.wc-block-checkout__order-notes,
+		.wc-block-checkout__terms,
+		p,
+		.wp-block-image,
+		.wp-block-separator
+	),
+.wc-block-checkout
+	.wc-block-components-checkout-step:where( :not( .wc-block-checkout__order-notes ) )
+	~ .wc-block-checkout__actions
+	> .wc-block-checkout__actions_row {
+	--ps-checkout-shadow-room: var( --wp--preset--spacing--40 );
+
+	/* Each slice overlaps the one above by a pixel, so a fractional height leaves no hairline. */
+	margin: -1px 0 0;
+	padding: var( --wp--preset--spacing--20 ) var( --wp--preset--spacing--60 );
+	border-inline: 1px solid var( --wp--preset--color--border );
+	background: var( --wp--preset--color--base );
+	box-shadow: var( --wp--preset--shadow--card );
+	clip-path: inset( 0 calc( -1 * var( --ps-checkout-shadow-room ) ) );
+}
+
+/* The first slice: no part of the last panel comes before it. */
+.wc-block-checkout
+	.wc-block-components-checkout-step:where( :not( .wc-block-checkout__order-notes ) )
+	~ :is(
+		.wc-block-checkout__order-notes,
+		.wc-block-checkout__terms,
+		p,
+		.wp-block-image,
+		.wp-block-separator
+	):not(
+		:is(
+				.wc-block-checkout__order-notes,
+				.wc-block-checkout__terms,
+				.wc-block-checkout__actions,
+				p,
+				.wp-block-image,
+				.wp-block-separator
+			)
+			~ *
+	),
+.wc-block-checkout
+	.wc-block-components-checkout-step:where( :not( .wc-block-checkout__order-notes ) )
+	~ .wc-block-checkout__actions:not(
+		:is(
+				.wc-block-checkout__order-notes,
+				.wc-block-checkout__terms,
+				p,
+				.wp-block-image,
+				.wp-block-separator
+			)
+			~ *
+	)
+	> .wc-block-checkout__actions_row {
+	margin-top: 0;
+	padding-top: var( --wp--preset--spacing--60 );
+	border-top: 1px solid var( --wp--preset--color--border );
+	border-top-left-radius: var( --wp--custom--radius--large );
+	border-top-right-radius: var( --wp--custom--radius--large );
+	clip-path: inset(
+		calc( -1 * var( --ps-checkout-shadow-room ) ) calc( -1 * var( --ps-checkout-shadow-room ) ) 0
+	);
+}
+
+/* The last slice: no part of the last panel comes after it. */
+.wc-block-checkout
+	.wc-block-components-checkout-step:where( :not( .wc-block-checkout__order-notes ) )
+	~ :is(
+		.wc-block-checkout__order-notes,
+		.wc-block-checkout__terms,
+		p,
+		.wp-block-image,
+		.wp-block-separator
+	):not(
+		:has(
+			~ :is(
+					.wc-block-checkout__order-notes,
+					.wc-block-checkout__terms,
+					.wc-block-checkout__actions,
+					p,
+					.wp-block-image,
+					.wp-block-separator
+				)
+		)
+	),
+.wc-block-checkout
+	.wc-block-components-checkout-step:where( :not( .wc-block-checkout__order-notes ) )
+	~ .wc-block-checkout__actions:not(
+		:has(
+			~ :is(
+					.wc-block-checkout__order-notes,
+					.wc-block-checkout__terms,
+					p,
+					.wp-block-image,
+					.wp-block-separator
+				)
+		)
+	)
+	> .wc-block-checkout__actions_row {
+	margin-bottom: var( --wp--preset--spacing--50 );
+	padding-bottom: var( --wp--preset--spacing--60 );
+	border-bottom: 1px solid var( --wp--preset--color--border );
+	border-bottom-left-radius: var( --wp--custom--radius--large );
+	border-bottom-right-radius: var( --wp--custom--radius--large );
+	clip-path: inset(
+		0 calc( -1 * var( --ps-checkout-shadow-room ) ) calc( -1 * var( --ps-checkout-shadow-room ) )
+	);
+}
+
+/* Below the form on a narrow block: the whole summary WooCommerce prints in the place-order area. */
+.wc-block-checkout
+	.wc-block-checkout__actions
+	> :has( > .wp-block-woocommerce-checkout-order-summary-block ) {
+	order: 1;
+}
+
+@media ( max-width: 781px ) {
+	.wc-block-checkout
+		.wc-block-checkout__form
+		> .wc-block-components-checkout-step:not( .wc-block-checkout__order-notes ),
+	.wc-block-checkout
+		.wp-block-woocommerce-checkout-order-summary-block.checkout-order-summary-block-fill-wrapper {
+		padding: var( --wp--preset--spacing--50 );
+	}
+
+	.wc-block-checkout
+		.wc-block-components-checkout-step:where( :not( .wc-block-checkout__order-notes ) )
+		~ :is(
+			.wc-block-checkout__order-notes,
+			.wc-block-checkout__terms,
+			p,
+			.wp-block-image,
+			.wp-block-separator
+		),
+	.wc-block-checkout
+		.wc-block-components-checkout-step:where( :not( .wc-block-checkout__order-notes ) )
+		~ .wc-block-checkout__actions
+		> .wc-block-checkout__actions_row {
+		padding-inline: var( --wp--preset--spacing--50 );
+	}
+}
+
+/* ---------- A step's heading and its number ---------- */
+
+.wc-block-checkout .wc-block-components-checkout-step__heading-container {
+	margin-bottom: var( --wp--preset--spacing--40 );
+}
+
+.wc-block-checkout
+	.wc-block-components-checkout-step__title.wc-block-components-checkout-step__title {
+	display: flex;
+	gap: var( --wp--preset--spacing--30 );
+	align-items: center;
+	margin: 0;
+	color: var( --wp--preset--color--contrast );
+	font-family: var( --wp--preset--font-family--heading );
+	font-size: var( --wp--preset--font-size--large );
+	font-weight: 700;
+}
+
+/*
+ * WooCommerce's step numbers, when the store turns them on, hang left of the
+ * steps on a line; here a step starts at its panel's edge and its number is
+ * a badge before its title.
+ */
+.wc-block-checkout
+	.wc-block-checkout__form--with-step-numbers
+	.wc-block-components-checkout-step--with-step-number.wc-block-components-checkout-step {
+	padding: var( --wp--preset--spacing--60 );
+}
+
+.wc-block-checkout
+	.wc-block-checkout__form--with-step-numbers
+	.wc-block-components-checkout-step--with-step-number
+	:is(
+		.wc-block-components-checkout-step__content,
+		.wc-block-components-checkout-step__description
+	)::before {
+	display: none;
+}
+
+.wc-block-checkout
+	.wc-block-checkout__form--with-step-numbers
+	.wc-block-components-checkout-step--with-step-number
+	.wc-block-components-checkout-step__title.wc-block-components-checkout-step__title::before {
+	/* The number is the title's place in the form; a screen reader reads WooCommerce's step legend instead. */
+	content: counter( checkout-step ) / "";
+	position: static;
+	display: inline-grid;
+	flex: none;
+	place-items: center;
+	width: var( --ps-checkout-step-badge );
+	height: var( --ps-checkout-step-badge );
+	transform: none;
+	border-radius: 50%;
+	background: var( --wp--preset--color--accent );
+	color: var( --wp--preset--color--accent-contrast );
+	font-size: var( --wp--preset--font-size--medium );
+}
+
+@media ( max-width: 781px ) {
+	.wc-block-checkout
+		.wc-block-checkout__form--with-step-numbers
+		.wc-block-components-checkout-step--with-step-number.wc-block-components-checkout-step {
+		padding: var( --wp--preset--spacing--50 );
+	}
+}
+
+/* ---------- Terms, the place-order button and the secure payment line ---------- */
+
+.wc-block-checkout .wc-block-checkout__terms.wc-block-checkout__terms {
+	padding-block: var( --wp--preset--spacing--30 );
+	border-top: 0;
+}
+
+.wc-block-checkout .wc-block-checkout__terms.wc-block-checkout__terms--with-separator::before {
+	display: none;
+}
+
+.wc-block-checkout .wc-block-checkout__actions_row.wc-block-checkout__actions_row {
+	display: block;
+}
+
+.wc-block-checkout
+	.wc-block-components-checkout-place-order-button.wc-block-components-checkout-place-order-button {
+	width: 100%;
+	min-height: var( --ps-control-height );
+}
+
+/* The line under the button, from the checkout pattern; the store can remove it. */
+.wc-block-checkout .pixonaut-shop-secure-payment.pixonaut-shop-secure-payment {
+	display: flex;
+	gap: var( --wp--preset--spacing--20 );
+	align-items: center;
+	justify-content: center;
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+}
+
+.wc-block-checkout .pixonaut-shop-secure-payment::before {
+	content: "";
+	flex: none;
+	width: var( --ps-checkout-lock-size );
+	height: var( --ps-checkout-lock-size );
+	background-color: currentColor;
+	mask: var( --ps-icon-lock ) center / contain no-repeat;
+}
+
+/* ---------- The order summary (OrderSummary) ---------- */
+
+.wc-block-checkout.is-large
+	.wc-block-checkout__sidebar
+	.wp-block-woocommerce-checkout-order-summary-block,
+.wc-block-checkout
+	.wp-block-woocommerce-checkout-order-summary-block.checkout-order-summary-block-fill-wrapper {
+	margin-bottom: 0;
+	padding: var( --wp--preset--spacing--50 );
+}
+
+/* The panel is the summary's box; WooCommerce's own inside it, and its insets, go. */
+.wc-block-checkout
+	.wp-block-woocommerce-checkout-order-summary-block
+	.checkout-order-summary-block-fill {
+	border: 0;
+}
+
+.wc-block-checkout
+	.wp-block-woocommerce-checkout-order-summary-block.wp-block-woocommerce-checkout-order-summary-block
+	:is(
+		.wc-block-components-order-summary,
+		.wc-block-components-totals-coupon,
+		.wc-block-components-totals-item
+	) {
+	padding-inline: 0;
+}
+
+.wc-block-checkout
+	.wc-block-components-checkout-order-summary__title-text.wc-block-components-checkout-order-summary__title-text {
+	margin: 0;
+	color: var( --wp--preset--color--contrast );
+	font-family: var( --wp--preset--font-family--heading );
+	font-size: var( --wp--preset--font-size--large );
+	font-weight: 700;
+}
+
+.wc-block-checkout .wc-block-components-order-summary-item {
+	padding-block: var( --wp--preset--spacing--30 );
+	border-bottom: 1px solid var( --wp--preset--color--border );
+	font-size: var( --wp--preset--font-size--small );
+}
+
+.wc-block-checkout .wc-block-components-order-summary-item .wc-block-components-product-name {
+	color: var( --wp--preset--color--contrast );
+	font-weight: 700;
+}
+
+/* A line's detail rows (the personalisation among them): name in 600, value muted. */
+.wc-block-checkout .wc-block-components-order-summary-item .wc-block-components-product-details {
+	color: var( --wp--preset--color--muted );
+}
+
+.wc-block-checkout
+	.wc-block-components-order-summary-item
+	.wc-block-components-product-details
+	> *
+	> .wc-block-components-product-details__name {
+	color: var( --wp--preset--color--contrast );
+	font-weight: 600;
+}
+
+.wc-block-checkout .wc-block-components-order-summary-item__total-price {
+	font-weight: 700;
+	white-space: nowrap;
+}

@@ -1,0 +1,25 @@
+# Pre-commit gate: the fast half only. Integration and end-to-end tests need
+# Docker, WordPress and a browser; `pnpm ci:affected:local` names the ones a
+# change reaches. A hook slow enough to notice gets bypassed with
+# `--no-verify`, which is the same as not having one.
+pre-commit:
+  parallel: true
+  commands:
+    php-format:
+      glob: "*.php"
+      run: pnpm fmt:php:check
+    php-lint:
+      glob: "*.php"
+      run: pnpm lint:php
+    php-unit:
+      glob: "*.{php,html,json,po,css}"
+      run: pnpm test:unit
+    js-lint:
+      glob: "*.{ts,css}"
+      run: pnpm lint
+    js-types:
+      glob: "*.ts"
+      run: pnpm typecheck
+    js-unit:
+      glob: "*.ts"
+      run: pnpm test:ts

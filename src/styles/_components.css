@@ -1,0 +1,593 @@
+/*
+ * Shared pieces several areas use: panels, notices, pills, buttons, prices,
+ * section heads, the store's promises band, the product card and grid,
+ * breadcrumbs, pagination and the product search.
+ * The block styles' own values are in inc/Blocks/BlockStyles.php, and the
+ * buttons' in theme.json, where a store's Styles edits them; this holds only
+ * what those cannot express.
+ *
+ * Phones are WordPress's own breakpoint: below 782px, where its columns
+ * stack, written as max-width 781px.
+ */
+
+/*
+ * The sizes the design gives its controls: a button or a field is 3rem high,
+ * a page number's tile 2.75rem square. The notice's icon is 1.25rem, a line
+ * icon on the design's 24px grid at the text's size. A lede wraps at 40rem,
+ * and the product search in a panel is 28rem wide.
+ *
+ * A form's controls (CheckoutField, Checkbox), in the checkout and My
+ * account: a text field 2.75rem high under its label, a step between them,
+ * and a checkbox 1.375rem square. The side column beside a cart's lines or a
+ * checkout's form is between 18rem and 25rem wide.
+ */
+:root {
+	--ps-control-height: 3rem;
+	--ps-field-height: 2.75rem;
+	--ps-label-gap: 0.375rem;
+	--ps-checkbox-size: 1.375rem;
+	--ps-aside-min: 18rem;
+	--ps-aside-max: 25rem;
+	--ps-tile-size: 2.75rem;
+	--ps-notice-icon-size: 1.25rem;
+	--ps-lede-width: 40rem;
+	--ps-search-width: 28rem;
+	--ps-icon-info: url( "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' d='M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20Zm0 1.6a8.4 8.4 0 1 1 0 16.8a8.4 8.4 0 1 1 0-16.8ZM11.2 10.4h1.6v6.4h-1.6ZM11.2 7.2h1.6v1.6h-1.6Z'/%3E%3C/svg%3E" );
+}
+
+/* ---------- Panel (core/group, Panel) ---------- */
+
+@media ( max-width: 781px ) {
+	.wp-block-group.is-style-panel {
+		padding: var( --wp--preset--spacing--50 );
+	}
+}
+
+/* ---------- Pill (core/paragraph, Pill) ---------- */
+
+/* As wide as its text, at the start of the line, whatever the layout. */
+.is-style-pill {
+	display: inline-flex;
+	gap: var( --wp--preset--spacing--20 );
+	align-items: center;
+}
+
+/* ---------- Buttons (styles.elements.button, core/button's styles) ---------- */
+
+.wp-element-button,
+.wp-block-button__link {
+	display: inline-flex;
+	gap: var( --wp--preset--spacing--20 );
+	align-items: center;
+	justify-content: center;
+	min-height: var( --ps-control-height );
+	text-decoration: none;
+	transition: filter 0.15s ease;
+}
+
+:where( .wp-element-button, .wp-block-button__link ):hover {
+	filter: brightness( 1.15 );
+}
+
+:where( .wp-element-button, .wp-block-button__link ):is( [ disabled ], [ aria-disabled="true" ] ) {
+	border-color: var( --wp--preset--color--border );
+	background: var( --wp--preset--color--surface );
+	color: var( --wp--preset--color--muted );
+	cursor: not-allowed;
+	filter: none;
+}
+
+.wp-block-button.is-style-text > .wp-block-button__link {
+	min-height: 0;
+	text-underline-offset: 0.2em;
+}
+
+.wp-block-button.is-style-text > .wp-block-button__link:hover {
+	color: var( --wp--preset--color--accent );
+	filter: none;
+}
+
+/* ---------- Prices (woocommerce/product-price) ---------- */
+
+.woocommerce-Price-amount {
+	font-variant-numeric: tabular-nums lining-nums;
+	white-space: nowrap;
+}
+
+.wc-block-components-product-price {
+	color: var( --wp--preset--color--accent );
+	font-family: var( --wp--preset--font-family--heading );
+	font-weight: 700;
+}
+
+.wc-block-components-product-price del {
+	color: var( --wp--preset--color--muted );
+	font-size: 0.85em;
+	font-weight: 400;
+}
+
+.wc-block-components-product-price ins {
+	text-decoration: none;
+}
+
+/* ---------- A cart line's details (the blocks' product details) ---------- */
+
+/*
+ * WooCommerce's and Pixonaut for WooCommerce's rows on a line in the Cart
+ * block, the Mini-Cart and the checkout's summary, one `name: value` row per
+ * line, as the design lists them, with the label in the text colour. The
+ * checkout's summary runs the rows together with a separator, which goes.
+ * WooCommerce gives each row a class made from its label, which a store or
+ * the plugin may name anything (`…__name` for a "Name" field), so rows and
+ * their parts are found by position, never by class. WooCommerce sets those
+ * classes inline with one class, from a stylesheet that may load after this
+ * one, so the row rule repeats its class to win.
+ */
+.wc-block-components-product-details.wc-block-components-product-details > * {
+	display: block;
+	margin: 0;
+}
+
+.wc-block-components-product-details > * > [ aria-hidden="true" ]:last-child {
+	display: none;
+}
+
+.wc-block-components-product-details > * > .wc-block-components-product-details__name {
+	color: var( --wp--preset--color--contrast );
+	font-weight: 600;
+}
+
+.wc-block-components-product-details > * > .wc-block-components-product-details__value {
+	font-weight: 400;
+}
+
+/* ---------- Breadcrumbs (woocommerce/breadcrumbs) ---------- */
+
+.woocommerce-breadcrumb {
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+}
+
+.woocommerce-breadcrumb a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.woocommerce-breadcrumb a:hover {
+	color: var( --wp--preset--color--accent );
+	text-decoration: underline;
+}
+
+/* ---------- Pagination (core/query-pagination) ---------- */
+
+.wp-block-query-pagination {
+	gap: var( --wp--preset--spacing--40 );
+	margin-top: var( --wp--preset--spacing--60 );
+}
+
+.wp-block-query-pagination-numbers {
+	display: flex;
+	gap: var( --wp--preset--spacing--20 );
+}
+
+.wp-block-query-pagination .page-numbers {
+	display: inline-grid;
+	place-items: center;
+	min-width: var( --ps-tile-size );
+	height: var( --ps-tile-size );
+	padding: 0 var( --wp--preset--spacing--20 );
+	border: 1px solid var( --wp--preset--color--border );
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--base );
+	color: var( --wp--preset--color--contrast );
+	font-weight: 600;
+	font-variant-numeric: tabular-nums lining-nums;
+	text-decoration: none;
+}
+
+.wp-block-query-pagination .page-numbers.current {
+	border-color: var( --wp--preset--color--accent );
+	background: var( --wp--preset--color--accent );
+	color: var( --wp--preset--color--accent-contrast );
+}
+
+.wp-block-query-pagination .page-numbers.dots {
+	border: 0;
+	background: none;
+}
+
+.wp-block-query-pagination
+	:where( .wp-block-query-pagination-previous, .wp-block-query-pagination-next ) {
+	font-weight: 600;
+}
+
+/* ---------- Totals (the Cart block's and the Checkout block's) ---------- */
+
+/*
+ * The lines under a cart's or an order's items: each label and its amount,
+ * then the total in the heading font, its amount in `accent`, and the VAT
+ * line under it.
+ */
+:is( .wc-block-cart, .wc-block-checkout ) .wc-block-components-totals-wrapper {
+	padding-inline: 0;
+}
+
+:is( .wc-block-cart, .wc-block-checkout ) .wc-block-components-totals-item__value {
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+:is( .wc-block-cart, .wc-block-checkout )
+	.wc-block-components-totals-footer-item
+	:is( .wc-block-components-totals-item__label, .wc-block-components-totals-item__value ) {
+	font-family: var( --wp--preset--font-family--heading );
+	font-size: var( --wp--preset--font-size--large );
+	font-weight: 700;
+}
+
+:is( .wc-block-cart, .wc-block-checkout )
+	.wc-block-components-totals-footer-item
+	.wc-block-components-totals-item__value {
+	color: var( --wp--preset--color--accent );
+}
+
+:is( .wc-block-cart, .wc-block-checkout ) .wc-block-components-totals-footer-item-tax {
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+}
+
+/* ---------- Product search (woocommerce/product-search) ---------- */
+
+.wc-block-product-search .wc-block-product-search__fields {
+	display: flex;
+	gap: var( --wp--preset--spacing--20 );
+}
+
+.wc-block-product-search .wc-block-product-search__field {
+	flex: 1;
+	/* Shrinks with a narrow column instead of holding its own width. */
+	min-width: 0;
+	min-height: var( --ps-control-height );
+	padding: 0 var( --wp--preset--spacing--40 );
+	border: 1px solid var( --wp--preset--color--border-strong );
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--base );
+	color: var( --wp--preset--color--contrast );
+	font: inherit;
+}
+
+.wc-block-product-search .wc-block-product-search__button {
+	display: inline-grid;
+	place-items: center;
+	min-width: var( --ps-control-height );
+	min-height: var( --ps-control-height );
+	margin: 0;
+	padding: 0 var( --wp--preset--spacing--40 );
+	border: 2px solid var( --wp--preset--color--accent );
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--accent );
+	color: var( --wp--preset--color--accent-contrast );
+	cursor: pointer;
+}
+
+.wc-block-product-search .wc-block-product-search__button svg {
+	fill: currentColor;
+}
+
+.wc-block-product-search .wc-block-product-search__button:hover {
+	filter: brightness( 1.15 );
+}
+
+/* ---------- Notices (core/group's Notice, and WooCommerce's notices) ---------- */
+
+/*
+ * One look for both: a `base` box with a 4px edge in the status colour, an
+ * icon and an optional title. `--ps-notice-edge` carries the status, so a
+ * success or an error changes the edge and the icon together.
+ *
+ * WooCommerce colours its notices per status with selectors of two classes,
+ * and its stylesheet may load after this one; the notice's class repeats so
+ * these win wherever they load.
+ */
+.wp-block-group.is-style-notice,
+.wc-block-components-notice-banner.wc-block-components-notice-banner.wc-block-components-notice-banner {
+	--ps-notice-edge: var( --wp--preset--color--accent );
+
+	padding: var( --wp--preset--spacing--40 );
+	border: 1px solid var( --wp--preset--color--border );
+	border-left: 4px solid var( --ps-notice-edge );
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--base );
+	color: var( --wp--preset--color--contrast );
+	font-size: var( --wp--preset--font-size--small );
+}
+
+/* The group has no icon of its own, so it draws one in the space it leaves. */
+.wp-block-group.is-style-notice {
+	position: relative;
+	padding-left: calc( var( --wp--preset--spacing--40 ) * 2 + var( --ps-notice-icon-size ) );
+}
+
+.wp-block-group.is-style-notice::before {
+	content: "";
+	position: absolute;
+	top: var( --wp--preset--spacing--40 );
+	left: var( --wp--preset--spacing--40 );
+	width: var( --ps-notice-icon-size );
+	height: var( --ps-notice-icon-size );
+	background-color: var( --ps-notice-edge );
+	mask: var( --ps-icon-info ) center / contain no-repeat;
+}
+
+.wp-block-group.is-style-notice > * {
+	margin-block: 0;
+}
+
+.wp-block-group.is-style-notice > * + * {
+	margin-block-start: var( --wp--preset--spacing--20 );
+}
+
+/* The optional title: a heading inside the notice, at the text's size. */
+.wp-block-group.is-style-notice > :where( h2, h3, h4, h5, h6 ) {
+	color: inherit;
+	font-family: inherit;
+	font-size: inherit;
+	font-weight: 700;
+	line-height: inherit;
+}
+
+.wc-block-components-notice-banner.wc-block-components-notice-banner.wc-block-components-notice-banner {
+	display: flex;
+	gap: var( --wp--preset--spacing--30 );
+	align-items: flex-start;
+}
+
+.wc-block-components-notice-banner.wc-block-components-notice-banner.wc-block-components-notice-banner.is-success {
+	--ps-notice-edge: var( --wp--preset--color--success );
+}
+
+.wc-block-components-notice-banner.wc-block-components-notice-banner.wc-block-components-notice-banner.is-error {
+	--ps-notice-edge: var( --wp--preset--color--error );
+}
+
+.wc-block-components-notice-banner.wc-block-components-notice-banner.wc-block-components-notice-banner
+	> svg {
+	flex: none;
+	transform: none;
+	width: var( --ps-notice-icon-size );
+	height: var( --ps-notice-icon-size );
+	padding: 0;
+	border-radius: 0;
+	background: none;
+	fill: var( --ps-notice-edge );
+}
+
+.wc-block-components-notice-banner.wc-block-components-notice-banner.wc-block-components-notice-banner
+	> .wc-block-components-notice-banner__content {
+	display: flex;
+	flex: 1;
+	flex-wrap: wrap;
+	gap: var( --wp--preset--spacing--40 );
+	align-items: center;
+	justify-content: space-between;
+	padding: 0;
+}
+
+.wc-block-components-notice-banner.wc-block-components-notice-banner.wc-block-components-notice-banner
+	.wc-forward {
+	/* WooCommerce prints the notice's action as a button; it reads as a link. */
+	min-height: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: var( --wp--preset--color--accent );
+	font-family: inherit;
+	font-size: inherit;
+	font-weight: 700;
+	text-decoration: underline;
+	white-space: nowrap;
+}
+
+/* ---------- Section heads (a heading with a link on the right) ---------- */
+
+.pixonaut-shop-section-head.pixonaut-shop-section-head {
+	align-items: baseline;
+	margin-bottom: var( --wp--preset--spacing--50 );
+}
+
+.pixonaut-shop-section-head.pixonaut-shop-section-head > * {
+	margin: 0;
+}
+
+.pixonaut-shop-section-head a {
+	font-weight: 600;
+}
+
+/*
+ * ---------- Promises (the store's own part, on a band) ----------
+ *
+ * `pixonaut-shop-archive-promises` is the shop's band before it shared these
+ * rules: a shop template a store saved in the Site Editor keeps that class
+ * only, and shadows the theme's file.
+ */
+
+:is( .pixonaut-shop-promises-band, .pixonaut-shop-archive-promises ) {
+	padding-block: var( --wp--preset--spacing--60 );
+}
+
+/* A store that has not written its promises shows no empty band. */
+:is( .pixonaut-shop-promises-band, .pixonaut-shop-archive-promises ):not(
+	:has( .wp-block-template-part > * )
+) {
+	display: none;
+}
+
+/* A band the store filled meets the footer, with no strip of page between. */
+main:has(
+	> :is( .pixonaut-shop-promises-band, .pixonaut-shop-archive-promises )
+		> .wp-block-template-part
+		> *
+) + .wp-block-template-part {
+	margin-block-start: 0;
+}
+
+/* ---------- Product grid (woocommerce/product-template) ---------- */
+
+.wc-block-product-template.is-flex-container {
+	--ps-columns: 3;
+
+	display: grid;
+	grid-template-columns: repeat( var( --ps-columns ), minmax( 0, 1fr ) );
+	gap: var( --wp--preset--spacing--50 );
+}
+
+/* The number of columns the collection's settings choose, as WooCommerce offers them. */
+.wc-block-product-template.is-flex-container.columns-1 {
+	--ps-columns: 1;
+}
+
+.wc-block-product-template.is-flex-container.columns-2 {
+	--ps-columns: 2;
+}
+
+.wc-block-product-template.is-flex-container.columns-3 {
+	--ps-columns: 3;
+}
+
+.wc-block-product-template.is-flex-container.columns-4 {
+	--ps-columns: 4;
+}
+
+.wc-block-product-template.is-flex-container.columns-5 {
+	--ps-columns: 5;
+}
+
+.wc-block-product-template.is-flex-container.columns-6 {
+	--ps-columns: 6;
+}
+
+/* Phones take two columns, or one where the collection asks for one. */
+@media ( max-width: 781px ) {
+	.wc-block-product-template.is-flex-container:not( .columns-1 ) {
+		--ps-columns: 2;
+
+		gap: var( --wp--preset--spacing--30 );
+	}
+}
+
+/* ---------- Product card (each product in the grid) ---------- */
+
+.wc-block-product-template .wc-block-product {
+	display: flex;
+	flex-direction: column;
+	/* The name, meta line and price sit close: half the smallest step. */
+	gap: calc( var( --wp--preset--spacing--20 ) / 2 );
+	margin: 0;
+	padding-bottom: var( --wp--preset--spacing--40 );
+	overflow: hidden;
+	border: 1px solid var( --wp--preset--color--border );
+	border-radius: var( --wp--custom--radius--large );
+	background: var( --wp--preset--color--base );
+	box-shadow: var( --wp--preset--shadow--card );
+	--ps-card-inset: var( --wp--preset--spacing--40 );
+}
+
+.wc-block-product-template .wc-block-product > * {
+	margin-block: 0;
+	padding-inline: var( --ps-card-inset );
+}
+
+.wc-block-product-template .wc-block-product > .wc-block-components-product-image {
+	position: relative;
+	margin-bottom: var( --wp--preset--spacing--20 );
+	padding-inline: 0;
+}
+
+/* WooCommerce's notices for the card's own add-to-cart, which the card has none of. */
+.wc-block-product-template
+	.wc-block-components-product-image
+	> .wc-block-components-notices:not( :has( .wc-block-components-notice-banner ) ) {
+	display: none;
+}
+
+.wc-block-product-template .wc-block-product .wp-block-post-title {
+	font-family: var( --wp--preset--font-family--heading );
+	font-size: var( --wp--preset--font-size--medium );
+	font-weight: 700;
+}
+
+.wc-block-product-template .wc-block-product .wp-block-post-title a {
+	color: var( --wp--preset--color--contrast );
+	text-decoration: none;
+}
+
+.wc-block-product-template .wc-block-product:hover .wp-block-post-title a {
+	color: var( --wp--preset--color--accent );
+	text-decoration: underline;
+}
+
+/*
+ * The meta line: the short description, cut to its first line however it
+ * is formatted, line breaks and lists included.
+ */
+.wc-block-product-template .wc-block-product .wc-block-components-product-summary {
+	display: -webkit-box;
+	overflow: hidden;
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 1;
+	line-clamp: 1;
+}
+
+.wc-block-product-template .wc-block-product .wc-block-components-product-summary * {
+	margin: 0;
+	padding: 0;
+}
+
+.wc-block-product-template .wc-block-product > .wp-block-woocommerce-product-price {
+	margin-top: auto;
+}
+
+.wc-block-product .wc-block-components-product-sale-badge {
+	padding: 0.25rem var( --wp--preset--spacing--30 );
+	border: 0;
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--highlight );
+	color: var( --wp--preset--color--highlight-contrast );
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 700;
+	letter-spacing: normal;
+	line-height: 1.3;
+	text-transform: none;
+}
+
+.wc-block-product .wc-block-components-product-image .wc-block-components-product-sale-badge {
+	top: var( --wp--preset--spacing--30 );
+	left: var( --wp--preset--spacing--30 );
+}
+
+@media ( max-width: 781px ) {
+	.wc-block-product-template .wc-block-product {
+		--ps-card-inset: var( --wp--preset--spacing--30 );
+	}
+
+	.wc-block-product-template .wc-block-product .wp-block-post-title,
+	.wc-block-product-template .wc-block-product .wc-block-components-product-price {
+		font-size: var( --wp--preset--font-size--small );
+	}
+
+	.wc-block-product-template .wc-block-product > .wp-block-woocommerce-product-summary {
+		display: none;
+	}
+}
+
+/*
+ * WooCommerce sizes each product as a share of a flex row, with a selector
+ * that repeats its classes; the grid sizes them here instead, so the classes
+ * repeat once more.
+ */
+.wc-block-product-template.wc-block-product-template.is-flex-container.is-flex-container
+> .wc-block-product {
+	width: auto;
+}

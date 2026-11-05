@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<ruleset name="pixonaut-shop">
+	<description>Security, i18n and correctness sniffs. Layout is php-cs-fixer's job.</description>
+
+	<file>inc</file>
+	<file>tests</file>
+	<file>functions.php</file>
+	<file>index.php</file>
+	<file>patterns</file>
+	<file>src</file>
+
+	<arg name="extensions" value="php"/>
+	<arg name="colors"/>
+	<arg value="ps"/>
+	<arg name="parallel" value="8"/>
+
+	<config name="minimum_wp_version" value="6.7"/>
+	<config name="testVersion" value="8.2-"/>
+
+	<rule ref="WordPress-Extra">
+		<exclude name="Generic.WhiteSpace"/>
+		<exclude name="PEAR.Functions.FunctionCallSignature"/>
+		<exclude name="Squiz.Commenting"/>
+		<exclude name="Generic.Commenting"/>
+		<exclude name="Squiz.Functions.FunctionDeclarationArgumentSpacing"/>
+		<exclude name="Generic.Formatting"/>
+		<exclude name="Generic.Functions"/>
+		<exclude name="Generic.Classes.OpeningBraceSameLine"/>
+		<exclude name="Squiz.Functions.MultiLineFunctionDeclaration"/>
+		<exclude name="Squiz.WhiteSpace"/>
+		<exclude name="PSR2"/>
+		<exclude name="PSR12"/>
+		<exclude name="Universal.Classes"/>
+		<exclude name="Universal.Constants"/>
+		<exclude name="WordPress.WhiteSpace"/>
+		<exclude name="WordPress.Arrays"/>
+		<exclude name="WordPress.Files.FileName"/>
+		<exclude name="WordPress.PHP.YodaConditions"/>
+		<exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+		<exclude name="Universal.WhiteSpace"/>
+		<exclude name="Modernize.FunctionCalls.Dirname"/>
+		<exclude name="NormalizedArrays.Arrays.ArrayBraceSpacing"/>
+		<exclude name="PSR2.ControlStructures.ControlStructureSpacing"/>
+	</rule>
+
+	<!--
+		The unit suite never loads WordPress, so WP_Filesystem does not exist there.
+		The alternative-function sniff cannot apply to it.
+	-->
+	<rule ref="WordPress.WP.AlternativeFunctions">
+		<exclude-pattern>tests/*</exclude-pattern>
+	</rule>
+
+	<!--
+		Exception messages are control flow, not rendered output: they are caught,
+		or they reach an error log. Escaping them would mean stubbing esc_html in
+		unit tests purely to satisfy a linter. Only this sub-sniff is disabled;
+		every other EscapeOutput check stays active project-wide.
+	-->
+	<rule ref="WordPress.Security.EscapeOutput.ExceptionNotEscaped">
+		<severity>0</severity>
+	</rule>
+
+	<!--
+		The e2e suite's fake Pixonaut prints fixed markers, not data, and runs
+		only in the development site wp-env maps it into.
+	-->
+	<rule ref="WordPress.Security.EscapeOutput.OutputNotEscaped">
+		<exclude-pattern>tests/e2e/*</exclude-pattern>
+	</rule>
+
+	<!-- WooCommerce's capabilities, which it maps to its own checks. -->
+	<rule ref="WordPress.WP.Capabilities">
+		<properties>
+			<property name="custom_capabilities" type="array">
+				<element value="view_order"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="pixonaut-shop"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- The test suites never load inside a store, so their globals cannot clash with anything there. -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<exclude-pattern>tests/*</exclude-pattern>
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="pixonaut_shop"/>
+				<element value="Pixonaut\Shop"/>
+			</property>
+		</properties>
+	</rule>
+</ruleset>

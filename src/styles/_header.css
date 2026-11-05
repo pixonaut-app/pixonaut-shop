@@ -1,0 +1,180 @@
+/*
+ * The header part: the announcement bar a store may fill, then one row with
+ * the site logo and title, the menu, search, account and the mini-cart.
+ */
+
+.pixonaut-shop-announcement p {
+	margin: 0;
+}
+
+.pixonaut-shop-header {
+	border-block-end: 1px solid var( --wp--preset--color--border );
+}
+
+/*
+ * The logo and title start the row; the menu and the icons end it. Scoped to
+ * the row, past core's margin reset for a flex layout's children.
+ */
+.pixonaut-shop-header__row > .pixonaut-shop-header__menu {
+	margin-inline-start: auto;
+	/* The row's gap is spacing 40; the menu stands spacing 60 off the icons. */
+	margin-inline-end: calc( var( --wp--preset--spacing--60 ) - var( --wp--preset--spacing--40 ) );
+}
+
+/*
+ * The menu's links as they sit in the row. With the overlay menu on phones
+ * the row's items are inside the responsive container too, so the rules
+ * stop at its open state: there the links take the overlay's own text
+ * colour, which the navigation block sets and a store's Styles may change.
+ */
+.pixonaut-shop-header__menu
+	.wp-block-navigation__responsive-container:not( .is-menu-open )
+	.wp-block-navigation-item__content {
+	color: var( --wp--preset--color--contrast );
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.pixonaut-shop-header__menu
+	.wp-block-navigation__responsive-container:not( .is-menu-open )
+	.wp-block-navigation-item__content:hover,
+.pixonaut-shop-header__menu
+	.wp-block-navigation__responsive-container:not( .is-menu-open )
+	.wp-block-navigation-item__content[ aria-current="page" ] {
+	color: var( --wp--preset--color--accent );
+	text-decoration: underline;
+	text-decoration-thickness: 2px;
+	text-underline-offset: 0.4em;
+}
+
+/* Search, account and the mini-cart: icons on a square the size of a fingertip. */
+.pixonaut-shop-header .wp-block-search__button,
+.pixonaut-shop-header .wp-block-woocommerce-customer-account a,
+.pixonaut-shop-header .wc-block-mini-cart__button {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 2.5rem;
+	min-height: 2.5rem;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: var( --wp--custom--radius--small );
+	background: none;
+	color: var( --wp--preset--color--contrast );
+}
+
+.pixonaut-shop-header .wp-block-search__button:hover,
+.pixonaut-shop-header .wp-block-woocommerce-customer-account a:hover,
+.pixonaut-shop-header .wc-block-mini-cart__button:hover {
+	background: var( --wp--preset--color--surface );
+	color: var( --wp--preset--color--contrast );
+}
+
+/*
+ * The search's field opens under the header, across from the row's end, over
+ * the page rather than in the row, so nothing in the row moves to make room.
+ * Core collapses the field to nothing when it closes, at once rather than
+ * shrinking it into a frame; it fades in on opening.
+ */
+.pixonaut-shop-header__row {
+	position: relative;
+}
+
+/*
+ * Core clips the closed search, which would let it shrink below its button
+ * beside a long title, and grow back when it opens.
+ */
+.pixonaut-shop-header__row > .wp-block-search {
+	flex-shrink: 0;
+}
+
+.pixonaut-shop-header .wp-block-search__button-only .wp-block-search__input {
+	position: absolute;
+	z-index: 1;
+	/* Clear of the header's padding and its border, by a small step. */
+	top: calc( 100% + var( --wp--preset--spacing--40 ) + var( --wp--preset--spacing--20 ) );
+	inset-inline-end: 0;
+	width: min( var( --ps-search-width ), 100% );
+	min-height: var( --ps-control-height );
+	padding: 0 var( --wp--preset--spacing--40 );
+	border: 1px solid var( --wp--preset--color--border-strong );
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--base );
+	box-shadow: var( --wp--preset--shadow--card );
+	color: var( --wp--preset--color--contrast );
+	font: inherit;
+	opacity: 1;
+	transition: opacity 0.15s ease;
+}
+
+.pixonaut-shop-header .wp-block-search__button-only .wp-block-search__input:focus {
+	border-color: var( --wp--preset--color--accent );
+	outline: 1px solid var( --wp--preset--color--accent );
+}
+
+/* Still focusable while hidden: core focuses it before it shows it. */
+.pixonaut-shop-header .wp-block-search__searchfield-hidden .wp-block-search__input {
+	opacity: 0;
+	pointer-events: none;
+	transition: none;
+}
+
+/*
+ * WooCommerce's script writes the badge's colours inline, its ground from the
+ * icon's colour and its text from the header's ground, so no attribute gives
+ * `highlight` on `highlight-contrast`: only `!important` outranks the inline
+ * style.
+ */
+.pixonaut-shop-header .wc-block-mini-cart__badge {
+	/* biome-ignore lint/complexity/noImportantStyles: outranks WooCommerce's inline colours, above. */
+	background-color: var( --wp--preset--color--highlight ) !important;
+	/* biome-ignore lint/complexity/noImportantStyles: outranks WooCommerce's inline colours, above. */
+	color: var( --wp--preset--color--highlight-contrast ) !important;
+	font-weight: 700;
+}
+
+/*
+ * The menu breakpoint. At or below 1280px the menu no longer fits on one
+ * line beside the title and the icons of a store with five or six menu
+ * items, so it collapses into the menu button, left of the logo, well
+ * before core's own 600px. Media queries cannot read a custom property, so
+ * this is the one place the width is written.
+ */
+@media ( max-width: 1280px ) {
+	.pixonaut-shop-header__row > .pixonaut-shop-header__menu {
+		order: -1;
+		margin-inline: 0;
+	}
+
+	.pixonaut-shop-header__row > .wp-block-site-title {
+		margin-inline-end: auto;
+	}
+
+	.pixonaut-shop-header__menu .wp-block-navigation__responsive-container-open:not( .always-shown ) {
+		display: flex;
+	}
+
+	.pixonaut-shop-header__menu
+		.wp-block-navigation__responsive-container:not( .hidden-by-default ):not( .is-menu-open ) {
+		display: none;
+	}
+}
+
+/* Phones, from WordPress's own 782px breakpoint. */
+@media ( max-width: 781px ) {
+	.pixonaut-shop-header__row.pixonaut-shop-header__row {
+		gap: var( --wp--preset--spacing--20 );
+	}
+
+	.pixonaut-shop-header .wp-block-site-logo img {
+		width: 1.75rem;
+		height: auto;
+	}
+
+	.pixonaut-shop-header .wp-block-site-title {
+		min-width: 0;
+		font-size: var( --wp--preset--font-size--medium );
+	}
+}

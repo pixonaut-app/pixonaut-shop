@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+	bootstrap="tests/Integration/bootstrap.php"
+	colors="true"
+	cacheDirectory="/tmp/pixonaut-shop-phpunit-cache"
+	failOnWarning="true"
+	failOnRisky="true">
+	<php>
+		<!--
+			The suite runs in one process with WordPress and WooCommerce loaded,
+			so it outgrows the container's 128M default as tests are added.
+		-->
+		<ini name="memory_limit" value="512M"/>
+	</php>
+	<testsuites>
+		<testsuite name="integration">
+			<directory>tests/Integration</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>

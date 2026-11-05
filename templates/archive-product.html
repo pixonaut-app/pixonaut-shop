@@ -1,0 +1,41 @@
+<!-- wp:template-part {"slug":"header","tagName":"header"} /-->
+
+<!-- wp:group {"tagName":"main","className":"pixonaut-shop-archive","layout":{"type":"constrained"}} -->
+<main class="wp-block-group pixonaut-shop-archive">
+	<!-- wp:woocommerce/breadcrumbs {"fontSize":"small","align":"wide"} /-->
+
+	<!-- wp:group {"className":"pixonaut-shop-archive-head","align":"wide","layout":{"type":"default"}} -->
+	<div class="wp-block-group alignwide pixonaut-shop-archive-head">
+		<!-- wp:query-title {"type":"archive","showPrefix":false} /-->
+
+		<!-- wp:term-description {"textColor":"muted"} /-->
+	</div>
+	<!-- /wp:group -->
+
+	<!-- wp:woocommerce/store-notices {"align":"wide"} /-->
+
+	<!-- wp:group {"className":"pixonaut-shop-archive-toolbar","align":"wide","layout":{"type":"flex","flexWrap":"nowrap","justifyContent":"space-between"}} -->
+	<div class="wp-block-group alignwide pixonaut-shop-archive-toolbar">
+		<!-- wp:woocommerce/product-results-count {"textColor":"muted","fontSize":"small"} /-->
+
+		<!-- wp:woocommerce/catalog-sorting /-->
+	</div>
+	<!-- /wp:group -->
+
+	<!-- wp:pattern {"slug":"pixonaut-shop/product-grid"} /-->
+
+	<!-- wp:group {"className":"pixonaut-shop-archive-popular","align":"wide","layout":{"type":"default"}} -->
+	<div class="wp-block-group alignwide pixonaut-shop-archive-popular">
+		<!-- wp:pattern {"slug":"pixonaut-shop/popular-products"} /-->
+	</div>
+	<!-- /wp:group -->
+
+	<!-- wp:group {"className":"is-style-band-tint-1 pixonaut-shop-promises-band pixonaut-shop-archive-promises","align":"full","layout":{"type":"constrained"}} -->
+	<div class="wp-block-group alignfull is-style-band-tint-1 pixonaut-shop-promises-band pixonaut-shop-archive-promises">
+		<!-- wp:template-part {"slug":"promises","align":"wide"} /-->
+	</div>
+	<!-- /wp:group -->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","tagName":"footer"} /-->

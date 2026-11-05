@@ -1,0 +1,478 @@
+/*
+ * The cart page and WooCommerce's Cart block: the title row, the lines in a
+ * panel with each line's details (Pixonaut for WooCommerce's personalisation
+ * among them) under its name, the totals in a panel beside them, and the
+ * empty cart. One column on a narrow cart.
+ *
+ * WooCommerce lays the block out with its own sidebar layout, sized from the
+ * block's width rather than the window's; these rules replace it with the
+ * design's two columns. Its stylesheet may load after this one, so a rule
+ * that overrides it is more specific than WooCommerce's own: it names the
+ * block's class twice, and reaches a line's cells through their row, as
+ * WooCommerce does.
+ */
+
+/*
+ * The design's sizes: a line's picture 7rem square (4.5rem on a phone), and
+ * the empty cart's bag 2rem in a 4.5rem circle. The totals column is the
+ * shared side column (_components.css).
+ */
+:root {
+	--ps-cart-picture: 7rem;
+	--ps-cart-picture-phone: 4.5rem;
+	--ps-empty-cart-circle: 4.5rem;
+	--ps-empty-cart-icon: 2rem;
+	--ps-icon-bag: url( "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill-rule='evenodd' d='M19.556 12.333a.89.89 0 0 1-.89-.889c0-.707-.28-3.385-.78-3.885a2.667 2.667 0 0 0-3.772 0c-.5.5-.78 3.178-.78 3.885a.889.889 0 1 1-1.778 0c0-1.178.468-4.309 1.301-5.142a4.445 4.445 0 0 1 6.286 0c.833.833 1.302 3.964 1.302 5.142a.89.89 0 0 1-.89.89'/%3E%3Cpath fill-rule='evenodd' d='M7.5 12a1 1 0 0 1 1-1h15a1 1 0 0 1 1 1v13.333a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1zm2 1v11.333h13V13z'/%3E%3C/svg%3E" );
+}
+
+/* ---------- Title row (patterns/cart-title.php) ---------- */
+
+.pixonaut-shop-cart-head.pixonaut-shop-cart-head {
+	margin-top: var( --wp--preset--spacing--40 );
+}
+
+/* ---------- Two columns: the lines, and the totals beside them ---------- */
+
+.wc-block-cart.wc-block-cart {
+	display: grid;
+	grid-template-columns: minmax( 0, 1fr ) minmax( var( --ps-aside-min ), var( --ps-aside-max ) );
+	gap: var( --wp--preset--spacing--60 );
+	align-items: start;
+	margin: 0;
+}
+
+.wc-block-cart.wc-block-cart > :is( .wc-block-cart__main, .wc-block-cart__sidebar ) {
+	width: auto;
+	margin: 0;
+	padding: 0;
+}
+
+/* The panel both columns are drawn in: the Panel block style's look. */
+.wc-block-cart.wc-block-cart .wc-block-cart-items,
+.wc-block-cart.wc-block-cart > .wc-block-cart__sidebar {
+	border: 1px solid var( --wp--preset--color--border );
+	border-radius: var( --wp--custom--radius--large );
+	background: var( --wp--preset--color--base );
+	box-shadow: var( --wp--preset--shadow--card );
+}
+
+/*
+ * Below this width of the Cart block (WooCommerce makes it the container) a
+ * line has no room for its details beside the totals column: the picture,
+ * a readable details column and the line total take about 34rem, the totals
+ * 18rem, with the gap between. The totals then go below the lines.
+ */
+@container ( max-width: 56rem ) {
+	.wc-block-cart.wc-block-cart {
+		grid-template-columns: minmax( 0, 1fr );
+	}
+}
+
+/* ---------- The lines ---------- */
+
+/*
+ * WooCommerce draws its lines as a table on a wide block and as its own grid
+ * on a narrow one. Each line here is one grid at every width: the picture,
+ * the name with everything under it, and the line total.
+ */
+.wc-block-cart.wc-block-cart table.wc-block-cart-items,
+.wc-block-cart.wc-block-cart table.wc-block-cart-items > :is( thead, tbody ) {
+	display: block;
+	width: 100%;
+	margin: 0;
+}
+
+.wc-block-cart.wc-block-cart table.wc-block-cart-items {
+	overflow: hidden;
+}
+
+.wc-block-cart.wc-block-cart table.wc-block-cart-items tr {
+	display: grid;
+	grid-template-columns: var( --ps-cart-picture ) minmax( 0, 1fr ) auto;
+	gap: var( --wp--preset--spacing--50 );
+	padding: var( --wp--preset--spacing--50 );
+	border: 0;
+	border-bottom: 1px solid var( --wp--preset--color--border );
+}
+
+.wc-block-cart.wc-block-cart table.wc-block-cart-items tbody > tr:last-child {
+	border-bottom: 0;
+}
+
+.wc-block-cart.wc-block-cart table.wc-block-cart-items :is( th, td ) {
+	display: block;
+	padding: 0;
+	border: 0;
+}
+
+/* The header: "Product" over the picture and the name, "Total" over the totals. */
+.wc-block-cart.wc-block-cart table.wc-block-cart-items .wc-block-cart-items__header {
+	padding-block: var( --wp--preset--spacing--40 );
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 700;
+	text-transform: none;
+}
+
+.wc-block-cart.wc-block-cart table.wc-block-cart-items .wc-block-cart-items__header-image {
+	grid-column: 1 / span 2;
+}
+
+.wc-block-cart.wc-block-cart table.wc-block-cart-items .wc-block-cart-items__header-product {
+	display: none;
+}
+
+.wc-block-cart.wc-block-cart table.wc-block-cart-items .wc-block-cart-items__header-total {
+	grid-column: 3;
+	text-align: right;
+}
+
+.wc-block-cart.wc-block-cart
+	table.wc-block-cart-items
+	.wc-block-cart-items__row
+	.wc-block-cart-item__image {
+	grid-row: 1;
+	grid-column: 1 / 2;
+	padding: 0;
+	width: auto;
+}
+
+.wc-block-cart.wc-block-cart table.wc-block-cart-items .wc-block-cart-item__image img {
+	width: 100%;
+	border-radius: var( --wp--custom--radius--small );
+}
+
+.wc-block-cart.wc-block-cart
+	table.wc-block-cart-items
+	.wc-block-cart-items__row
+	.wc-block-cart-item__product {
+	grid-row: 1;
+	grid-column: 2 / 3;
+}
+
+.wc-block-cart.wc-block-cart
+	table.wc-block-cart-items
+	.wc-block-cart-items__row
+	.wc-block-cart-item__total {
+	grid-row: 1;
+	grid-column: 3 / 4;
+	color: var( --wp--preset--color--contrast );
+	font-size: var( --wp--preset--font-size--medium );
+	font-weight: 700;
+	text-align: right;
+	white-space: nowrap;
+}
+
+.wc-block-cart.wc-block-cart table.wc-block-cart-items .wc-block-cart-item__wrap {
+	gap: var( --wp--preset--spacing--20 );
+}
+
+.wc-block-cart.wc-block-cart table.wc-block-cart-items .wc-block-cart-item__wrap > * {
+	margin: 0;
+}
+
+.wc-block-cart.wc-block-cart table.wc-block-cart-items .wc-block-components-product-name {
+	color: var( --wp--preset--color--contrast );
+	font-family: var( --wp--preset--font-family--heading );
+	font-size: var( --wp--preset--font-size--medium );
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.wc-block-cart.wc-block-cart table.wc-block-cart-items .wc-block-components-product-name:hover {
+	color: var( --wp--preset--color--accent );
+	text-decoration: underline;
+}
+
+/* The unit price, quiet under the name. */
+.wc-block-cart.wc-block-cart
+	table.wc-block-cart-items
+	.wc-block-cart-item__prices
+	.wc-block-components-product-price {
+	color: var( --wp--preset--color--muted );
+	font-family: inherit;
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 400;
+}
+
+.wc-block-cart.wc-block-cart
+	table.wc-block-cart-items
+	.wc-block-cart-item__total
+	.wc-block-components-product-price {
+	color: inherit;
+	font-family: inherit;
+}
+
+/* The design lists a line's details, not the product's description. */
+.wc-block-cart .wc-block-components-product-metadata__description {
+	display: none;
+}
+
+/* ---------- A line's details: `name: value` rows, the personalisation among them ---------- */
+
+.wc-block-cart.wc-block-cart table.wc-block-cart-items .wc-block-components-product-details {
+	margin: 0;
+	padding: 0;
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+	list-style: none;
+}
+
+/*
+ * Pixonaut for WooCommerce's links, by its documented classes: a side's
+ * proof as a quiet text link in its row, and the edit link after the side's
+ * rows, on a line of its own.
+ */
+.wc-block-cart a.pixonaut-proof-link,
+.wc-block-cart a.pixonaut-edit-design {
+	color: inherit;
+	text-underline-offset: 0.2em;
+}
+
+.wc-block-cart a.pixonaut-proof-link:hover,
+.wc-block-cart a.pixonaut-edit-design:hover {
+	color: var( --wp--preset--color--accent );
+}
+
+.wc-block-cart a.pixonaut-edit-design {
+	display: block;
+	width: fit-content;
+	margin-top: var( --wp--preset--spacing--20 );
+	color: var( --wp--preset--color--contrast );
+	font-weight: 600;
+}
+
+/* ---------- Quantity and remove ---------- */
+
+.wc-block-cart.wc-block-cart table.wc-block-cart-items .wc-block-cart-item__quantity {
+	display: flex;
+	gap: var( --wp--preset--spacing--40 );
+	align-items: center;
+	margin-top: var( --wp--preset--spacing--20 );
+}
+
+.wc-block-cart .wc-block-components-quantity-selector.wc-block-components-quantity-selector {
+	width: auto;
+	min-height: var( --ps-control-height );
+	margin: 0;
+	border: 1px solid var( --wp--preset--color--border-strong );
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--base );
+}
+
+.wc-block-cart .wc-block-components-quantity-selector::after {
+	display: none;
+}
+
+.wc-block-cart
+	.wc-block-components-quantity-selector
+	input.wc-block-components-quantity-selector__input {
+	width: var( --ps-control-height );
+	min-width: 0;
+	color: var( --wp--preset--color--contrast );
+	font-weight: 600;
+}
+
+.wc-block-cart.wc-block-cart table.wc-block-cart-items .wc-block-cart-item__remove-link {
+	color: var( --wp--preset--color--muted );
+}
+
+.wc-block-cart.wc-block-cart table.wc-block-cart-items .wc-block-cart-item__remove-link:hover {
+	color: var( --wp--preset--color--error );
+}
+
+/* ---------- The totals ---------- */
+
+.wc-block-cart.wc-block-cart > .wc-block-cart__sidebar {
+	padding: var( --wp--preset--spacing--50 );
+}
+
+.wc-block-cart .wc-block-cart__totals-title.wc-block-cart__totals-title {
+	margin: 0 0 var( --wp--preset--spacing--30 );
+	padding: 0;
+	color: var( --wp--preset--color--contrast );
+	font-family: var( --wp--preset--font-family--heading );
+	font-size: var( --wp--preset--font-size--large );
+	font-weight: 700;
+	text-align: left;
+	text-transform: none;
+}
+
+.wc-block-cart .wc-block-cart__submit {
+	margin: var( --wp--preset--spacing--40 ) 0 0;
+}
+
+.wc-block-cart .wc-block-cart__submit-button {
+	width: 100%;
+}
+
+/* ---------- The empty cart (woocommerce/empty-cart-block) ---------- */
+
+/*
+ * WooCommerce's message: its heading, under the bag in a tint circle, and
+ * its link back to the shop, drawn as a button. Both the store's own Cart
+ * page and the cart page pattern (patterns/cart.php) hold it.
+ */
+.wp-block-woocommerce-empty-cart-block
+.wc-block-cart__empty-cart__title.wc-block-cart__empty-cart__title {
+	position: relative;
+	margin: 0;
+	font-size: var( --wp--preset--font-size--x-large );
+	padding-top: calc( var( --ps-empty-cart-circle ) + var( --wp--preset--spacing--40 ) );
+	text-align: center;
+}
+
+/* The circle, and the bag in it. */
+.wp-block-woocommerce-empty-cart-block .wc-block-cart__empty-cart__title::before,
+.wp-block-woocommerce-empty-cart-block .wc-block-cart__empty-cart__title::after {
+	content: "";
+	position: absolute;
+	left: 50%;
+	transform: translateX( -50% );
+	margin: 0;
+	mask: none;
+}
+
+.wp-block-woocommerce-empty-cart-block .wc-block-cart__empty-cart__title::before {
+	top: 0;
+	width: var( --ps-empty-cart-circle );
+	height: var( --ps-empty-cart-circle );
+	border-radius: 50%;
+	background: var( --wp--preset--color--tint-1 );
+}
+
+.wp-block-woocommerce-empty-cart-block .wc-block-cart__empty-cart__title::after {
+	top: calc( ( var( --ps-empty-cart-circle ) - var( --ps-empty-cart-icon ) ) / 2 );
+	width: var( --ps-empty-cart-icon );
+	height: var( --ps-empty-cart-icon );
+	background-color: var( --wp--preset--color--strong );
+	mask: var( --ps-icon-bag ) center / contain no-repeat;
+}
+
+.wp-block-woocommerce-empty-cart-block .wc-block-cart__empty-cart__title + p {
+	margin: var( --wp--preset--spacing--40 ) 0 0;
+	text-align: center;
+}
+
+/*
+ * WooCommerce prints the link as a plain link in a paragraph; it is drawn as
+ * the theme's button (theme.json's `styles.elements.button`) with the same
+ * presets.
+ */
+.wp-block-woocommerce-empty-cart-block .wc-block-cart__empty-cart__title + p > a {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: var( --ps-control-height );
+	padding: var( --wp--preset--spacing--30 ) var( --wp--preset--spacing--50 );
+	border: 2px solid var( --wp--preset--color--accent );
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--accent );
+	color: var( --wp--preset--color--accent-contrast );
+	font-family: var( --wp--preset--font-family--heading );
+	font-size: var( --wp--preset--font-size--medium );
+	font-weight: 700;
+	line-height: 1.2;
+	text-decoration: none;
+	transition: filter 0.15s ease;
+}
+
+.wp-block-woocommerce-empty-cart-block .wc-block-cart__empty-cart__title + p > a:hover {
+	filter: brightness( 1.15 );
+}
+
+/* In the cart page pattern: the message in a Panel, then the popular products. */
+.pixonaut-shop-empty-cart.pixonaut-shop-empty-cart {
+	padding-block: var( --wp--preset--spacing--70 );
+}
+
+.wp-block-woocommerce-empty-cart-block > .pixonaut-shop-popular-products {
+	margin-top: var( --wp--preset--spacing--70 );
+}
+
+/*
+ * On a store's own Cart page the message is not in a group, so the panel is
+ * drawn behind its two blocks: the empty cart becomes a grid, and its
+ * `::before` fills their two rows.
+ */
+.wp-block-woocommerce-empty-cart-block:has( > .wc-block-cart__empty-cart__title ) {
+	display: grid;
+	grid-template-columns: minmax( 0, 1fr );
+}
+
+.wp-block-woocommerce-empty-cart-block:has( > .wc-block-cart__empty-cart__title )::before {
+	content: "";
+	grid-row: 1 / span 2;
+	grid-column: 1;
+	border: 1px solid var( --wp--preset--color--border );
+	border-radius: var( --wp--custom--radius--large );
+	background: var( --wp--preset--color--base );
+	box-shadow: var( --wp--preset--shadow--card );
+}
+
+.wp-block-woocommerce-empty-cart-block
+	> .wc-block-cart__empty-cart__title.wc-block-cart__empty-cart__title {
+	grid-row: 1;
+	grid-column: 1;
+	padding-top: calc(
+		var( --wp--preset--spacing--70 ) +
+		var( --ps-empty-cart-circle ) +
+		var( --wp--preset--spacing--40 )
+	);
+}
+
+.wp-block-woocommerce-empty-cart-block > .wc-block-cart__empty-cart__title::before {
+	top: var( --wp--preset--spacing--70 );
+}
+
+.wp-block-woocommerce-empty-cart-block > .wc-block-cart__empty-cart__title::after {
+	top: calc(
+		var( --wp--preset--spacing--70 ) +
+		( var( --ps-empty-cart-circle ) - var( --ps-empty-cart-icon ) ) /
+		2
+	);
+}
+
+.wp-block-woocommerce-empty-cart-block > .wc-block-cart__empty-cart__title + p {
+	grid-row: 2;
+	grid-column: 1;
+	margin: 0;
+	padding: var( --wp--preset--spacing--40 ) var( --wp--preset--spacing--50 )
+		var( --wp--preset--spacing--70 );
+}
+
+.wp-block-woocommerce-cart
+	.wp-block-woocommerce-empty-cart-block
+	> .wc-block-cart__empty-cart__title.wc-block-cart__empty-cart__title
+	+ p
+	~ * {
+	margin-top: var( --wp--preset--spacing--60 );
+}
+
+/* ---------- Promises, on their band (`_components.css`) ---------- */
+
+.pixonaut-shop-cart > .pixonaut-shop-promises-band {
+	margin-top: var( --wp--preset--spacing--70 );
+}
+
+/* ---------- Phones: one column ---------- */
+
+@media ( max-width: 781px ) {
+	.wc-block-cart.wc-block-cart table.wc-block-cart-items .wc-block-cart-items__header {
+		display: none;
+	}
+
+	.wc-block-cart.wc-block-cart table.wc-block-cart-items tr {
+		grid-template-columns: var( --ps-cart-picture-phone ) minmax( 0, 1fr );
+		gap: var( --wp--preset--spacing--40 );
+		padding: var( --wp--preset--spacing--40 );
+	}
+
+	/* The quantity and the unit price say it; the totals sum it up. */
+	.wc-block-cart.wc-block-cart
+		table.wc-block-cart-items
+		.wc-block-cart-items__row
+		.wc-block-cart-item__total {
+		display: none;
+	}
+}

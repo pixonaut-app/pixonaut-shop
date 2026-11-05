@@ -1,0 +1,29 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
+	"files": {
+		"includes": [
+			"src/**/*.css",
+			"src/**/*.js",
+			"src/**/*.ts",
+			"src/**/*.tsx",
+			"src/**/*.json",
+			"scripts/**/*.ts",
+			"tests/ts/**/*.ts",
+			"tests/e2e/**/*.ts",
+			"playwright.config.ts"
+		]
+	},
+	"formatter": {
+		"enabled": true,
+		"indentStyle": "tab",
+		"lineWidth": 100,
+		"delimiterSpacing": true
+	},
+	"linter": {
+		"enabled": true,
+		"rules": { "preset": "recommended" }
+	},
+	"javascript": {
+		"formatter": { "quoteStyle": "single" }
+	}
+}

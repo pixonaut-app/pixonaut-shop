@@ -1,0 +1,21 @@
+/node_modules/
+/vendor/
+/build/
+/.wp-env-home/
+# wp-env's per-machine override, where a developer maps in Pixonaut for
+# WooCommerce from wherever their checkout of it lives (docs/SETUP.md).
+/.wp-env.override.json
+/.phpunit.cache/
+/coverage/
+/test-results/
+/playwright-report/
+/artifacts/
+# Where .github/workflows/release.yml assembles and smoke-tests the theme
+# zip, should its steps be run by hand to debug them.
+/stage/
+/smoke/
+/pixonaut-shop-*.zip
+.DS_Store
+*.log
+# Releases of Pixonaut for WooCommerce that `pnpm plugin:use v1.2.3` unpacked.
+/.wp-env-plugins/

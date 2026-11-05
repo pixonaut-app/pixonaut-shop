@@ -1,0 +1,22 @@
+/*
+ * The theme's one stylesheet, for the front end and the editor canvas. Each
+ * area of the shop has its own partial under styles/. Colours, fonts, radii
+ * and shadows come from theme.json and the site's own Styles: every value here is a preset's or a custom value's property, never
+ * a literal, so a store that changes its Styles changes this too.
+ */
+
+@import "./styles/_fonts.css";
+@import "./styles/_base.css";
+@import "./styles/_components.css";
+@import "./styles/_header.css";
+@import "./styles/_footer.css";
+@import "./styles/_content.css";
+@import "./styles/_front-page.css";
+@import "./styles/_archive.css";
+@import "./styles/_product.css";
+@import "./styles/_cart.css";
+@import "./styles/_mini-cart.css";
+@import "./styles/_checkout.css";
+@import "./styles/_checkout-controls.css";
+@import "./styles/_account.css";
+@import "./styles/_order.css";

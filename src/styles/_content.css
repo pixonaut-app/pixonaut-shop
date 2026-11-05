@@ -1,0 +1,93 @@
+/*
+ * Pages: the content a store writes. A content page (`templates/page.html`)
+ * is one panel in the content column, under the breadcrumbs: the title, the
+ * excerpt as its lede and the page's content, then the store's promises on a
+ * band. The 404 page (`patterns/not-found.php`) is a centred panel with the
+ * product search and the way home, and the store's categories below it.
+ */
+
+/* A page's excerpt, and the 404 page's sentence. */
+.pixonaut-shop-lede {
+	max-width: var( --ps-lede-width );
+}
+
+/* ---------- 404 (patterns/not-found.php) ---------- */
+
+/*
+ * A flex layout zeroes its children's margins (`.is-layout-flex > *`), so the
+ * panel's own rules name the panel twice to space them as the design does.
+ */
+.pixonaut-shop-not-found.pixonaut-shop-not-found {
+	gap: 0;
+	margin-block-start: var( --wp--preset--spacing--60 );
+	padding-block: var( --wp--preset--spacing--70 );
+	text-align: center;
+}
+
+/* The pill, the heading, the sentence, the search and the button. */
+.pixonaut-shop-not-found.pixonaut-shop-not-found > :is( p, h1, div ) {
+	margin: 0 0 var( --wp--preset--spacing--30 );
+}
+
+.pixonaut-shop-not-found.pixonaut-shop-not-found > .pixonaut-shop-lede {
+	margin-bottom: var( --wp--preset--spacing--50 );
+}
+
+.pixonaut-shop-not-found.pixonaut-shop-not-found > .wp-block-woocommerce-product-search {
+	width: 100%;
+	max-width: var( --ps-search-width );
+	margin-bottom: var( --wp--preset--spacing--40 );
+}
+
+.pixonaut-shop-not-found.pixonaut-shop-not-found > :last-child {
+	margin-bottom: 0;
+}
+
+/* The page's gap above the footer adds to the end padding, to the design's spacing-60. */
+.pixonaut-shop-not-found-categories {
+	margin-block-start: var( --wp--preset--spacing--70 );
+	padding-block-end: var( --wp--preset--spacing--50 );
+}
+
+.pixonaut-shop-not-found-categories > * {
+	margin-block: 0;
+}
+
+.pixonaut-shop-not-found-categories > h2 {
+	margin-block-end: var( --wp--preset--spacing--50 );
+}
+
+/* A store without categories that have products shows no heading over nothing. */
+.pixonaut-shop-not-found-categories:not( :has( .wp-block-pixonaut-shop-product-categories ) ) {
+	display: none;
+}
+
+/* ---------- Content page ---------- */
+
+.pixonaut-shop-page-panel > * {
+	margin-block: 0;
+}
+
+.pixonaut-shop-page-panel > .wp-block-post-title + .wp-block-post-excerpt {
+	margin-block-start: var( --wp--preset--spacing--30 );
+}
+
+/* The content sits as far below the page's head whether or not it has a lede. */
+.pixonaut-shop-page-panel > .wp-block-post-title + .wp-block-post-content,
+.pixonaut-shop-page-panel > .wp-block-post-excerpt + .wp-block-post-content {
+	margin-block-start: var( --wp--preset--spacing--50 );
+}
+
+/* The page's own headings: a step above the text, with the room the design gives them. */
+.pixonaut-shop-page-panel .wp-block-post-content > :where( h2 ) {
+	margin-block-start: var( --wp--preset--spacing--50 );
+	font-size: var( --wp--preset--font-size--large );
+}
+
+.pixonaut-shop-page-panel .wp-block-post-content > h2 + * {
+	margin-block-start: var( --wp--preset--spacing--20 );
+}
+
+.pixonaut-shop-page > .pixonaut-shop-promises-band {
+	margin-top: var( --wp--preset--spacing--60 );
+}

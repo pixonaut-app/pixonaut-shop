@@ -1,0 +1,205 @@
+name: Release
+
+# Started by hand (Actions tab, or `gh workflow run Release`). release-please
+# opens or updates a release pull request from the Conventional Commits on
+# main, which needs the repository to allow GitHub Actions to create pull
+# requests. Dispatched after that pull request is merged, it tags the version
+# and creates the GitHub release; the build job then builds, smoke-tests and
+# attaches the zip and its SHA-256 checksum. Stores are offered a release only
+# once its zip is attached.
+#
+# With `build_ref` it skips release-please and builds that ref as an artifact,
+# publishing nothing.
+on:
+  workflow_dispatch:
+    inputs:
+      build_ref:
+        description: 'Ref to build as an artifact, publishing nothing (optional)'
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  # Kept in step with .github/workflows/ci.yml's env block.
+  PHP_VERSION: '8.5'
+  NODE_VERSION: 24
+  THEME_SLUG: pixonaut-shop
+
+jobs:
+  release-please:
+    if: inputs.build_ref == ''
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  build:
+    needs: release-please
+    if: >-
+      always() && (inputs.build_ref != '' ||
+      needs.release-please.outputs.release_created == 'true')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name || inputs.build_ref }}
+
+      - name: Resolve the version
+        id: version
+        env:
+          # Through the environment, never interpolated into the script:
+          # build_ref is free text on a dispatch, in a job that can write.
+          RELEASE_TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          if [ -n "$RELEASE_TAG" ]; then
+            TAG="$RELEASE_TAG"
+          else
+            # No release: build an inspectable artifact without claiming a
+            # real version.
+            TAG="dev-$(git rev-parse --short HEAD)"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      # A store is offered the version style.css holds at the tag, not the
+      # tag's name, so the two must agree before anything is published.
+      - name: The tag names the version in style.css
+        if: needs.release-please.outputs.release_created == 'true'
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/release/check-tag-cli.ts "$TAG"
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+          tools: composer:v2
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      - name: Install runtime dependencies only
+        run: |
+          composer install --no-dev --no-interaction --no-progress \
+            --prefer-dist --optimize-autoloader --classmap-authoritative
+
+      - name: Compile the translation catalogue
+        run: |
+          sudo apt-get update && sudo apt-get install -y gettext
+          msgfmt -o languages/sv_SE.mo languages/sv_SE.po
+
+      - name: Assemble the theme
+        run: |
+          STAGE="stage/$THEME_SLUG"
+          mkdir -p "$STAGE"
+          # Allowlist: only what WordPress loads at runtime. Anything not
+          # named here (tests/, src/, docs/, node_modules/, tooling configs)
+          # is left out of the zip by construction.
+          cp style.css theme.json functions.php index.php "$STAGE/"
+          if [ -f screenshot.png ]; then cp screenshot.png "$STAGE/"; fi
+          cp -r assets inc parts patterns templates styles languages vendor "$STAGE/"
+          # build/ is generated and gitignored. Source maps and the
+          # php-cs-fixer cache are build-time only.
+          rsync -a --exclude='*.map' --exclude='.php-cs-fixer.cache' build/ "$STAGE/build/"
+
+      - name: Strip development files from vendor
+        run: |
+          cd "stage/$THEME_SLUG/vendor"
+          find . -type d \( -name tests -o -name test -o -name docs -o -name doc \
+            -o -name examples -o -name .github \) -prune -exec rm -rf {} +
+          find . -type f \( -name '*.md' -o -name 'phpunit.xml*' -o -name 'phpstan*' \
+            -o -name '.php-cs-fixer*' -o -name '.gitignore' -o -name '.gitattributes' \
+            -o -name '.editorconfig' -o -name 'Makefile' -o -name '*.dist' \) -delete
+
+      # The zip's top directory is the theme's slug, which a store stores its
+      # Styles under; the update checker installs it as it is.
+      - name: Create the zip
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          cd stage
+          zip -rq "../${THEME_SLUG}-${VERSION}.zip" "$THEME_SLUG"
+          cd ..
+          sha256sum "${THEME_SLUG}-${VERSION}.zip" > "${THEME_SLUG}-${VERSION}.zip.sha256"
+
+      - name: Smoke-test the zip on a fresh WordPress with WooCommerce
+        env:
+          ZIP: ${{ env.THEME_SLUG }}-${{ steps.version.outputs.version }}.zip
+          SMOKE_DIR: smoke
+          # Off .wp-env.json's ports, so running this step by hand beside a
+          # local wp-env never collides with it.
+          SMOKE_PORT: 8855
+          SMOKE_TESTS_PORT: 8856
+        run: |
+          # The zip itself, not the checkout: a file the allowlist forgot
+          # fails here instead of on a store. Core and PHP are read from
+          # .wp-env.json so this site runs what CI's suites run. The
+          # checkout's after-start script writes the .htaccess the shop's
+          # address needs when this runs by hand under rootless Docker; on the
+          # runner it does nothing.
+          CORE=$(jq -r .core .wp-env.json)
+          PHP=$(jq -r .phpVersion .wp-env.json)
+          WP_ENV="$GITHUB_WORKSPACE/node_modules/.bin/wp-env"
+          mkdir -p "$SMOKE_DIR"
+          unzip -q "$ZIP" -d "$SMOKE_DIR"
+          cat > "$SMOKE_DIR/.wp-env.json" <<JSON
+          {
+            "core": "$CORE",
+            "phpVersion": "$PHP",
+            "plugins": ["https://downloads.wordpress.org/plugin/woocommerce.zip"],
+            "themes": ["./$THEME_SLUG"],
+            "port": $SMOKE_PORT,
+            "testsPort": $SMOKE_TESTS_PORT,
+            "lifecycleScripts": { "afterStart": "$GITHUB_WORKSPACE/scripts/docker/wp-env-after-start.sh" },
+            "config": { "WP_DEBUG": true, "WP_DEBUG_LOG": true, "WP_DEBUG_DISPLAY": false }
+          }
+          JSON
+          cd "$SMOKE_DIR"
+          "$WP_ENV" start
+          "$WP_ENV" run cli wp theme activate "$THEME_SLUG"
+          "$WP_ENV" run cli wp option update woocommerce_coming_soon no
+          # The front page and the shop, which renders the archive template.
+          for path in / /shop/; do
+            status=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:${SMOKE_PORT}${path}")
+            echo "${path} ${status}"
+            [ "$status" = 200 ] || exit 1
+          done
+          "$WP_ENV" run cli sh -c \
+            '! grep -E "PHP (Fatal error|Parse error|Warning)" wp-content/debug.log 2>/dev/null'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.THEME_SLUG }}-${{ steps.version.outputs.version }}
+          path: ${{ env.THEME_SLUG }}-*.zip*
+          if-no-files-found: error
+          retention-days: 30
+
+      # The update checker offers only a release with this zip attached, so a
+      # release appears to stores the moment its zip is uploaded, not before.
+      - name: Attach the zip and its checksum
+        if: needs.release-please.outputs.release_created == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release upload "$TAG" "${THEME_SLUG}-${VERSION}.zip" "${THEME_SLUG}-${VERSION}.zip.sha256" --clobber

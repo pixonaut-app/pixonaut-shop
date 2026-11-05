@@ -1,0 +1,773 @@
+# Copyright (C) 2026 Pixonaut
+# This file is distributed under the GPL-2.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Pixonaut Shop 0.1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-11-05T16:47:35+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: pixonaut-shop\n"
+
+#. Theme Name of the theme
+#: style.css
+msgid "Pixonaut Shop"
+msgstr ""
+
+#. Theme URI of the theme
+#: style.css
+msgid "https://github.com/pixonaut-app/pixonaut-shop"
+msgstr ""
+
+#. Description of the theme
+#: style.css
+msgid "A WooCommerce block theme for stores that sell personalised garments and prints through Pixonaut for WooCommerce. Every store shares its templates; a store's colours, fonts and logo are set in the Site Editor under Styles."
+msgstr ""
+
+#. Author of the theme
+#: style.css
+msgid "Pixonaut"
+msgstr ""
+
+#: inc/Account/Dashboard.php:89
+msgid "Latest order"
+msgstr ""
+
+#. translators: %s: the order number.
+#: inc/Account/Dashboard.php:92
+#: inc/Account/ViewOrder.php:80
+#, php-format
+msgid "Order #%s"
+msgstr ""
+
+#: inc/Account/Dashboard.php:98
+msgid "Addresses"
+msgstr ""
+
+#: inc/Account/Dashboard.php:103
+msgid "Account details"
+msgstr ""
+
+#: inc/Account/Dashboard.php:135
+msgid "Recent orders"
+msgstr ""
+
+#: inc/Account/Dashboard.php:137
+#: patterns/front-page.php:55
+#: patterns/popular-products.php:27
+msgid "View all"
+msgstr ""
+
+#: inc/Account/ViewOrder.php:84
+msgid "Breadcrumb"
+msgstr ""
+
+#: inc/Account/ViewOrder.php:102
+msgid "Order number"
+msgstr ""
+
+#: inc/Account/ViewOrder.php:103
+msgid "Date"
+msgstr ""
+
+#: inc/Account/ViewOrder.php:104
+msgid "Total"
+msgstr ""
+
+#: inc/Account/ViewOrder.php:105
+msgid "Status"
+msgstr ""
+
+#. translators: %s: what the customer searched for.
+#: inc/Archive/NoResultsTitle.php:33
+#, php-format
+msgid "No results for “%s”"
+msgstr ""
+
+#: inc/Blocks/AspectRatios.php:108
+msgid "Square - 1:1"
+msgstr ""
+
+#. translators: %s: a print size's width and height, such as 5:7.
+#: inc/Blocks/AspectRatios.php:114
+#, php-format
+msgid "Portrait - %s"
+msgstr ""
+
+#. translators: %s: a print size's width and height, such as 7:5.
+#: inc/Blocks/AspectRatios.php:120
+#, php-format
+msgid "Landscape - %s"
+msgstr ""
+
+#: inc/Blocks/BlockStyles.php:53
+msgid "Panel"
+msgstr ""
+
+#: inc/Blocks/BlockStyles.php:66
+msgid "Band (tint 1)"
+msgstr ""
+
+#: inc/Blocks/BlockStyles.php:67
+msgid "Band (tint 2)"
+msgstr ""
+
+#: inc/Blocks/BlockStyles.php:71
+msgid "Notice"
+msgstr ""
+
+#: inc/Blocks/BlockStyles.php:77
+msgid "Pill"
+msgstr ""
+
+#: inc/Blocks/BlockStyles.php:95
+msgid "Use swatches"
+msgstr ""
+
+#: inc/Blocks/BlockStyles.php:101
+msgid "Text link"
+msgstr ""
+
+#: inc/Blocks/FreeShippingNote.php:252
+msgid "You get free shipping"
+msgstr ""
+
+#. translators: %s: the amount, formatted as a price, the cart needs for free shipping.
+#: inc/Blocks/FreeShippingNote.php:257
+#, php-format
+msgid "Add %s more for free shipping"
+msgstr ""
+
+#. translators: %s: the number of products in a category.
+#: inc/Blocks/ProductCategories.php:207
+#, php-format
+msgid "%s product"
+msgid_plural "%s products"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/Dependencies/WooCommerceNotice.php:51
+msgid "Product pages, the shop, the cart and the checkout need WooCommerce. Until it is active, visitors see your pages and posts only."
+msgstr ""
+
+#: inc/Dependencies/WooCommerceNotice.php:53
+msgid "Install WooCommerce"
+msgstr ""
+
+#. translators: %s: the order's number.
+#: inc/Orders/OrderReceivedBand.php:77
+#, php-format
+msgid "Order %s received"
+msgstr ""
+
+#: patterns/announcement.php
+msgctxt "Pattern title"
+msgid "Announcement"
+msgstr ""
+
+#: patterns/announcement.php:20
+msgid "Write a short announcement"
+msgstr ""
+
+#: patterns/cart-title.php
+msgctxt "Pattern title"
+msgid "Cart title"
+msgstr ""
+
+#: patterns/cart-title.php:21
+#: patterns/continue-shopping.php:26
+msgid "Continue shopping"
+msgstr ""
+
+#: patterns/cart.php
+msgctxt "Pattern title"
+msgid "Cart"
+msgstr ""
+
+#: patterns/checkout-title.php
+msgctxt "Pattern title"
+msgid "Checkout title"
+msgstr ""
+
+#: patterns/checkout-title.php:23
+msgid "Return to Cart"
+msgstr ""
+
+#: patterns/checkout.php
+msgctxt "Pattern title"
+msgid "Checkout"
+msgstr ""
+
+#: patterns/checkout.php:73
+msgid "Secure payment"
+msgstr ""
+
+#: patterns/continue-shopping.php
+msgctxt "Pattern title"
+msgid "Continue shopping"
+msgstr ""
+
+#: patterns/footer.php
+msgctxt "Pattern title"
+msgid "Footer"
+msgstr ""
+
+#. translators: 1: the current year, 2: the site's name.
+#: patterns/footer.php:22
+#, php-format
+msgid "© %1$s %2$s"
+msgstr ""
+
+#: patterns/front-page.php
+msgctxt "Pattern title"
+msgid "Front page"
+msgstr ""
+
+#: patterns/front-page.php
+msgctxt "Pattern description"
+msgid "A start for the store's front page: the hero, the categories and the popular products."
+msgstr ""
+
+#: patterns/front-page.php:33
+#: patterns/not-found.php:48
+msgid "Shop by category"
+msgstr ""
+
+#: patterns/front-page.php:37
+msgid "All categories"
+msgstr ""
+
+#: patterns/front-page.php:51
+#: patterns/popular-products.php:23
+msgid "Popular right now"
+msgstr ""
+
+#: patterns/hero.php
+msgctxt "Pattern title"
+msgid "Hero"
+msgstr ""
+
+#: patterns/hero.php
+msgctxt "Pattern description"
+msgid "The opening of a page on a tinted band: a pill, a heading, a sentence, two buttons and a picture beside them."
+msgstr ""
+
+#: patterns/hero.php:25
+msgid "News"
+msgstr ""
+
+#: patterns/hero.php:29
+msgid "A heading about what you sell"
+msgstr ""
+
+#: patterns/hero.php:33
+msgid "One or two sentences about the store."
+msgstr ""
+
+#: patterns/hero.php:39
+msgid "Shop now"
+msgstr ""
+
+#: patterns/hero.php:43
+msgid "See more"
+msgstr ""
+
+#: patterns/no-products.php
+msgctxt "Pattern title"
+msgid "No products found"
+msgstr ""
+
+#: patterns/no-products.php:20
+msgid "No products found"
+msgstr ""
+
+#: patterns/no-products.php:30
+msgid "Back to the shop"
+msgstr ""
+
+#: patterns/not-found.php
+msgctxt "Pattern title"
+msgid "Page not found"
+msgstr ""
+
+#: patterns/not-found.php:26
+msgid "Page not found"
+msgstr ""
+
+#: patterns/not-found.php:30
+msgid "The page you are looking for is not here. It may have moved, or the address may be mistyped."
+msgstr ""
+
+#: patterns/not-found.php:38
+msgid "Go to the home page"
+msgstr ""
+
+#: patterns/order-help.php
+msgctxt "Pattern title"
+msgid "Order help"
+msgstr ""
+
+#: patterns/order-help.php:23
+msgid "Contact us about this order"
+msgstr ""
+
+#: patterns/order-help.php:29
+msgid "A sentence about how and when you answer."
+msgstr ""
+
+#: patterns/order-next-steps.php
+msgctxt "Pattern title"
+msgid "Order next steps"
+msgstr ""
+
+#: patterns/order-next-steps.php:22
+msgid "What happens next?"
+msgstr ""
+
+#: patterns/order-next-steps.php:30
+#: patterns/order-next-steps.php:42
+#: patterns/order-next-steps.php:54
+msgid "Step title"
+msgstr ""
+
+#: patterns/order-next-steps.php:34
+#: patterns/order-next-steps.php:46
+#: patterns/order-next-steps.php:58
+msgid "One sentence about this step."
+msgstr ""
+
+#: patterns/popular-products.php
+msgctxt "Pattern title"
+msgid "Popular products"
+msgstr ""
+
+#: patterns/product-description.php
+msgctxt "Pattern title"
+msgid "Product description"
+msgstr ""
+
+#: patterns/product-description.php:21
+msgid "Product description"
+msgstr ""
+
+#: patterns/product-grid.php
+msgctxt "Pattern title"
+msgid "Product grid"
+msgstr ""
+
+#: patterns/promises.php
+msgctxt "Pattern title"
+msgid "Promises"
+msgstr ""
+
+#: patterns/promises.php:19
+msgid "A short promise"
+msgstr ""
+
+#: patterns/promises.php:20
+msgid "One sentence about it."
+msgstr ""
+
+#: patterns/related-products.php
+msgctxt "Pattern title"
+msgid "Related products"
+msgstr ""
+
+#: patterns/related-products.php:22
+msgid "You may also like"
+msgstr ""
+
+#: patterns/search-no-results.php
+msgctxt "Pattern title"
+msgid "No search results"
+msgstr ""
+
+#: patterns/search-no-results.php:29
+msgid "Check the spelling, try a shorter word or look in one of the categories below."
+msgstr ""
+
+#: patterns/search-no-results.php:35
+msgid "Popular categories"
+msgstr ""
+
+#: build/blocks/free-shipping-note/index.js:1
+msgid "Free shipping note"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgctxt "icon"
+msgid "Account"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgctxt "icon"
+msgid "Bag"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgctxt "icon"
+msgid "Search"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgctxt "icon"
+msgid "Menu"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgctxt "icon"
+msgid "Close"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgctxt "icon"
+msgid "Chevron"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgctxt "icon"
+msgid "Info"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgctxt "icon"
+msgid "Check"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgctxt "icon"
+msgid "Truck"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgctxt "icon"
+msgid "Gift"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgctxt "icon"
+msgid "Heart"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgctxt "icon"
+msgid "Star"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgctxt "icon"
+msgid "Leaf"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgctxt "icon"
+msgid "Upload"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgctxt "icon"
+msgid "Clock"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgctxt "icon"
+msgid "Lock"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgctxt "icon"
+msgid "Eye"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgid "Icon"
+msgstr ""
+
+#: build/blocks/icon/index.js:1
+msgid "In a circle"
+msgstr ""
+
+#: build/blocks/product-categories/index.js:1
+msgid "Layout"
+msgstr ""
+
+#: build/blocks/product-categories/index.js:1
+msgid "Tiles"
+msgstr ""
+
+#: build/blocks/product-categories/index.js:1
+msgid "Buttons"
+msgstr ""
+
+#: build/blocks/product-categories/index.js:1
+msgid "Number of categories"
+msgstr ""
+
+#: build/blocks/product-categories/index.js:1
+msgid "Order by"
+msgstr ""
+
+#: build/blocks/product-categories/index.js:1
+msgid "Product count"
+msgstr ""
+
+#: build/blocks/product-categories/index.js:1
+msgid "Category order"
+msgstr ""
+
+#: build/blocks/free-shipping-note/block.json
+msgctxt "block title"
+msgid "Free shipping note"
+msgstr ""
+
+#: build/blocks/free-shipping-note/block.json
+msgctxt "block description"
+msgid "How much more the cart needs for free shipping, or that shipping is free, from the store's free shipping settings."
+msgstr ""
+
+#: build/blocks/free-shipping-note/block.json
+msgctxt "block keyword"
+msgid "shipping"
+msgstr ""
+
+#: build/blocks/icon/block.json
+msgctxt "block title"
+msgid "Icon"
+msgstr ""
+
+#: build/blocks/icon/block.json
+msgctxt "block description"
+msgid "A line icon in the colour of the text, on its own or in a circle."
+msgstr ""
+
+#: build/blocks/icon/block.json
+msgctxt "block keyword"
+msgid "symbol"
+msgstr ""
+
+#: build/blocks/product-categories/block.json
+msgctxt "block title"
+msgid "Product categories"
+msgstr ""
+
+#: build/blocks/product-categories/block.json
+msgctxt "block description"
+msgid "The store's top-level product categories that have products, as tiles with their picture or as buttons."
+msgstr ""
+
+#: build/blocks/product-categories/block.json
+msgctxt "block keyword"
+msgid "collections"
+msgstr ""
+
+#: theme.json
+#: styles/natur.json
+msgctxt "Color name"
+msgid "Base"
+msgstr ""
+
+#: theme.json
+#: styles/natur.json
+msgctxt "Color name"
+msgid "Surface"
+msgstr ""
+
+#: theme.json
+#: styles/natur.json
+msgctxt "Color name"
+msgid "Contrast"
+msgstr ""
+
+#: theme.json
+#: styles/natur.json
+msgctxt "Color name"
+msgid "Muted"
+msgstr ""
+
+#: theme.json
+#: styles/natur.json
+msgctxt "Color name"
+msgid "Accent"
+msgstr ""
+
+#: theme.json
+#: styles/natur.json
+msgctxt "Color name"
+msgid "Accent contrast"
+msgstr ""
+
+#: theme.json
+#: styles/natur.json
+msgctxt "Color name"
+msgid "Highlight"
+msgstr ""
+
+#: theme.json
+#: styles/natur.json
+msgctxt "Color name"
+msgid "Highlight contrast"
+msgstr ""
+
+#: theme.json
+#: styles/natur.json
+msgctxt "Color name"
+msgid "Tint 1"
+msgstr ""
+
+#: theme.json
+#: styles/natur.json
+msgctxt "Color name"
+msgid "Tint 2"
+msgstr ""
+
+#: theme.json
+#: styles/natur.json
+msgctxt "Color name"
+msgid "Strong"
+msgstr ""
+
+#: theme.json
+#: styles/natur.json
+msgctxt "Color name"
+msgid "Strong contrast"
+msgstr ""
+
+#: theme.json
+#: styles/natur.json
+msgctxt "Color name"
+msgid "Border"
+msgstr ""
+
+#: theme.json
+#: styles/natur.json
+msgctxt "Color name"
+msgid "Border strong"
+msgstr ""
+
+#: theme.json
+#: styles/natur.json
+msgctxt "Color name"
+msgid "Error"
+msgstr ""
+
+#: theme.json
+#: styles/natur.json
+msgctxt "Color name"
+msgid "Success"
+msgstr ""
+
+#: theme.json
+#: styles/natur.json
+msgctxt "Shadow name"
+msgid "Card"
+msgstr ""
+
+#: theme.json
+msgctxt "Space size name"
+msgid "2X-Small"
+msgstr ""
+
+#: theme.json
+msgctxt "Space size name"
+msgid "X-Small"
+msgstr ""
+
+#: theme.json
+msgctxt "Space size name"
+msgid "Small"
+msgstr ""
+
+#: theme.json
+msgctxt "Space size name"
+msgid "Medium"
+msgstr ""
+
+#: theme.json
+msgctxt "Space size name"
+msgid "Large"
+msgstr ""
+
+#: theme.json
+msgctxt "Space size name"
+msgid "X-Large"
+msgstr ""
+
+#: theme.json
+msgctxt "Space size name"
+msgid "2X-Large"
+msgstr ""
+
+#: theme.json
+msgctxt "Font family name"
+msgid "Inter"
+msgstr ""
+
+#: theme.json
+msgctxt "Font size name"
+msgid "Small"
+msgstr ""
+
+#: theme.json
+msgctxt "Font size name"
+msgid "Medium"
+msgstr ""
+
+#: theme.json
+msgctxt "Font size name"
+msgid "Large"
+msgstr ""
+
+#: theme.json
+msgctxt "Font size name"
+msgid "Extra large"
+msgstr ""
+
+#: theme.json
+msgctxt "Font size name"
+msgid "Huge"
+msgstr ""
+
+#: theme.json
+msgctxt "Template part name"
+msgid "Header"
+msgstr ""
+
+#: theme.json
+msgctxt "Template part name"
+msgid "Footer"
+msgstr ""
+
+#: theme.json
+msgctxt "Template part name"
+msgid "Promises"
+msgstr ""
+
+#: theme.json
+msgctxt "Template part name"
+msgid "Announcement"
+msgstr ""
+
+#: theme.json
+msgctxt "Template part name"
+msgid "Order next steps"
+msgstr ""
+
+#: theme.json
+msgctxt "Template part name"
+msgid "Order help"
+msgstr ""
+
+#: styles/natur.json
+msgctxt "Style variation name"
+msgid "Nature"
+msgstr ""
+
+#: styles/natur.json
+msgctxt "Font family name"
+msgid "Figtree"
+msgstr ""

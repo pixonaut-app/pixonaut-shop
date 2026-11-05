@@ -1,0 +1,291 @@
+/*
+ * The Checkout block's controls: its checkboxes, its fields with their
+ * labels above them and their messages below, and its shipping and payment
+ * options as bordered rows. The panels they sit in are in _checkout.css.
+ *
+ * WooCommerce's stylesheets may load after this one, so a rule that
+ * overrides one of theirs is more specific: it repeats a class of the
+ * element it styles.
+ */
+
+/* ---------- Checkboxes (Checkbox) ---------- */
+
+/* WooCommerce sets the box's line height to nothing, so a label that wraps overlaps itself. */
+.wc-block-checkout
+:is(
+	.wc-block-checkout__terms,
+	.wc-block-components-checkbox,
+	.wc-block-components-checkbox label
+) {
+	line-height: inherit;
+}
+
+.wc-block-checkout .wc-block-components-checkbox label {
+	gap: var( --wp--preset--spacing--30 );
+	font-size: var( --wp--preset--font-size--medium );
+}
+
+.wc-block-checkout
+	.wc-block-components-checkbox
+	.wc-block-components-checkbox__input.wc-block-components-checkbox__input[ type="checkbox" ] {
+	width: var( --ps-checkbox-size );
+	min-width: var( --ps-checkbox-size );
+	height: var( --ps-checkbox-size );
+	border: 1px solid var( --wp--preset--color--border-strong );
+	border-radius: calc( var( --wp--custom--radius--small ) / 2 );
+	background: var( --wp--preset--color--base );
+}
+
+.wc-block-checkout
+	.wc-block-components-checkbox
+	.wc-block-components-checkbox__input.wc-block-components-checkbox__input[ type="checkbox" ]:checked {
+	border-color: var( --wp--preset--color--accent );
+	background: var( --wp--preset--color--accent );
+}
+
+/* WooCommerce's check, over the box in the accent's contrasting colour. */
+.wc-block-checkout
+	.wc-block-components-checkbox
+	.wc-block-components-checkbox__mark.wc-block-components-checkbox__mark {
+	top: 0;
+	left: 0;
+	width: var( --ps-checkbox-size );
+	height: var( --ps-checkbox-size );
+	margin: 0;
+	padding: calc( var( --ps-checkbox-size ) / 6 );
+	box-sizing: border-box;
+	fill: var( --wp--preset--color--accent-contrast );
+}
+
+.wc-block-checkout
+	.wc-block-components-checkbox.has-error
+	.wc-block-components-checkbox__input.wc-block-components-checkbox__input[ type="checkbox" ] {
+	border-color: var( --wp--preset--color--error );
+	outline: 1px solid var( --wp--preset--color--error );
+	outline-offset: 0;
+}
+
+/* The terms keep the text's colour when unticked; the box and the message say what is wrong. */
+.wc-block-checkout .wc-block-components-checkbox.has-error label,
+.wc-block-checkout
+	.wc-block-components-checkbox.has-error
+	.wc-block-components-checkbox__label.wc-block-components-checkbox__label {
+	color: var( --wp--preset--color--contrast );
+}
+
+/* ---------- Fields (CheckoutField) ---------- */
+
+/*
+ * WooCommerce floats a field's label inside it; the design puts it above,
+ * at the small size in 600, with the field under it and its message below.
+ */
+.wc-block-checkout
+.wc-block-components-text-input.wc-block-components-text-input.wc-block-components-text-input {
+	display: flex;
+	flex-direction: column;
+	line-height: inherit;
+	white-space: normal;
+}
+
+.wc-block-checkout
+	.wc-block-components-form
+	.wc-block-components-text-input.wc-block-components-text-input
+	label,
+.wc-block-checkout
+	.wc-blocks-components-select
+	.wc-blocks-components-select__label.wc-blocks-components-select__label {
+	position: static;
+	order: -1;
+	max-width: none;
+	margin: 0 0 var( --ps-label-gap );
+	transform: none;
+	color: var( --wp--preset--color--contrast );
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 600;
+	line-height: inherit;
+	white-space: normal;
+}
+
+.wc-block-checkout
+	.wc-block-components-form
+	.wc-block-components-text-input.wc-block-components-text-input.wc-block-components-text-input
+	input,
+.wc-block-checkout
+	.wc-blocks-components-select
+	.wc-blocks-components-select__select.wc-blocks-components-select__select {
+	height: var( --ps-field-height );
+	padding: 0 var( --wp--preset--spacing--30 );
+	border: 1px solid var( --wp--preset--color--border-strong );
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--base );
+	color: var( --wp--preset--color--contrast );
+	font-size: var( --wp--preset--font-size--medium );
+	line-height: inherit;
+}
+
+.wc-block-checkout
+	.wc-block-components-form
+	.wc-block-components-text-input.wc-block-components-text-input.wc-block-components-text-input
+	input:focus,
+.wc-block-checkout
+	.wc-blocks-components-select
+	.wc-blocks-components-select__select.wc-blocks-components-select__select:focus {
+	border-color: var( --wp--preset--color--accent );
+	outline: 1px solid var( --wp--preset--color--accent );
+	outline-offset: 0;
+	box-shadow: none;
+}
+
+/* Wrong, it stays marked while the customer is in it, as WooCommerce puts them there. */
+.wc-block-checkout
+	.wc-block-components-form
+	.wc-block-components-text-input.wc-block-components-text-input.has-error
+	input:is( *, :focus ),
+.wc-block-checkout
+	.has-error
+	.wc-blocks-components-select
+	.wc-blocks-components-select__select.wc-blocks-components-select__select:is( *, :focus ) {
+	border-color: var( --wp--preset--color--error );
+	outline: 1px solid var( --wp--preset--color--error );
+	outline-offset: 0;
+	box-shadow: none;
+	color: var( --wp--preset--color--contrast );
+}
+
+/* A select's label sits above it, with the select's arrow centred in the select. */
+.wc-block-checkout
+	.wc-blocks-components-select
+	.wc-blocks-components-select__container.wc-blocks-components-select__container {
+	display: flex;
+	flex-direction: column;
+	border: 0;
+	background: none;
+	line-height: inherit;
+}
+
+.wc-block-checkout
+	.wc-blocks-components-select
+	.wc-blocks-components-select__expand.wc-blocks-components-select__expand {
+	top: auto;
+	bottom: calc( var( --ps-field-height ) / 2 );
+	transform: translateY( 50% );
+	fill: var( --wp--preset--color--contrast );
+}
+
+/* A field's help text, and the line saying the customer checks out as a guest. */
+.wc-block-checkout
+:is( .wc-block-checkout__guest-checkout-notice, .wc-block-components-checkout-step__description ) {
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+}
+
+/* A field's message when it is wrong: under it, in `error`, with WooCommerce's icon. */
+.wc-block-checkout .wc-block-components-validation-error.wc-block-components-validation-error {
+	padding-top: var( --wp--preset--spacing--20 );
+	color: var( --wp--preset--color--error );
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 600;
+}
+
+/* A checkbox's message lines up with its label, past the box. */
+.wc-block-checkout
+	:is( .wc-block-components-checkbox, .wc-block-checkout__terms )
+	.wc-block-components-validation-error.wc-block-components-validation-error {
+	padding-left: calc( var( --ps-checkbox-size ) + var( --wp--preset--spacing--30 ) );
+}
+
+/* ---------- Shipping and payment options (RadioControl) ---------- */
+
+/*
+ * Each option a bordered row, the chosen one outlined in `accent`. WooCommerce
+ * draws one box round them all with lines between; here each is its own.
+ */
+.wc-block-checkout .wc-block-components-radio-control.wc-block-components-radio-control {
+	display: flex;
+	flex-direction: column;
+	gap: var( --wp--preset--spacing--30 );
+}
+
+.wc-block-checkout .wc-block-components-radio-control.wc-block-components-radio-control::after,
+.wc-block-checkout
+	.wc-block-components-radio-control
+	:is(
+		.wc-block-components-radio-control__option,
+		.wc-block-components-radio-control-accordion-option
+	)::after {
+	display: none;
+}
+
+.wc-block-checkout
+	.wc-block-components-radio-control
+	> :is(
+		.wc-block-components-radio-control__option,
+		.wc-block-components-radio-control-accordion-option
+	) {
+	border: 1px solid var( --wp--preset--color--border-strong );
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--base );
+	box-shadow: none;
+}
+
+.wc-block-checkout
+	.wc-block-components-radio-control
+	> :is(
+		.wc-block-components-radio-control__option-checked,
+		.wc-block-components-radio-control-accordion-option--checked-option-highlighted
+	) {
+	border-color: var( --wp--preset--color--accent );
+	box-shadow: inset 0 0 0 1px var( --wp--preset--color--accent );
+}
+
+.wc-block-checkout
+	.wc-block-components-radio-control
+	.wc-block-components-radio-control__option.wc-block-components-radio-control__option {
+	box-shadow: none;
+}
+
+.wc-block-checkout
+	.wc-block-components-radio-control
+	.wc-block-components-radio-control__input.wc-block-components-radio-control__input {
+	border: 1px solid var( --wp--preset--color--border-strong );
+	background: var( --wp--preset--color--base );
+}
+
+.wc-block-checkout
+	.wc-block-components-radio-control
+	.wc-block-components-radio-control__input.wc-block-components-radio-control__input:checked {
+	border-color: var( --wp--preset--color--accent );
+}
+
+.wc-block-checkout
+	.wc-block-components-radio-control
+	.wc-block-components-radio-control__input.wc-block-components-radio-control__input:checked::before {
+	background: var( --wp--preset--color--accent );
+}
+
+.wc-block-checkout .wc-block-components-radio-control__label {
+	font-weight: 700;
+}
+
+.wc-block-checkout .wc-block-components-radio-control__secondary-label {
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.wc-block-checkout
+	:is(
+		.wc-block-components-radio-control__description,
+		.wc-block-components-radio-control__secondary-description
+	) {
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+}
+
+/* A payment method's own fields, printed by its gateway under the chosen row, at the text's presets. */
+.wc-block-checkout
+.wc-block-components-radio-control-accordion-content.wc-block-components-radio-control-accordion-content {
+	padding: 0 var( --wp--preset--spacing--40 ) var( --wp--preset--spacing--40 );
+	color: var( --wp--preset--color--contrast );
+	font-family: inherit;
+	font-size: var( --wp--preset--font-size--small );
+}

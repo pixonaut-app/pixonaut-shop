@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "pixonaut-shop/free-shipping-note",
+	"title": "Free shipping note",
+	"category": "woocommerce",
+	"description": "How much more the cart needs for free shipping, or that shipping is free, from the store's free shipping settings.",
+	"keywords": [ "shipping" ],
+	"textdomain": "pixonaut-shop",
+	"ancestor": [ "woocommerce/mini-cart-contents" ],
+	"supports": {
+		"html": false,
+		"multiple": false
+	},
+	"editorScript": "file:./index.tsx",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php"
+}

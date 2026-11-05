@@ -1,0 +1,163 @@
+/*
+ * The shop and its category and tag archives (`templates/archive-product.html`):
+ * the title and description, the count and sorting above the grid, the panel
+ * shown without products and the popular products below it, and the store's
+ * promises on a band. A search (`templates/product-search-results.html`,
+ * `templates/search.html`) shares them, below its own panel. The grid and its
+ * cards are in `_components.css`.
+ */
+
+/* The height of a search page's large field, as the design draws it. */
+:root {
+	--ps-search-large-height: 3.5rem;
+}
+
+/* ---------- Title and description ---------- */
+
+.pixonaut-shop-archive-head {
+	margin-block: var( --wp--preset--spacing--40 ) var( --wp--preset--spacing--50 );
+}
+
+.pixonaut-shop-archive-head > * {
+	margin-block: 0;
+}
+
+.pixonaut-shop-archive-head > * + * {
+	margin-block-start: var( --wp--preset--spacing--30 );
+}
+
+.pixonaut-shop-archive-head .wp-block-term-description {
+	max-width: var( --ps-lede-width );
+}
+
+/* ---------- Count and sorting ---------- */
+
+.pixonaut-shop-archive-toolbar {
+	align-items: center;
+}
+
+.pixonaut-shop-archive-toolbar > * {
+	margin: 0;
+}
+
+/* On a phone the count wraps onto two lines rather than push the sorting below it. */
+.pixonaut-shop-archive-toolbar > .wp-block-woocommerce-product-results-count {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.pixonaut-shop-archive-toolbar .woocommerce-ordering {
+	margin: 0;
+}
+
+.pixonaut-shop-archive-toolbar .woocommerce-ordering select {
+	min-height: var( --ps-control-height );
+	padding: 0 var( --wp--preset--spacing--40 );
+	border: 1px solid var( --wp--preset--color--border-strong );
+	border-radius: var( --wp--custom--radius--small );
+	background-color: var( --wp--preset--color--base );
+	color: var( --wp--preset--color--contrast );
+	font: inherit;
+	cursor: pointer;
+}
+
+/* ---------- No products (patterns/no-products.php) ---------- */
+
+.pixonaut-shop-no-products.pixonaut-shop-no-products {
+	gap: var( --wp--preset--spacing--40 );
+	text-align: center;
+}
+
+.pixonaut-shop-no-products > * {
+	margin: 0;
+}
+
+/* WooCommerce's sentence, which it prints as a plain paragraph: the lede. */
+.pixonaut-shop-no-products > p {
+	max-width: var( --ps-lede-width );
+	margin-bottom: var( --wp--preset--spacing--30 );
+	color: var( --wp--preset--color--muted );
+}
+
+.pixonaut-shop-no-products > .wp-block-woocommerce-product-search {
+	width: 100%;
+	max-width: var( --ps-search-width );
+}
+
+/* ---------- A search's panel: the query again, and what to try without results ---------- */
+
+.pixonaut-shop-search-panel {
+	margin-block: var( --wp--preset--spacing--40 ) var( --wp--preset--spacing--50 );
+}
+
+.pixonaut-shop-search-panel > * {
+	margin-block: 0;
+}
+
+.pixonaut-shop-search-panel > * + * {
+	margin-block-start: var( --wp--preset--spacing--40 );
+}
+
+.pixonaut-shop-search-field .wp-block-search__input,
+.pixonaut-shop-search-field .wp-block-search__button {
+	min-height: var( --ps-search-large-height );
+	border-radius: var( --wp--custom--radius--small );
+	font-size: var( --wp--preset--font-size--large );
+}
+
+/* patterns/search-no-results.php */
+.pixonaut-shop-search-panel > .pixonaut-shop-search-no-results {
+	margin-block-start: var( --wp--preset--spacing--50 );
+}
+
+.pixonaut-shop-search-no-results > * {
+	margin-block: 0;
+}
+
+.pixonaut-shop-search-no-results > .pixonaut-shop-search-categories-label {
+	margin-block: var( --wp--preset--spacing--50 ) var( --wp--preset--spacing--20 );
+	color: var( --wp--preset--color--contrast );
+	font-weight: 600;
+}
+
+/* A store without a category to offer shows no label over nothing. */
+.pixonaut-shop-search-no-results:not( :has( > .wp-block-pixonaut-shop-product-categories ) )
+> .pixonaut-shop-search-categories-label {
+	display: none;
+}
+
+/* ---------- A search's pages and posts (templates/search.html) ---------- */
+
+.pixonaut-shop-search-posts .wp-block-post-template > li {
+	padding-block: var( --wp--preset--spacing--40 );
+	border-bottom: 1px solid var( --wp--preset--color--border );
+}
+
+.pixonaut-shop-search-posts .wp-block-post-template > li > * {
+	margin-block: 0;
+}
+
+.pixonaut-shop-search-posts .wp-block-post-template > li > * + * {
+	margin-block-start: var( --wp--preset--spacing--20 );
+}
+
+.pixonaut-shop-search-pagination {
+	margin-top: var( --wp--preset--spacing--60 );
+}
+
+/* ---------- Popular products, on an archive without any ---------- */
+
+.pixonaut-shop-archive-popular {
+	margin-top: var( --wp--preset--spacing--70 );
+}
+
+/* The archive already leads back to the shop from its panel. */
+.pixonaut-shop-archive-popular .pixonaut-shop-view-all {
+	display: none;
+}
+
+/* ---------- Promises, on their band (`_components.css`) ---------- */
+
+.pixonaut-shop-archive-promises {
+	margin-top: var( --wp--preset--spacing--70 );
+}

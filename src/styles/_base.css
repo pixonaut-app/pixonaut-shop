@@ -1,0 +1,17 @@
+/* The page itself: the root, focus rings, links and text outside any block. */
+
+/* The footer stays at the bottom of a page shorter than the window. */
+.wp-site-blocks {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+}
+
+.wp-site-blocks > main {
+	flex: 1 0 auto;
+}
+
+:where( a, button, input, select, textarea, summary ):focus-visible {
+	outline: 2px solid var( --wp--preset--color--accent );
+	outline-offset: 2px;
+}

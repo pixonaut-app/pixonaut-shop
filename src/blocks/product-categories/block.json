@@ -1,0 +1,32 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "pixonaut-shop/product-categories",
+	"title": "Product categories",
+	"category": "woocommerce",
+	"description": "The store's top-level product categories that have products, as tiles with their picture or as buttons.",
+	"keywords": [ "collections" ],
+	"textdomain": "pixonaut-shop",
+	"attributes": {
+		"layout": {
+			"type": "string",
+			"enum": [ "tiles", "buttons" ],
+			"default": "tiles"
+		},
+		"number": {
+			"type": "integer"
+		},
+		"orderBy": {
+			"type": "string",
+			"enum": [ "count", "order" ],
+			"default": "count"
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ]
+	},
+	"editorScript": "file:./index.tsx",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php"
+}

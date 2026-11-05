@@ -1,0 +1,111 @@
+/*
+ * The front page (`templates/front-page.html`) and the page patterns it
+ * shows: the hero (`patterns/hero.php`) meeting the header, and the front
+ * page pattern's sections (`patterns/front-page.php`). The categories and
+ * the product cards are styled where their blocks are; the promises band is
+ * in `_components.css`.
+ *
+ * Phones are WordPress's own breakpoint: below 782px, where its columns
+ * stack, written as max-width 781px.
+ */
+
+/*
+ * The widest the hero's heading runs before it wraps, and its sentence, as
+ * the design draws them.
+ */
+:root {
+	--ps-hero-title-width: 16ch;
+	--ps-hero-lede-width: 32rem;
+}
+
+/* A page that opens on a full-width section meets the header, with no strip of page between. */
+.pixonaut-shop-front-page:has( > .wp-block-post-content > .alignfull:first-child ) {
+	margin-block-start: 0;
+}
+
+/* ---------- Hero (core/media-text on a band) ---------- */
+
+.pixonaut-shop-hero {
+	padding-block: var( --wp--preset--spacing--60 );
+}
+
+.pixonaut-shop-hero > .wp-block-media-text {
+	column-gap: var( --wp--preset--spacing--60 );
+}
+
+.pixonaut-shop-hero .wp-block-media-text__content {
+	display: flex;
+	flex-direction: column;
+	gap: var( --wp--preset--spacing--40 );
+	align-items: flex-start;
+	padding: 0;
+}
+
+.pixonaut-shop-hero .wp-block-media-text__content > * {
+	margin: 0;
+}
+
+.pixonaut-shop-hero .wp-block-media-text__content > h1 {
+	max-width: var( --ps-hero-title-width );
+}
+
+/* The sentence: large, or, on phones, the body's size; a size the store picks for it wins. */
+.pixonaut-shop-hero .wp-block-media-text__content > p:not( .is-style-pill ) {
+	max-width: var( --ps-hero-lede-width );
+	font-size: var( --wp--preset--font-size--large );
+}
+
+.pixonaut-shop-hero .wp-block-media-text__content > .wp-block-buttons {
+	margin-top: var( --wp--preset--spacing--20 );
+}
+
+/* The store's picture as a card: rounded, raised, on the page's ground. */
+.pixonaut-shop-hero .wp-block-media-text__media img {
+	border-radius: var( --wp--custom--radius--large );
+	background: var( --wp--preset--color--base );
+	box-shadow: var( --wp--preset--shadow--card );
+}
+
+/* Core stacks the hero only below 600px, picture first; the design stacks it on phones, text first. */
+@media ( max-width: 781px ) {
+	.pixonaut-shop-hero {
+		padding-block: var( --wp--preset--spacing--50 );
+	}
+
+	.pixonaut-shop-hero > .wp-block-media-text.is-stacked-on-mobile {
+		grid-template-columns: 100%;
+		row-gap: var( --wp--preset--spacing--50 );
+	}
+
+	.pixonaut-shop-hero > .wp-block-media-text.is-stacked-on-mobile > .wp-block-media-text__content {
+		grid-row: 1;
+		grid-column: 1;
+	}
+
+	.pixonaut-shop-hero > .wp-block-media-text.is-stacked-on-mobile > .wp-block-media-text__media {
+		grid-row: 2;
+		grid-column: 1;
+	}
+
+	.pixonaut-shop-hero .wp-block-media-text__content > p:not( .is-style-pill ) {
+		font-size: var( --wp--preset--font-size--medium );
+	}
+}
+
+/* ---------- Sections (the categories, the popular products) ---------- */
+
+.pixonaut-shop-section.pixonaut-shop-section {
+	margin-block: 0;
+	padding-block: var( --wp--preset--spacing--60 );
+}
+
+/* A section under another starts closer: the one above already leaves room. */
+.pixonaut-shop-section + .pixonaut-shop-section {
+	padding-block-start: var( --wp--preset--spacing--40 );
+}
+
+@media ( max-width: 781px ) {
+	.pixonaut-shop-section.pixonaut-shop-section {
+		padding-block: var( --wp--preset--spacing--50 );
+	}
+}

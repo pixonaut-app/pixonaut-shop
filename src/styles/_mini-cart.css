@@ -1,0 +1,216 @@
+/*
+ * WooCommerce's mini-cart drawer, whose contents are parts/mini-cart.html:
+ * the title with the count, the lines, and a footer on `surface` with the
+ * subtotal, the free-shipping note and the two buttons; empty, the bag in a
+ * circle, WooCommerce's heading and its button back to the shop. The drawer
+ * is 26rem wide over a scrim of `strong`, and as wide as the screen on a
+ * phone, where 26rem is wider than the screen anyway.
+ */
+
+.wc-block-components-drawer__screen-overlay {
+	/* How much of `strong` the scrim shows, so the page stays in sight behind the drawer. */
+	--pixonaut-shop-scrim-strength: 45%;
+	background-color: color-mix(
+		in srgb,
+		var( --wp--preset--color--strong ) var( --pixonaut-shop-scrim-strength ),
+		transparent
+	);
+}
+
+.wc-block-mini-cart__drawer {
+	--drawer-width: 26rem;
+	--neg-drawer-width: calc( -1 * var( --drawer-width ) );
+	background: var( --wp--preset--color--base );
+	box-shadow: var( --wp--preset--shadow--card );
+	color: var( --wp--preset--color--contrast );
+}
+
+.wc-block-mini-cart__drawer .wp-block-woocommerce-mini-cart-contents {
+	background: var( --wp--preset--color--base );
+}
+
+/* The title row: the title and its count, with the close button at its end. */
+.wc-block-mini-cart__drawer .wc-block-mini-cart__title {
+	margin: 0;
+	padding: var( --wp--preset--spacing--40 ) var( --wp--preset--spacing--50 );
+	border-block-end: 1px solid var( --wp--preset--color--border );
+	font-family: var( --wp--preset--font-family--heading );
+	font-size: var( --wp--preset--font-size--large );
+	mask-image: none;
+}
+
+.wc-block-mini-cart__drawer .wc-block-components-drawer__close {
+	inset-block-start: var( --wp--preset--spacing--40 );
+	inset-inline-end: var( --wp--preset--spacing--50 );
+	opacity: 1;
+}
+
+/*
+ * The lines: the picture, then the name, the personalisation, the quantity;
+ * the total at the end. WooCommerce styles a line's parts through the table,
+ * `table.wc-block-cart-items .wc-block-cart-items__row`, so the rules that
+ * change them name it too.
+ */
+.wc-block-mini-cart__drawer .wc-block-mini-cart__items {
+	padding: 0 var( --wp--preset--spacing--50 );
+}
+
+.wc-block-mini-cart__drawer .wc-block-cart-items__row {
+	padding: var( --wp--preset--spacing--40 ) 0;
+	border-block-end: 1px solid var( --wp--preset--color--border );
+}
+
+.wc-block-mini-cart__drawer .wc-block-cart-item__image img {
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--surface );
+}
+
+.wc-block-mini-cart__drawer
+	table.wc-block-cart-items
+	.wc-block-cart-items__row
+	.wc-block-components-product-name,
+.wc-block-mini-cart__drawer
+	table.wc-block-cart-items
+	.wc-block-cart-items__row
+	.wc-block-cart-item__total {
+	color: var( --wp--preset--color--contrast );
+	font-size: var( --wp--preset--font-size--medium );
+	font-weight: 700;
+	text-decoration: none;
+}
+
+.wc-block-mini-cart__drawer
+	table.wc-block-cart-items
+	.wc-block-cart-items__row
+	.wc-block-components-product-name:hover {
+	color: var( --wp--preset--color--accent );
+	text-decoration: underline;
+}
+
+/* The design shows the line's total only; the unit price is in the cart. */
+.wc-block-mini-cart__drawer
+	table.wc-block-cart-items
+	.wc-block-cart-items__row
+	.wc-block-cart-item__prices {
+	display: none;
+}
+
+.wc-block-mini-cart__drawer .wc-block-cart-item__total .wc-block-components-product-price {
+	color: inherit;
+}
+
+/* The rows Pixonaut for WooCommerce adds to a personalised line, as the cart shows them. */
+.wc-block-mini-cart__drawer .wc-block-components-product-details {
+	margin: 0;
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+}
+
+.wc-block-mini-cart__drawer .wc-block-components-product-details__name {
+	color: var( --wp--preset--color--contrast );
+	font-weight: 600;
+}
+
+.wc-block-mini-cart__drawer .wc-block-components-product-details a {
+	color: var( --wp--preset--color--accent );
+}
+
+.wc-block-mini-cart__drawer .wc-block-components-quantity-selector {
+	border: 1px solid var( --wp--preset--color--border-strong );
+	border-radius: var( --wp--custom--radius--small );
+}
+
+.wc-block-mini-cart__drawer .wc-block-components-quantity-selector::after {
+	border: 0;
+}
+
+/* The footer: the subtotal, WooCommerce's line about what the checkout adds, the note, the buttons. */
+.wc-block-mini-cart__drawer .wc-block-mini-cart__footer {
+	padding: var( --wp--preset--spacing--50 );
+	border-block-start: 1px solid var( --wp--preset--color--border );
+	background: var( --wp--preset--color--surface );
+}
+
+.wc-block-mini-cart__drawer .wc-block-mini-cart__footer::after {
+	display: none;
+}
+
+.wc-block-mini-cart__drawer .wc-block-mini-cart__footer-subtotal {
+	font-family: var( --wp--preset--font-family--heading );
+	font-size: var( --wp--preset--font-size--large );
+	font-weight: 700;
+}
+
+.wc-block-mini-cart__drawer
+	.wc-block-mini-cart__footer-subtotal
+	.wc-block-components-totals-item__description {
+	font-family: var( --wp--preset--font-family--body );
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 400;
+	color: var( --wp--preset--color--muted );
+}
+
+.wc-block-mini-cart__drawer .wc-block-mini-cart__footer-actions {
+	display: flex;
+	flex-direction: column;
+	gap: var( --wp--preset--spacing--30 );
+	margin-block-start: var( --wp--preset--spacing--20 );
+}
+
+.wc-block-mini-cart__drawer
+	.wc-block-mini-cart__footer-actions
+	.wp-block-pixonaut-shop-free-shipping-note {
+	margin-block-end: var( --wp--preset--spacing--30 );
+	color: var( --wp--preset--color--muted );
+}
+
+.wc-block-mini-cart__drawer .wc-block-mini-cart__footer-actions .wc-block-components-button {
+	flex: none;
+	width: 100%;
+	margin: 0;
+}
+
+/*
+ * The theme's buttons are as tall as a control, `--ps-control-height`, as a
+ * minimum; WooCommerce's buttons size their content box, which would add the
+ * padding and border to that.
+ */
+.wc-block-mini-cart__drawer .wc-block-components-button:not( .wc-block-components-drawer__close ) {
+	box-sizing: border-box;
+}
+
+/* Checkout is the primary button, the cart the secondary one: core's own button styles. */
+.wc-block-mini-cart__drawer .wc-block-mini-cart__footer-cart.is-style-outline {
+	border-color: var( --wp--preset--color--accent );
+	background: var( --wp--preset--color--base );
+	color: var( --wp--preset--color--accent );
+}
+
+/* The empty drawer: the bag in a circle, the heading and the button, in the middle. */
+.wc-block-mini-cart__drawer .wc-block-mini-cart__empty-cart-wrapper {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var( --wp--preset--spacing--40 );
+	padding: var( --wp--preset--spacing--60 ) var( --wp--preset--spacing--50 );
+	text-align: center;
+}
+
+.wc-block-mini-cart__drawer .wc-block-mini-cart__empty-cart-wrapper > * {
+	margin: 0;
+}
+
+.wc-block-mini-cart__drawer .pixonaut-shop-mini-cart__empty-icon {
+	--ps-icon-size: 2rem;
+	--ps-icon-circle-size: 4.5rem;
+}
+
+.wc-block-mini-cart__drawer .pixonaut-shop-mini-cart__empty-icon:not( .has-text-color ) {
+	color: var( --wp--preset--color--strong );
+}
+
+.wc-block-mini-cart__drawer .wc-block-mini-cart__empty-cart-wrapper > .wp-block-paragraph {
+	color: var( --wp--preset--color--contrast );
+	font-family: var( --wp--preset--font-family--heading );
+	font-size: var( --wp--preset--font-size--large );
+}

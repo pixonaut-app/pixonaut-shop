@@ -1,0 +1,49 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "pixonaut-shop/icon",
+	"title": "Icon",
+	"category": "design",
+	"description": "A line icon in the colour of the text, on its own or in a circle.",
+	"keywords": [ "symbol" ],
+	"textdomain": "pixonaut-shop",
+	"attributes": {
+		"icon": {
+			"type": "string",
+			"enum": [
+				"account",
+				"bag",
+				"search",
+				"menu",
+				"close",
+				"chevron",
+				"info",
+				"check",
+				"truck",
+				"gift",
+				"heart",
+				"star",
+				"leaf",
+				"upload",
+				"clock",
+				"lock",
+				"eye"
+			],
+			"default": "check"
+		},
+		"circle": {
+			"type": "boolean",
+			"default": false
+		}
+	},
+	"supports": {
+		"html": false,
+		"color": {
+			"text": true,
+			"background": false
+		}
+	},
+	"editorScript": "file:./index.tsx",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php"
+}
