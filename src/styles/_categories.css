@@ -1,0 +1,106 @@
+/*
+ * WooCommerce's product categories block where a pattern falls back to it
+ * (the theme's own categories block is not registered, as in the
+ * wordpress.org build): as tiles in the product card's look, the picture
+ * above the name, four to a row at wide size and two on phones; or, in the
+ * search's empty state, as outline buttons.
+ *
+ * Phones are WordPress's own breakpoint: below 782px, where its columns
+ * stack, written as max-width 781px.
+ */
+.pixonaut-shop-category-tiles .wc-block-product-categories-list,
+.pixonaut-shop-category-buttons .wc-block-product-categories-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pixonaut-shop-category-tiles .wc-block-product-categories-list {
+	display: grid;
+	grid-template-columns: repeat( 4, minmax( 0, 1fr ) );
+	gap: var( --wp--preset--spacing--40 );
+}
+
+@media ( max-width: 781px ) {
+	.pixonaut-shop-category-tiles .wc-block-product-categories-list {
+		grid-template-columns: repeat( 2, minmax( 0, 1fr ) );
+		gap: var( --wp--preset--spacing--30 );
+	}
+}
+
+.pixonaut-shop-category-tiles .wc-block-product-categories-list-item {
+	display: flex;
+	margin: 0;
+}
+
+.pixonaut-shop-category-tiles .wc-block-product-categories-list-item > a {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	overflow: hidden;
+	border: 1px solid var( --wp--preset--color--border );
+	border-radius: var( --wp--custom--radius--large );
+	background: var( --wp--preset--color--base );
+	box-shadow: var( --wp--preset--shadow--card );
+	color: var( --wp--preset--color--contrast );
+	text-decoration: none;
+}
+
+/* Square, like the product card's picture; empty, it shows the ground. */
+.pixonaut-shop-category-tiles .wc-block-product-categories-list-item__image {
+	display: block;
+	width: 100%;
+	max-width: none;
+	margin: 0;
+	border: 0;
+	border-radius: 0;
+	aspect-ratio: 1;
+	background: var( --wp--preset--color--tint-2 );
+}
+
+.pixonaut-shop-category-tiles .wc-block-product-categories-list-item__image img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.pixonaut-shop-category-tiles .wc-block-product-categories-list-item__name {
+	padding: var( --wp--preset--spacing--40 );
+	font-family: var( --wp--preset--font-family--heading );
+	font-size: var( --wp--preset--font-size--large );
+	font-weight: 700;
+}
+
+.pixonaut-shop-category-tiles
+	.wc-block-product-categories-list-item
+	> a:hover
+	.wc-block-product-categories-list-item__name {
+	color: var( --wp--preset--color--accent );
+	text-decoration: underline;
+}
+
+.pixonaut-shop-category-buttons .wc-block-product-categories-list {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: var( --wp--preset--spacing--20 );
+}
+
+.pixonaut-shop-category-buttons .wc-block-product-categories-list-item {
+	margin: 0;
+}
+
+.pixonaut-shop-category-buttons .wc-block-product-categories-list-item > a {
+	display: inline-block;
+	padding: var( --wp--preset--spacing--20 ) var( --wp--preset--spacing--40 );
+	border: 1px solid var( --wp--preset--color--border-strong );
+	border-radius: var( --wp--custom--radius--small );
+	color: var( --wp--preset--color--contrast );
+	text-decoration: none;
+}
+
+.pixonaut-shop-category-buttons .wc-block-product-categories-list-item > a:hover {
+	border-color: var( --wp--preset--color--accent );
+	color: var( --wp--preset--color--accent );
+}

@@ -346,6 +346,8 @@ const RULES: readonly Rule[] = [
 	// The unit suite checks theme.json's font faces name files that exist.
 	rule( /^assets\/fonts\//, { php: true, e2e: LOOK_SPECS } ),
 	rule( /^screenshot\.png$/, {} ),
+	// The unit suite reads the readme the theme directory shows.
+	rule( /^readme\.txt$/, { php: true } ),
 ];
 
 function jobsFor( path: string ): Jobs | null {

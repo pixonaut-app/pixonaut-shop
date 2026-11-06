@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Pixonaut Shop 0.1.0\n"
+"Project-Id-Version: Pixonaut Shop 1.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-05T16:47:35+00:00\n"
+"POT-Creation-Date: 2026-11-06T16:03:26+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: pixonaut-shop\n"
@@ -26,7 +26,7 @@ msgstr ""
 
 #. Description of the theme
 #: style.css
-msgid "A WooCommerce block theme for stores that sell personalised garments and prints through Pixonaut for WooCommerce. Every store shares its templates; a store's colours, fonts and logo are set in the Site Editor under Styles."
+msgid "A WooCommerce block theme for shops that sell personalised garments and prints. Its product page, shop, cart, checkout and account pages are plain and calm, and a shop's colours, fonts and logo are set in the Site Editor under Styles."
 msgstr ""
 
 #. Author of the theme
@@ -58,7 +58,7 @@ msgid "Recent orders"
 msgstr ""
 
 #: inc/Account/Dashboard.php:137
-#: patterns/front-page.php:55
+#: patterns/front-page.php:61
 #: patterns/popular-products.php:27
 msgid "View all"
 msgstr ""
@@ -151,12 +151,16 @@ msgid_plural "%s products"
 msgstr[0] ""
 msgstr[1] ""
 
-#: inc/Dependencies/WooCommerceNotice.php:51
+#: inc/Dependencies/WooCommerceNotice.php:68
 msgid "Product pages, the shop, the cart and the checkout need WooCommerce. Until it is active, visitors see your pages and posts only."
 msgstr ""
 
-#: inc/Dependencies/WooCommerceNotice.php:53
+#: inc/Dependencies/WooCommerceNotice.php:70
 msgid "Install WooCommerce"
+msgstr ""
+
+#: inc/Dependencies/WooCommerceNotice.php:72
+msgid "Do not show this again"
 msgstr ""
 
 #. translators: %s: the order's number.
@@ -223,6 +227,11 @@ msgstr ""
 msgid "© %1$s %2$s"
 msgstr ""
 
+#: patterns/free-shipping-note.php
+msgctxt "Pattern title"
+msgid "Free shipping note"
+msgstr ""
+
 #: patterns/front-page.php
 msgctxt "Pattern title"
 msgid "Front page"
@@ -233,16 +242,16 @@ msgctxt "Pattern description"
 msgid "A start for the store's front page: the hero, the categories and the popular products."
 msgstr ""
 
-#: patterns/front-page.php:33
-#: patterns/not-found.php:48
+#: patterns/front-page.php:35
+#: patterns/not-found.php:50
 msgid "Shop by category"
 msgstr ""
 
-#: patterns/front-page.php:37
+#: patterns/front-page.php:39
 msgid "All categories"
 msgstr ""
 
-#: patterns/front-page.php:51
+#: patterns/front-page.php:57
 #: patterns/popular-products.php:23
 msgid "Popular right now"
 msgstr ""
@@ -277,6 +286,11 @@ msgstr ""
 msgid "See more"
 msgstr ""
 
+#: patterns/mini-cart-empty-icon.php
+msgctxt "Pattern title"
+msgid "Empty mini-cart icon"
+msgstr ""
+
 #: patterns/no-products.php
 msgctxt "Pattern title"
 msgid "No products found"
@@ -295,15 +309,15 @@ msgctxt "Pattern title"
 msgid "Page not found"
 msgstr ""
 
-#: patterns/not-found.php:26
+#: patterns/not-found.php:28
 msgid "Page not found"
 msgstr ""
 
-#: patterns/not-found.php:30
+#: patterns/not-found.php:32
 msgid "The page you are looking for is not here. It may have moved, or the address may be mistyped."
 msgstr ""
 
-#: patterns/not-found.php:38
+#: patterns/not-found.php:40
 msgid "Go to the home page"
 msgstr ""
 
@@ -365,11 +379,11 @@ msgctxt "Pattern title"
 msgid "Promises"
 msgstr ""
 
-#: patterns/promises.php:19
+#: patterns/promises.php:21
 msgid "A short promise"
 msgstr ""
 
-#: patterns/promises.php:20
+#: patterns/promises.php:22
 msgid "One sentence about it."
 msgstr ""
 
@@ -387,11 +401,11 @@ msgctxt "Pattern title"
 msgid "No search results"
 msgstr ""
 
-#: patterns/search-no-results.php:29
+#: patterns/search-no-results.php:31
 msgid "Check the spelling, try a shorter word or look in one of the categories below."
 msgstr ""
 
-#: patterns/search-no-results.php:35
+#: patterns/search-no-results.php:37
 msgid "Popular categories"
 msgstr ""
 

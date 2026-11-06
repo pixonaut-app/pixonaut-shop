@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-10-28T15:01:34+00:00\n"
+"POT-Creation-Date: 2026-11-06T16:03:26+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -29,14 +29,15 @@ msgstr "https://github.com/pixonaut-app/pixonaut-shop"
 #. Description of the theme
 #: style.css
 msgid ""
-"A WooCommerce block theme for stores that sell personalised garments and "
-"prints through Pixonaut for WooCommerce. Every store shares its templates; a "
-"store's colours, fonts and logo are set in the Site Editor under Styles."
+"A WooCommerce block theme for shops that sell personalised garments and "
+"prints. Its product page, shop, cart, checkout and account pages are plain "
+"and calm, and a shop's colours, fonts and logo are set in the Site Editor "
+"under Styles."
 msgstr ""
 "Ett blocktema för WooCommerce, för butiker som säljer personliga kläder och "
-"tryck genom Pixonaut for WooCommerce. Alla butiker delar dess mallar; en "
-"butiks färger, typsnitt och logotyp ställs in i webbplatsredigeraren under "
-"Stilar."
+"tryck. Dess produktsida, butik, varukorg, kassa och kontosidor är enkla och "
+"lugna, och en butiks färger, typsnitt och logotyp ställs in i "
+"webbplatsredigeraren under Stilar."
 
 #. Author of the theme
 #: style.css
@@ -65,7 +66,7 @@ msgstr "Kontouppgifter"
 msgid "Recent orders"
 msgstr "Senaste beställningar"
 
-#: inc/Account/Dashboard.php:137 patterns/front-page.php:55
+#: inc/Account/Dashboard.php:137 patterns/front-page.php:61
 #: patterns/popular-products.php:27
 msgid "View all"
 msgstr "Visa alla"
@@ -96,18 +97,18 @@ msgstr "Status"
 msgid "No results for “%s”"
 msgstr "Inga träffar för ”%s”"
 
-#: inc/Blocks/AspectRatios.php:104
+#: inc/Blocks/AspectRatios.php:108
 msgid "Square - 1:1"
 msgstr "Kvadrat - 1:1"
 
 #. translators: %s: a print size's width and height, such as 5:7.
-#: inc/Blocks/AspectRatios.php:110
+#: inc/Blocks/AspectRatios.php:114
 #, php-format
 msgid "Portrait - %s"
 msgstr "Stående - %s"
 
 #. translators: %s: a print size's width and height, such as 7:5.
-#: inc/Blocks/AspectRatios.php:116
+#: inc/Blocks/AspectRatios.php:120
 #, php-format
 msgid "Landscape - %s"
 msgstr "Liggande - %s"
@@ -158,7 +159,7 @@ msgid_plural "%s products"
 msgstr[0] "%s produkt"
 msgstr[1] "%s produkter"
 
-#: inc/Dependencies/WooCommerceNotice.php:51
+#: inc/Dependencies/WooCommerceNotice.php:68
 msgid ""
 "Product pages, the shop, the cart and the checkout need WooCommerce. Until "
 "it is active, visitors see your pages and posts only."
@@ -166,9 +167,13 @@ msgstr ""
 "Produktsidor, butiken, varukorgen och kassan behöver WooCommerce. Tills det "
 "är aktivt ser besökarna bara dina sidor och inlägg."
 
-#: inc/Dependencies/WooCommerceNotice.php:53
+#: inc/Dependencies/WooCommerceNotice.php:70
 msgid "Install WooCommerce"
 msgstr "Installera WooCommerce"
+
+#: inc/Dependencies/WooCommerceNotice.php:72
+msgid "Do not show this again"
+msgstr "Visa inte det här igen"
 
 #. translators: %s: the order's number.
 #: inc/Orders/OrderReceivedBand.php:77
@@ -181,7 +186,7 @@ msgctxt "Pattern title"
 msgid "Announcement"
 msgstr "Meddelande"
 
-#: patterns/announcement.php:21
+#: patterns/announcement.php:20
 msgid "Write a short announcement"
 msgstr "Skriv ett kort meddelande"
 
@@ -233,6 +238,11 @@ msgstr "Sidfot"
 msgid "© %1$s %2$s"
 msgstr "© %1$s %2$s"
 
+#: patterns/free-shipping-note.php
+msgctxt "Pattern title"
+msgid "Free shipping note"
+msgstr "Fraktfritt-meddelande"
+
 #: patterns/front-page.php
 msgctxt "Pattern title"
 msgid "Front page"
@@ -247,15 +257,15 @@ msgstr ""
 "En början på butikens startsida: hero, kategorierna och de populära "
 "produkterna."
 
-#: patterns/front-page.php:33 patterns/not-found.php:48
+#: patterns/front-page.php:35 patterns/not-found.php:50
 msgid "Shop by category"
 msgstr "Handla efter kategori"
 
-#: patterns/front-page.php:37
+#: patterns/front-page.php:39
 msgid "All categories"
 msgstr "Alla kategorier"
 
-#: patterns/front-page.php:51 patterns/popular-products.php:23
+#: patterns/front-page.php:57 patterns/popular-products.php:23
 msgid "Popular right now"
 msgstr "Populärt just nu"
 
@@ -293,6 +303,11 @@ msgstr "Handla nu"
 msgid "See more"
 msgstr "Se mer"
 
+#: patterns/mini-cart-empty-icon.php
+msgctxt "Pattern title"
+msgid "Empty mini-cart icon"
+msgstr "Ikon för tom minivarukorg"
+
 #: patterns/no-products.php
 msgctxt "Pattern title"
 msgid "No products found"
@@ -311,11 +326,11 @@ msgctxt "Pattern title"
 msgid "Page not found"
 msgstr "Sidan hittades inte"
 
-#: patterns/not-found.php:26
+#: patterns/not-found.php:28
 msgid "Page not found"
 msgstr "Sidan hittades inte"
 
-#: patterns/not-found.php:30
+#: patterns/not-found.php:32
 msgid ""
 "The page you are looking for is not here. It may have moved, or the address "
 "may be mistyped."
@@ -323,7 +338,7 @@ msgstr ""
 "Sidan du letar efter finns inte här. Den kan ha flyttats, eller så är "
 "adressen felskriven."
 
-#: patterns/not-found.php:38
+#: patterns/not-found.php:40
 msgid "Go to the home page"
 msgstr "Gå till startsidan"
 
@@ -383,11 +398,11 @@ msgctxt "Pattern title"
 msgid "Promises"
 msgstr "Löften"
 
-#: patterns/promises.php:19
+#: patterns/promises.php:21
 msgid "A short promise"
 msgstr "Ett kort löfte"
 
-#: patterns/promises.php:20
+#: patterns/promises.php:22
 msgid "One sentence about it."
 msgstr "En mening om det."
 
@@ -405,7 +420,7 @@ msgctxt "Pattern title"
 msgid "No search results"
 msgstr "Inga sökträffar"
 
-#: patterns/search-no-results.php:29
+#: patterns/search-no-results.php:31
 msgid ""
 "Check the spelling, try a shorter word or look in one of the categories "
 "below."
@@ -413,7 +428,7 @@ msgstr ""
 "Kontrollera stavningen, prova ett kortare ord eller titta i någon av "
 "kategorierna nedan."
 
-#: patterns/search-no-results.php:35
+#: patterns/search-no-results.php:37
 msgid "Popular categories"
 msgstr "Populära kategorier"
 

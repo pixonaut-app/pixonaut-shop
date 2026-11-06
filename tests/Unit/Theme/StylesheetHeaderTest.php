@@ -43,6 +43,47 @@ final class StylesheetHeaderTest extends TestCase
         self::assertSame($version, $package['version'] ?? null);
     }
 
+    /**
+     * The tags the wordpress.org theme directory accepts (its API's
+     * `feature_list`); a tag outside them fails the directory's upload.
+     */
+    private const DIRECTORY_TAGS = [
+        'grid-layout', 'one-column', 'two-columns', 'three-columns', 'four-columns', 'left-sidebar',
+        'right-sidebar', 'wide-blocks', 'accessibility-ready', 'block-patterns', 'block-styles',
+        'buddypress', 'custom-background', 'custom-colors', 'custom-header', 'custom-logo',
+        'custom-menu', 'editor-style', 'featured-image-header', 'featured-images', 'flexible-header',
+        'footer-widgets', 'front-page-post-form', 'full-site-editing', 'full-width-template',
+        'microformats', 'post-formats', 'rtl-language-support', 'sticky-post', 'style-variations',
+        'template-editing', 'theme-options', 'threaded-comments', 'translation-ready', 'blog',
+        'e-commerce', 'education', 'entertainment', 'food-and-drink', 'holiday', 'news',
+        'photography', 'portfolio',
+    ];
+
+    /** The headers the theme directory requires of style.css. */
+    private const REQUIRED_HEADERS = [
+        'Theme Name', 'Author', 'Description', 'Version', 'Requires at least', 'Tested up to',
+        'Requires PHP', 'License', 'License URI', 'Text Domain',
+    ];
+
+    public function testCarriesEveryHeaderTheThemeDirectoryRequires(): void
+    {
+        foreach (self::REQUIRED_HEADERS as $name) {
+            self::assertNotSame('', $this->header($name), "style.css's {$name} is empty.");
+        }
+    }
+
+    public function testTagsOnlyWithTheThemeDirectorysTags(): void
+    {
+        $tags = array_map('trim', explode(',', $this->header('Tags')));
+
+        self::assertSame([], array_values(array_diff($tags, self::DIRECTORY_TAGS)));
+    }
+
+    public function testNamesNoPluginOutsideTheThemeDirectory(): void
+    {
+        self::assertStringNotContainsString('Pixonaut for WooCommerce', $this->header('Description'));
+    }
+
     private function header(string $name): string
     {
         // No WordPress runtime in a unit test, so neither get_file_data() nor WP_Filesystem.

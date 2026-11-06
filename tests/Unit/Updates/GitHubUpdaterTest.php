@@ -18,6 +18,26 @@ final class GitHubUpdaterTest extends TestCase
         self::assertTrue(GitHubUpdater::offers('1.2.0', self::release('pixonaut-shop-1.2.0.zip')));
     }
 
+    public function testOffersAReleaseThatAlsoCarriesTheWordPressOrgZip(): void
+    {
+        self::assertTrue(GitHubUpdater::offers('1.2.0', self::release(
+            'pixonaut-shop-1.2.0-wporg.zip',
+            'pixonaut-shop-1.2.0-wporg.zip.sha256',
+            'pixonaut-shop-1.2.0.zip',
+            'pixonaut-shop-1.2.0.zip.sha256',
+        )));
+    }
+
+    /**
+     * The library downloads the first asset whose name matches the pattern,
+     * so the wordpress.org zip, which has no updater, must never match it.
+     */
+    public function testNeverDownloadsTheWordPressOrgZip(): void
+    {
+        self::assertSame(0, preg_match(GitHubUpdater::ASSET_PATTERN, 'pixonaut-shop-1.2.0-wporg.zip'));
+        self::assertSame(1, preg_match(GitHubUpdater::ASSET_PATTERN, 'pixonaut-shop-1.2.0.zip'));
+    }
+
     /**
      * @return iterable<string, array{string, object}>
      */
@@ -26,6 +46,7 @@ final class GitHubUpdaterTest extends TestCase
         yield 'a pre-release' => ['1.3.0-beta.1', self::release('pixonaut-shop-1.3.0-beta.1.zip')];
         yield 'a release whose zip is not attached yet' => ['1.2.0', self::release()];
         yield 'a release with only GitHub\'s source archive' => ['1.2.0', self::release('pixonaut-shop-main.zip')];
+        yield 'a release with only the wordpress.org zip' => ['1.2.0', self::release('pixonaut-shop-1.2.0-wporg.zip')];
         yield 'a release with another project\'s zip' => ['1.2.0', self::release('pixonaut-for-woocommerce-1.2.0.zip')];
         yield 'a release with no asset list' => ['1.2.0', (object) []];
     }

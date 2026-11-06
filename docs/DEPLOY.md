@@ -42,30 +42,88 @@ as an artifact without publishing anything, pass it as `build_ref`.
 
 ## What the release builds
 
+The build job runs once per **flavor** (see below), each on its own runner:
+
 1. Checks the tag equals style.css's version
    (`scripts/release/check-tag-cli.ts`).
-2. `pnpm build`, then `composer install --no-dev --optimize-autoloader
-   --classmap-authoritative`: PHPUnit, PHPStan, PHPCS and the rest stay out;
-   plugin-update-checker stays in.
+2. `pnpm build`, then, for the GitHub flavor, `composer install --no-dev
+   --optimize-autoloader --classmap-authoritative`: PHPUnit, PHPStan, PHPCS
+   and the rest stay out; plugin-update-checker stays in.
 3. Compiles `languages/sv_SE.mo` from the PO.
-4. Assembles `pixonaut-shop/` from an **allowlist** — `style.css`,
-   `theme.json`, `functions.php`, `index.php`, `assets/`, `inc/`, `parts/`,
-   `patterns/`, `templates/`, `styles/`, `languages/`, `vendor/`, `build/` (without source
-   maps) and `screenshot.png` when there is one. Anything not named —
-   `tests/`, `src/`, `docs/`, tooling configs — is left out by construction.
-   Then strips tests, docs and tooling files from `vendor/`.
-5. Zips it as `pixonaut-shop-X.Y.Z.zip`, whose top directory is the fixed
-   slug.
+4. Assembles `pixonaut-shop/` from an **allowlist**
+   (`scripts/release/flavor-cli.ts assemble`, defined in
+   `scripts/release/flavor.ts`): `style.css`, `theme.json`, `functions.php`,
+   `index.php`, `readme.txt`, `screenshot.png`, `assets/`, `inc/`, `parts/`,
+   `patterns/`, `templates/`, `styles/`, `languages/`, `build/` (without source
+   maps), and per flavor `vendor/` (without its packages' tests, docs and
+   tooling files) or the sources. Anything not named — `tests/`, `docs/`,
+   tooling configs — is left out by construction. It then checks what it
+   staged and fails on a file no theme may ship (a hidden file, a shell
+   script, a source map, a zip) or one its flavor must not hold.
+5. Zips it as `pixonaut-shop-X.Y.Z.zip` (GitHub) or
+   `pixonaut-shop-X.Y.Z-wporg.zip` (wordpress.org), whose top directory is
+   the fixed slug.
 6. **Smoke-tests the zip itself** on a fresh WordPress with WooCommerce in
-   wp-env: activates it, requires the front page and the shop to answer 200
-   with no PHP error or warning in `debug.log`. A runtime file the allowlist
-   forgot fails here, not on a store.
+   wp-env: checks the unzipped theme against its flavor again, activates it,
+   requires the front page and the shop to answer 200, then the front page
+   again with WooCommerce deactivated, with no PHP error or warning in
+   `debug.log`. A runtime file the allowlist forgot fails here, not on a
+   store.
 7. Uploads the zip and its `.sha256` as an artifact and, for a release,
    attaches them to the GitHub release. Stores are offered the release from
-   the moment its zip is attached.
+   the moment the GitHub flavor's zip is attached.
 
 A new file or directory the theme loads at runtime needs adding to the
-allowlist in the same change.
+allowlist in `scripts/release/flavor.ts` in the same change.
+
+## Flavors
+
+Every release builds two zips from the same tag:
+
+- **GitHub**, `pixonaut-shop-X.Y.Z.zip`: the theme that updates itself from
+  this repository's releases, with `inc/Updates/`, plugin-update-checker in
+  `vendor/` and style.css's `Update URI` header, and the theme's own blocks
+  (`src/blocks/`, built into `build/blocks/`). The check fails if the
+  updater is missing.
+- **wordpress.org**, `pixonaut-shop-X.Y.Z-wporg.zip`: the zip uploaded to
+  the theme directory, which delivers a listed theme's updates itself,
+  allows no updater of its own and leaves blocks to plugins. It leaves out
+  `inc/Updates/`, `vendor/` (whose only runtime package is the updater's
+  library), the `Update URI` header, and the theme's own blocks with the PHP
+  that registers and renders them; it adds `src/`, `package.json` and
+  `webpack.config.js`, the sources `build/` is compiled from, which the
+  directory asks for. The check fails on any remnant of the updater (its
+  files, its library's name, the token constant, the header), on a block's
+  files and on any `register_block_type`, and without `readme.txt` or
+  `screenshot.png`.
+
+Without its blocks the wordpress.org build looks the same except for three
+things: the promises and the empty mini-cart have no icons, the category
+tiles have no product count (they are WooCommerce's categories block,
+styled as the tiles), and the mini-cart has no free-shipping note.
+
+The updater downloads only an asset named exactly `pixonaut-shop-X.Y.Z.zip`
+(`GitHubUpdater::ASSET_PATTERN`), so the wordpress.org zip attached to the
+same release is never offered to a store.
+
+To build either by hand from a checkout, after `pnpm build` (and, for the
+GitHub flavor, `pnpm composer install --no-dev`):
+
+```bash
+node scripts/release/flavor-cli.ts assemble --flavor wporg stage
+node scripts/release/flavor-cli.ts check --flavor wporg stage/pixonaut-shop
+node scripts/release/flavor-cli.ts zip-name --flavor wporg 1.2.0
+```
+
+### wordpress.org
+
+A new version of a listed theme is uploaded as its zip through the theme
+directory's upload page, by the account that owns it, not through SVN. The
+version in style.css must be higher than the listed one; each upload goes
+through the directory's automated checks and, for an update, is live once
+they pass. Run the
+[Theme Check](https://wordpress.org/plugins/theme-check/) plugin against the
+wordpress.org zip before uploading; it must report nothing required.
 
 ## Updates on a store
 

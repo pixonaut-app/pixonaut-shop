@@ -2,10 +2,13 @@
 
 <!-- wp:group {"tagName":"main","layout":{"type":"constrained"}} -->
 <main class="wp-block-group">
+	<!-- wp:query-title {"type":"archive"} /-->
+
 	<!-- wp:query {"queryId":0,"query":{"perPage":10,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","inherit":true}} -->
 	<div class="wp-block-query">
 		<!-- wp:post-template -->
 			<!-- wp:post-title {"isLink":true} /-->
+			<!-- wp:post-date {"textColor":"muted","fontSize":"small"} /-->
 			<!-- wp:post-excerpt /-->
 		<!-- /wp:post-template -->
 		<!-- wp:query-pagination -->

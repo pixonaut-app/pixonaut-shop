@@ -43,16 +43,17 @@ its modules and calling their `register()`:
 | assets | `Assets\AssetManager` | Enqueues `build/app.css` on the front end and in the editor canvas. |
 | blocks | `Blocks\BlockStyles` | Registers the block styles templates and content build pages from — Panel, Band (tint 1), Band (tint 2) and Notice on core/group, Pill on core/paragraph, Text link on core/button — with their values as presets, which a store's Styles edits. |
 | blocks | `Blocks\AspectRatios` | Adds the print shapes — square, then 4:5, 5:7, 3:4 and 2:3 and their landscape turns — to the theme's aspect-ratio presets, which the Site Editor lists for a picture in place of WordPress's own; a developer changes them through the `pixonaut_shop_aspect_ratios` filter. |
-| blocks | `Blocks\BlockLoader` | Registers every block built into `build/blocks/` on `init`. |
-| blocks | `Blocks\FreeShippingNote` | Adds the free-shipping note's text to the Store API's cart, where the mini-cart drawer reads it. |
+| blocks | `Blocks\BlockLoader` | Registers every block built into `build/blocks/` on `init`. Not in the wordpress.org build. |
+| blocks | `Blocks\FreeShippingNote` | Adds the free-shipping note's text to the Store API's cart, where the mini-cart drawer reads it. Not in the wordpress.org build. |
+| blocks | `Blocks\ThemeBlocks` | Says whether one of the theme's own blocks is registered, for the patterns that fall back without it. |
 | content | `Content\PageExcerpt` | Gives pages an excerpt, which the page template shows as the lede under the title, and prints nothing in its place for a page without one, rather than the page's opening words. |
 | archive | `Archive\ProductGridDefaults` | Starts WooCommerce's Product Catalog setting, which sizes the shop's and its archives' pages, at three rows of the grid's four columns when the theme is activated; the store changes it from there. |
 | archive | `Archive\ShownWhenEmpty` | Skips the popular products, before their query runs, on an archive or a product search that found products of its own, and a search's no-results notice and categories on a search that found something; an empty archive or search shows them, the popular products unless there is nothing to recommend. |
 | archive | `Archive\NoResultsTitle` | Prints a search's no-results title again as it renders, with this request's query, since a template saved in the Site Editor holds the query of the request that saved it. |
 | product | `Product\PreviewFrame` | Offers a frame style per print shape on the Product Image Gallery block, and holds the product page's preview, or the gallery, at the one the store picks; without one every side keeps the shape Pixonaut for WooCommerce opens the first side at. |
-| dependencies | `Dependencies\WooCommerceNotice` | Tells an administrator who can install plugins that the shop needs WooCommerce, while it is inactive. |
+| dependencies | `Dependencies\WooCommerceNotice` | Tells an administrator who can install plugins that the shop needs WooCommerce, while it is inactive, in a notice they can dismiss for good. |
 | pixonaut | `Pixonaut\Integration` | Holds the theme's callbacks on Pixonaut for WooCommerce's documented hooks, and their names; they run only when the plugin fires them. |
-| updates | `Updates\Updates` | Starts the update checker. |
+| updates | `Updates\Updates` | Starts the update checker. Not in the wordpress.org build. |
 
 Hooks are added with explicit priorities inside each module where a priority
 matters; the call order in `Bootstrap` is documentation, not a dependency
@@ -89,6 +90,16 @@ suite tests without WordPress.
 | `pixonaut-shop/product-categories` | `Blocks\ProductCategories` | The store's top-level product categories with products, by product count or the store's category order, as tiles (picture, name, count) or outline buttons. WooCommerce's default category is left out; nothing renders without a category. |
 | `pixonaut-shop/icon` | `Blocks\Icons` | One line icon from a fixed set, in `currentColor`, optionally in a circle. A name is saved in the block, so it never changes. |
 | `pixonaut-shop/free-shipping-note` | `Blocks\FreeShippingNote` | How much more the cart needs for free shipping, or that shipping is free, from the free-shipping method of the zone the cart ships to; nothing without one that has a minimum. Placed only inside the mini-cart. |
+
+The wordpress.org theme directory leaves blocks to plugins, so the build
+uploaded there ships none of these (`docs/DEPLOY.md`). Every pattern that
+holds one asks `Blocks\ThemeBlocks` whether it is registered and falls back
+without it: the categories to WooCommerce's product categories block, which
+`src/styles/_categories.css` styles as the same tiles or buttons; the icons
+and the free-shipping note to nothing. The mini-cart part reaches its note
+and its empty-cart icon through the `free-shipping-note` and
+`mini-cart-empty-icon` patterns for that. The check is by block name, so the
+blocks could move into a plugin without the patterns changing.
 
 ## Templates and WooCommerce
 

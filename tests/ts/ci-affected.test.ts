@@ -103,6 +103,15 @@ describe( 'affected', () => {
 		} );
 	}
 
+	it( 'runs the unit suite, and no page, for readme.txt, which the unit suite reads', () => {
+		const result = jobsFor( 'readme.txt' );
+
+		assert.equal( result.php, true );
+		assert.equal( result.integration, false );
+		assert.deepEqual( result.specs, [] );
+		assert.deepEqual( result.unmatched, [] );
+	} );
+
 	it( 'runs the whole e2e suite for an area mapped to all', () => {
 		const result = jobsFor( 'inc/Assets/AssetManager.php' );
 

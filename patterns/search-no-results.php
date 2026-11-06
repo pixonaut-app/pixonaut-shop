@@ -16,6 +16,8 @@
 
 declare(strict_types=1);
 
+use Pixonaut\Shop\Blocks\ThemeBlocks;
+
 ?>
 <!-- wp:group {"className":"pixonaut-shop-search-no-results","layout":{"type":"default"}} -->
 <div class="wp-block-group pixonaut-shop-search-no-results">
@@ -35,6 +37,10 @@ declare(strict_types=1);
 	<p class="pixonaut-shop-search-categories-label has-small-font-size"><?php echo esc_html__( 'Popular categories', 'pixonaut-shop' ); ?></p>
 	<!-- /wp:paragraph -->
 
+	<?php if ( ThemeBlocks::is_registered( 'product-categories' ) ) : ?>
 	<!-- wp:pixonaut-shop/product-categories {"layout":"buttons"} /-->
+<?php else : ?>
+	<!-- wp:woocommerce/product-categories {"hasCount":false,"hasImage":false,"hasEmpty":false,"isHierarchical":false,"className":"pixonaut-shop-category-buttons"} /-->
+<?php endif; ?>
 </div>
 <!-- /wp:group -->

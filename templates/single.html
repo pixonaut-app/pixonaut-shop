@@ -1,0 +1,73 @@
+<!-- wp:template-part {"slug":"header","tagName":"header"} /-->
+
+<!-- wp:group {"tagName":"main","className":"pixonaut-shop-page","layout":{"type":"constrained"}} -->
+<main class="wp-block-group pixonaut-shop-page">
+	<!-- wp:group {"tagName":"article","className":"is-style-panel pixonaut-shop-page-panel","layout":{"type":"default"}} -->
+	<article class="wp-block-group is-style-panel pixonaut-shop-page-panel">
+		<!-- wp:post-title {"level":1} /-->
+
+		<!-- wp:post-date {"textColor":"muted","fontSize":"small"} /-->
+
+		<!-- wp:post-featured-image /-->
+
+		<!-- wp:post-content {"layout":{"type":"default"}} /-->
+
+		<!-- wp:group {"layout":{"type":"flex","flexWrap":"wrap"}} -->
+		<div class="wp-block-group">
+			<!-- wp:post-terms {"term":"category","fontSize":"small"} /-->
+
+			<!-- wp:post-terms {"term":"post_tag","fontSize":"small"} /-->
+		</div>
+		<!-- /wp:group -->
+	</article>
+	<!-- /wp:group -->
+
+	<!-- wp:comments -->
+	<div class="wp-block-comments">
+		<!-- wp:comments-title /-->
+
+		<!-- wp:comment-template -->
+			<!-- wp:group {"layout":{"type":"default"}} -->
+			<div class="wp-block-group">
+				<!-- wp:group {"layout":{"type":"flex","flexWrap":"wrap"}} -->
+				<div class="wp-block-group">
+					<!-- wp:comment-author-name /-->
+
+					<!-- wp:comment-date {"textColor":"muted","fontSize":"small"} /-->
+				</div>
+				<!-- /wp:group -->
+
+				<!-- wp:comment-content /-->
+
+				<!-- wp:group {"layout":{"type":"flex","flexWrap":"wrap"}} -->
+				<div class="wp-block-group">
+					<!-- wp:comment-reply-link {"fontSize":"small"} /-->
+
+					<!-- wp:comment-edit-link {"fontSize":"small"} /-->
+				</div>
+				<!-- /wp:group -->
+			</div>
+			<!-- /wp:group -->
+		<!-- /wp:comment-template -->
+
+		<!-- wp:comments-pagination -->
+			<!-- wp:comments-pagination-previous /-->
+			<!-- wp:comments-pagination-numbers /-->
+			<!-- wp:comments-pagination-next /-->
+		<!-- /wp:comments-pagination -->
+
+		<!-- wp:post-comments-form /-->
+	</div>
+	<!-- /wp:comments -->
+
+	<!-- wp:group {"tagName":"nav","layout":{"type":"flex","flexWrap":"wrap","justifyContent":"space-between"}} -->
+	<nav class="wp-block-group">
+		<!-- wp:post-navigation-link {"type":"previous"} /-->
+
+		<!-- wp:post-navigation-link /-->
+	</nav>
+	<!-- /wp:group -->
+</main>
+<!-- /wp:group -->
+
+<!-- wp:template-part {"slug":"footer","tagName":"footer"} /-->

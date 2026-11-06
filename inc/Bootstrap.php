@@ -45,16 +45,31 @@ final class Bootstrap
     /**
      * What the theme adds to core's blocks: its block styles, the shapes its
      * pictures are offered in, and the menu heading its footer needs where
-     * core prints none. Then its own blocks, and the free-shipping note's
-     * text in the Store API cart.
+     * core prints none. Then its own blocks, where the build has them.
      */
     private function register_blocks(): void
     {
         (new Blocks\BlockStyles())->register();
         (new Blocks\AspectRatios())->register();
         (new Blocks\MenuHeading())->register();
-        (new Blocks\BlockLoader())->register();
-        (new Blocks\FreeShippingNote())->register();
+        $this->register_theme_blocks();
+    }
+
+    /**
+     * The theme's own blocks, and the free-shipping note's text in the Store
+     * API cart, in the build attached to GitHub releases. The wordpress.org
+     * build leaves them out, since the theme directory leaves blocks to
+     * plugins; the patterns that hold them ask `Blocks\ThemeBlocks` first.
+     */
+    private function register_theme_blocks(): void
+    {
+        if (class_exists(Blocks\BlockLoader::class)) {
+            (new Blocks\BlockLoader())->register();
+        }
+
+        if (class_exists(Blocks\FreeShippingNote::class)) {
+            (new Blocks\FreeShippingNote())->register();
+        }
     }
 
     /** The header's search, which keeps an empty field open rather than submit it. */
@@ -130,10 +145,16 @@ final class Bootstrap
     }
 
     /**
-     * Updates from the repository's GitHub releases.
+     * Updates from the repository's GitHub releases, in the build attached to
+     * them. The wordpress.org build leaves `inc/Updates/` out, since the theme
+     * directory delivers its updates.
      */
     private function register_updates(): void
     {
+        if (! class_exists(Updates\Updates::class)) {
+            return;
+        }
+
         Updates\Updates::for_theme()->register();
     }
 }
