@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-11-06T15:41:37+00:00\n"
+"POT-Creation-Date: 2026-11-06T16:03:26+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -36,8 +36,8 @@ msgid ""
 msgstr ""
 "Ett blocktema för WooCommerce, för butiker som säljer personliga kläder och "
 "tryck. Dess produktsida, butik, varukorg, kassa och kontosidor är enkla och "
-"lugna, och en butiks färger, typsnitt och logotyp ställs in i webbplatsredigeraren "
-"under Stilar."
+"lugna, och en butiks färger, typsnitt och logotyp ställs in i "
+"webbplatsredigeraren under Stilar."
 
 #. Author of the theme
 #: style.css
@@ -66,7 +66,7 @@ msgstr "Kontouppgifter"
 msgid "Recent orders"
 msgstr "Senaste beställningar"
 
-#: inc/Account/Dashboard.php:137 patterns/front-page.php:55
+#: inc/Account/Dashboard.php:137 patterns/front-page.php:61
 #: patterns/popular-products.php:27
 msgid "View all"
 msgstr "Visa alla"
@@ -238,6 +238,11 @@ msgstr "Sidfot"
 msgid "© %1$s %2$s"
 msgstr "© %1$s %2$s"
 
+#: patterns/free-shipping-note.php
+msgctxt "Pattern title"
+msgid "Free shipping note"
+msgstr "Fraktfritt-meddelande"
+
 #: patterns/front-page.php
 msgctxt "Pattern title"
 msgid "Front page"
@@ -252,15 +257,15 @@ msgstr ""
 "En början på butikens startsida: hero, kategorierna och de populära "
 "produkterna."
 
-#: patterns/front-page.php:33 patterns/not-found.php:48
+#: patterns/front-page.php:35 patterns/not-found.php:50
 msgid "Shop by category"
 msgstr "Handla efter kategori"
 
-#: patterns/front-page.php:37
+#: patterns/front-page.php:39
 msgid "All categories"
 msgstr "Alla kategorier"
 
-#: patterns/front-page.php:51 patterns/popular-products.php:23
+#: patterns/front-page.php:57 patterns/popular-products.php:23
 msgid "Popular right now"
 msgstr "Populärt just nu"
 
@@ -298,6 +303,11 @@ msgstr "Handla nu"
 msgid "See more"
 msgstr "Se mer"
 
+#: patterns/mini-cart-empty-icon.php
+msgctxt "Pattern title"
+msgid "Empty mini-cart icon"
+msgstr "Ikon för tom minivarukorg"
+
 #: patterns/no-products.php
 msgctxt "Pattern title"
 msgid "No products found"
@@ -316,11 +326,11 @@ msgctxt "Pattern title"
 msgid "Page not found"
 msgstr "Sidan hittades inte"
 
-#: patterns/not-found.php:26
+#: patterns/not-found.php:28
 msgid "Page not found"
 msgstr "Sidan hittades inte"
 
-#: patterns/not-found.php:30
+#: patterns/not-found.php:32
 msgid ""
 "The page you are looking for is not here. It may have moved, or the address "
 "may be mistyped."
@@ -328,7 +338,7 @@ msgstr ""
 "Sidan du letar efter finns inte här. Den kan ha flyttats, eller så är "
 "adressen felskriven."
 
-#: patterns/not-found.php:38
+#: patterns/not-found.php:40
 msgid "Go to the home page"
 msgstr "Gå till startsidan"
 
@@ -388,11 +398,11 @@ msgctxt "Pattern title"
 msgid "Promises"
 msgstr "Löften"
 
-#: patterns/promises.php:19
+#: patterns/promises.php:21
 msgid "A short promise"
 msgstr "Ett kort löfte"
 
-#: patterns/promises.php:20
+#: patterns/promises.php:22
 msgid "One sentence about it."
 msgstr "En mening om det."
 
@@ -410,7 +420,7 @@ msgctxt "Pattern title"
 msgid "No search results"
 msgstr "Inga sökträffar"
 
-#: patterns/search-no-results.php:29
+#: patterns/search-no-results.php:31
 msgid ""
 "Check the spelling, try a shorter word or look in one of the categories "
 "below."
@@ -418,7 +428,7 @@ msgstr ""
 "Kontrollera stavningen, prova ett kortare ord eller titta i någon av "
 "kategorierna nedan."
 
-#: patterns/search-no-results.php:35
+#: patterns/search-no-results.php:37
 msgid "Popular categories"
 msgstr "Populära kategorier"
 
