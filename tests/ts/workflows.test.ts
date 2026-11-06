@@ -10,6 +10,7 @@ import { describe, it } from 'node:test';
 
 const WORKFLOWS = '.github/workflows';
 const PULL_REQUEST = join( WORKFLOWS, 'pull-request.yml' );
+const RELEASE = join( WORKFLOWS, 'release.yml' );
 
 describe( 'workflows', () => {
 	for ( const file of readdirSync( WORKFLOWS ) ) {
@@ -43,6 +44,21 @@ describe( 'workflows', () => {
 			'vendor/bin/phpunit --testsuite unit',
 		] ) {
 			assert.ok( workflow.includes( command ), `${ command } is missing` );
+		}
+	} );
+
+	it( 'builds, checks and smoke-tests the GitHub and the wordpress.org flavors of a release', () => {
+		const workflow = readFileSync( RELEASE, 'utf8' );
+
+		assert.match( workflow, /^ {8}flavor: \[github, wporg\]$/m );
+
+		for ( const step of [
+			'flavor-cli.ts assemble --flavor "$FLAVOR"',
+			'flavor-cli.ts check --flavor "$FLAVOR" "$SMOKE_DIR/$THEME_SLUG"',
+			'flavor-cli.ts zip-name --flavor "$FLAVOR"',
+			'gh release upload "$TAG" "$ZIP" "$ZIP.sha256"',
+		] ) {
+			assert.ok( workflow.includes( step ), `${ step } is missing` );
 		}
 	} );
 } );

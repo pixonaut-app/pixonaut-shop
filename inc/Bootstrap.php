@@ -130,10 +130,16 @@ final class Bootstrap
     }
 
     /**
-     * Updates from the repository's GitHub releases.
+     * Updates from the repository's GitHub releases, in the build attached to
+     * them. The wordpress.org build leaves `inc/Updates/` out, since the theme
+     * directory delivers its updates.
      */
     private function register_updates(): void
     {
+        if (! class_exists(Updates\Updates::class)) {
+            return;
+        }
+
         Updates\Updates::for_theme()->register();
     }
 }
