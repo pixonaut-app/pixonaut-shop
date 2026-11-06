@@ -44,7 +44,7 @@ $pixonaut_shop_shop = (string) get_post_type_archive_link( 'product' );
 	<?php if ( ThemeBlocks::is_registered( 'product-categories' ) ) : ?>
 	<!-- wp:pixonaut-shop/product-categories {"number":4} /-->
 <?php else : ?>
-	<!-- wp:woocommerce/product-categories {"hasCount":false,"hasImage":true,"hasEmpty":false,"isHierarchical":false} /-->
+	<!-- wp:woocommerce/product-categories {"hasCount":false,"hasImage":true,"hasEmpty":false,"isHierarchical":false,"className":"pixonaut-shop-category-tiles"} /-->
 <?php endif; ?>
 </div>
 <!-- /wp:group -->

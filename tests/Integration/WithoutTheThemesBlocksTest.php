@@ -72,6 +72,13 @@ final class WithoutTheThemesBlocksTest extends TestCase
         }
     }
 
+    public function testTheFallbackCategoriesKeepTheThemesTilesAndButtons(): void
+    {
+        self::assertStringContainsString('"className":"pixonaut-shop-category-tiles"', $this->pattern('pixonaut-shop/front-page'));
+        self::assertStringContainsString('"className":"pixonaut-shop-category-tiles"', $this->pattern('pixonaut-shop/not-found'));
+        self::assertStringContainsString('"className":"pixonaut-shop-category-buttons"', $this->pattern('pixonaut-shop/search-no-results'));
+    }
+
     public function testTheMiniCartRendersWithoutTheNoteOrTheIcon(): void
     {
         $part = (string) file_get_contents(get_theme_file_path('parts/mini-cart.html'));

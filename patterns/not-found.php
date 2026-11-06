@@ -53,7 +53,7 @@ use Pixonaut\Shop\Blocks\ThemeBlocks;
 	<?php if ( ThemeBlocks::is_registered( 'product-categories' ) ) : ?>
 	<!-- wp:pixonaut-shop/product-categories /-->
 <?php else : ?>
-	<!-- wp:woocommerce/product-categories {"hasCount":false,"hasImage":true,"hasEmpty":false,"isHierarchical":false} /-->
+	<!-- wp:woocommerce/product-categories {"hasCount":false,"hasImage":true,"hasEmpty":false,"isHierarchical":false,"className":"pixonaut-shop-category-tiles"} /-->
 <?php endif; ?>
 </div>
 <!-- /wp:group -->
