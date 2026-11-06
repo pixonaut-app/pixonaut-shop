@@ -23,7 +23,7 @@ env:
   # Kept in step with .github/workflows/release.yml, .wp-env.json's
   # phpVersion and package.json's engines.
   PHP_VERSION: '8.5'
-  NODE_VERSION: 24
+  NODE_VERSION: 26
 
 jobs:
   changes:

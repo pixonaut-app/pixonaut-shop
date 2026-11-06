@@ -16,7 +16,7 @@ concurrency:
 env:
   # Kept in step with .github/workflows/ci.yml's env block.
   PHP_VERSION: '8.5'
-  NODE_VERSION: 24
+  NODE_VERSION: 26
 
 jobs:
   javascript:
