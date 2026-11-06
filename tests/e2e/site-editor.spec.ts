@@ -16,6 +16,7 @@ const TEMPLATES = [
 	'order-confirmation',
 	'product-search-results',
 	'search',
+	'single',
 ];
 
 /** Every part a store edits; kept in step with tests/Unit/Theme/TemplatesTest.php. */

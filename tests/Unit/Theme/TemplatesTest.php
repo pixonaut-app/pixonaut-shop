@@ -32,6 +32,7 @@ final class TemplatesTest extends TestCase
         'order-confirmation',
         'product-search-results',
         'search',
+        'single',
     ];
 
     public const PARTS = ['header', 'footer', 'promises', 'announcement', 'order-next-steps', 'mini-cart', 'order-help'];
