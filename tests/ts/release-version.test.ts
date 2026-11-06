@@ -52,7 +52,18 @@ describe( 'release-please', () => {
 
 	it( 'starts at 1.0.0 on a repository with no releases', () => {
 		assert.equal( config.packages[ '.' ][ 'initial-version' ], '1.0.0' );
-		assert.deepEqual( JSON.parse( readFileSync( '.release-please-manifest.json', 'utf8' ) ), {} );
+	} );
+
+	// Empty until the first release; from then on release-please writes the
+	// released version there and into style.css in the same pull request.
+	it( "records no version, or the one style.css's Version holds", () => {
+		const manifest = JSON.parse( readFileSync( '.release-please-manifest.json', 'utf8' ) );
+
+		if ( Object.keys( manifest ).length === 0 ) {
+			return;
+		}
+		assert.deepEqual( Object.keys( manifest ), [ '.' ] );
+		assert.equal( manifest[ '.' ], stylesheetVersion( stylesheet ) );
 	} );
 
 	it( "sets style.css's Version, between the markers it looks for", () => {
