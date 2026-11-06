@@ -14,7 +14,7 @@ PHP 8.2 or later on a store; development on WordPress 7.1 and PHP 8.5 in
 wp-env. PSR-12 layout via php-cs-fixer with PHPCS restricted to semantics,
 PHPUnit 13 with Brain Monkey for unit tests, wp-env for a real WordPress and
 WooCommerce in integration tests, Playwright for end-to-end. TypeScript and
-Biome for the tooling, `@wordpress/scripts` for the build. Node 24, pnpm. No
+Biome for the tooling, `@wordpress/scripts` for the build. Node 26, pnpm. No
 PHP or Composer on the host — everything PHP runs in a container. Updates come
 from this repository's GitHub releases through plugin-update-checker.
 

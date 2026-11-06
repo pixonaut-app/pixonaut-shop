@@ -16,18 +16,18 @@ concurrency:
 env:
   # Kept in step with .github/workflows/ci.yml's env block.
   PHP_VERSION: '8.5'
-  NODE_VERSION: 24
+  NODE_VERSION: 26
 
 jobs:
   javascript:
     name: JavaScript lint and tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -40,7 +40,7 @@ jobs:
     name: PHP lint and unit tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: shivammathur/setup-php@v2

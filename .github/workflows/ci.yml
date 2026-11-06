@@ -23,7 +23,7 @@ env:
   # Kept in step with .github/workflows/release.yml, .wp-env.json's
   # phpVersion and package.json's engines.
   PHP_VERSION: '8.5'
-  NODE_VERSION: 24
+  NODE_VERSION: 26
 
 jobs:
   changes:
@@ -42,12 +42,12 @@ jobs:
       e2e_specs: ${{ steps.affected.outputs.e2e_specs }}
       e2e_shards: ${{ steps.affected.outputs.e2e_shards }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # No install: the classifier needs only Node and git.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
 
@@ -63,7 +63,7 @@ jobs:
     if: needs.changes.outputs.php == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -71,7 +71,7 @@ jobs:
           coverage: none
           tools: composer:v2
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.composer/cache
           key: composer-${{ hashFiles('composer.lock') }}
@@ -96,11 +96,11 @@ jobs:
     if: needs.changes.outputs.js == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -117,7 +117,7 @@ jobs:
     if: needs.changes.outputs.shell_scripts == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # shellcheck ships with the ubuntu runner image.
       - run: shellcheck scripts/docker/host-user.sh scripts/docker/wp-env-after-start.sh
 
@@ -127,7 +127,7 @@ jobs:
     if: needs.changes.outputs.integration == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/wp-env
         with:
@@ -153,7 +153,7 @@ jobs:
       matrix:
         shard: ${{ fromJSON(needs.changes.outputs.e2e_shards) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/wp-env
         with:
@@ -165,7 +165,7 @@ jobs:
         # `--version` prints "Version 1.x.y"; the key takes the number alone.
         run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         id: browsers
         with:
           path: ~/.cache/ms-playwright

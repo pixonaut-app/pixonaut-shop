@@ -5,7 +5,8 @@
 - **Docker.** There is deliberately no PHP or Composer on the host — every
   PHP command runs inside a container. See
   [the container commands](#the-container-commands-behind-the-pnpm-wrappers).
-- **Node 24** (`.nvmrc` pins it; `package.json`'s `engines` enforces it).
+- **Node 26** (`.nvmrc` pins it; `package.json`'s `engines` enforces it, and its
+  `devEngines.runtime` has pnpm download Node 26 for its scripts when `node` is older).
 - **pnpm**, pinned through `packageManager` in `package.json`
   (`corepack enable` picks it up).
 
