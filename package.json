@@ -10,11 +10,11 @@
   "devEngines": {
     "runtime": {
       "name": "node",
-      "version": "^26.11.1",
+      "version": "^26.13.0",
       "onFail": "download"
     }
   },
-  "packageManager": "pnpm@10.30.1",
+  "packageManager": "pnpm@12.18.0",
   "scripts": {
     "prepare": "lefthook install",
     "dev": "pnpm env:start && pnpm env:activate && pnpm start",
@@ -56,11 +56,6 @@
     "plugin:use": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/plugin/use-cli.ts",
     "plugin:api": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/plugin/api-cli.ts",
     "test": "pnpm test:unit && pnpm test:integration"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "lefthook"
-    ]
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.12",

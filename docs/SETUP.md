@@ -7,8 +7,8 @@
   [the container commands](#the-container-commands-behind-the-pnpm-wrappers).
 - **Node 26** (`.nvmrc` pins it; `package.json`'s `engines` enforces it, and its
   `devEngines.runtime` has pnpm download Node 26 for its scripts when `node` is older).
-- **pnpm**, pinned through `packageManager` in `package.json`
-  (`corepack enable` picks it up).
+- **pnpm**, pinned through `packageManager` in `package.json`; any installed
+  pnpm switches to that version itself.
 
 ## First run
 
