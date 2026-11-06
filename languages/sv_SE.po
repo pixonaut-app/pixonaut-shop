@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-10-28T15:01:34+00:00\n"
+"POT-Creation-Date: 2026-11-06T15:41:37+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -29,14 +29,15 @@ msgstr "https://github.com/pixonaut-app/pixonaut-shop"
 #. Description of the theme
 #: style.css
 msgid ""
-"A WooCommerce block theme for stores that sell personalised garments and "
-"prints through Pixonaut for WooCommerce. Every store shares its templates; a "
-"store's colours, fonts and logo are set in the Site Editor under Styles."
+"A WooCommerce block theme for shops that sell personalised garments and "
+"prints. Its product page, shop, cart, checkout and account pages are plain "
+"and calm, and a shop's colours, fonts and logo are set in the Site Editor "
+"under Styles."
 msgstr ""
 "Ett blocktema för WooCommerce, för butiker som säljer personliga kläder och "
-"tryck genom Pixonaut for WooCommerce. Alla butiker delar dess mallar; en "
-"butiks färger, typsnitt och logotyp ställs in i webbplatsredigeraren under "
-"Stilar."
+"tryck. Dess produktsida, butik, varukorg, kassa och kontosidor är enkla och "
+"lugna, och en butiks färger, typsnitt och logotyp ställs in i webbplatsredigeraren "
+"under Stilar."
 
 #. Author of the theme
 #: style.css
@@ -96,18 +97,18 @@ msgstr "Status"
 msgid "No results for “%s”"
 msgstr "Inga träffar för ”%s”"
 
-#: inc/Blocks/AspectRatios.php:104
+#: inc/Blocks/AspectRatios.php:108
 msgid "Square - 1:1"
 msgstr "Kvadrat - 1:1"
 
 #. translators: %s: a print size's width and height, such as 5:7.
-#: inc/Blocks/AspectRatios.php:110
+#: inc/Blocks/AspectRatios.php:114
 #, php-format
 msgid "Portrait - %s"
 msgstr "Stående - %s"
 
 #. translators: %s: a print size's width and height, such as 7:5.
-#: inc/Blocks/AspectRatios.php:116
+#: inc/Blocks/AspectRatios.php:120
 #, php-format
 msgid "Landscape - %s"
 msgstr "Liggande - %s"
@@ -158,7 +159,7 @@ msgid_plural "%s products"
 msgstr[0] "%s produkt"
 msgstr[1] "%s produkter"
 
-#: inc/Dependencies/WooCommerceNotice.php:51
+#: inc/Dependencies/WooCommerceNotice.php:68
 msgid ""
 "Product pages, the shop, the cart and the checkout need WooCommerce. Until "
 "it is active, visitors see your pages and posts only."
@@ -166,9 +167,13 @@ msgstr ""
 "Produktsidor, butiken, varukorgen och kassan behöver WooCommerce. Tills det "
 "är aktivt ser besökarna bara dina sidor och inlägg."
 
-#: inc/Dependencies/WooCommerceNotice.php:53
+#: inc/Dependencies/WooCommerceNotice.php:70
 msgid "Install WooCommerce"
 msgstr "Installera WooCommerce"
+
+#: inc/Dependencies/WooCommerceNotice.php:72
+msgid "Do not show this again"
+msgstr "Visa inte det här igen"
 
 #. translators: %s: the order's number.
 #: inc/Orders/OrderReceivedBand.php:77
@@ -181,7 +186,7 @@ msgctxt "Pattern title"
 msgid "Announcement"
 msgstr "Meddelande"
 
-#: patterns/announcement.php:21
+#: patterns/announcement.php:20
 msgid "Write a short announcement"
 msgstr "Skriv ett kort meddelande"
 
