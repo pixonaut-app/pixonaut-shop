@@ -54,6 +54,15 @@ const CHECKOUT_FILES: Record< string, string > = {
 	'languages/pixonaut-shop.pot': '',
 	'src/app.css': '',
 	'src/blocks/assets.d.ts': '',
+	'src/blocks/icon/block.json': '{}',
+	'src/header/search.ts': '',
+	'build/blocks/icon/block.json': '{}',
+	'inc/Blocks/BlockStyles.php': '<?php',
+	'inc/Blocks/ThemeBlocks.php': '<?php',
+	'inc/Blocks/BlockLoader.php': '<?php register_block_type( $dir );',
+	'inc/Blocks/FreeShippingNote.php': '<?php',
+	'inc/Blocks/ProductCategories.php': '<?php',
+	'inc/Blocks/Icons.php': '<?php',
 	'build/app.css': '',
 	'build/app.css.map': '',
 	'vendor/autoload.php': '<?php',
@@ -66,6 +75,16 @@ const CHECKOUT_FILES: Record< string, string > = {
 	'.wp-env.json': '{}',
 	'node_modules/x/index.js': '',
 };
+
+/** The theme's own blocks: their sources, build and the PHP that registers and renders them. */
+const THEME_BLOCK_FILES = [
+	'src/blocks/icon/block.json',
+	'build/blocks/icon/block.json',
+	'inc/Blocks/BlockLoader.php',
+	'inc/Blocks/FreeShippingNote.php',
+	'inc/Blocks/ProductCategories.php',
+	'inc/Blocks/Icons.php',
+];
 
 const UPDATER_ENTRY = 'vendor/yahnis-elsts/plugin-update-checker/plugin-update-checker.php';
 
@@ -179,6 +198,27 @@ describe( 'assemble', () => {
 		assert.deepEqual( stagedThemeProblems( theme, 'wporg' ), [] );
 	} );
 
+	it( "stages the GitHub flavor with the theme's own blocks", () => {
+		const files = listFiles( assemble( checkout, stage, 'github' ) );
+
+		for ( const kept of THEME_BLOCK_FILES.filter( ( path ) => ! path.startsWith( 'src/' ) ) ) {
+			assert.ok( files.has( kept ), `${ kept } is missing from the GitHub flavor` );
+		}
+	} );
+
+	it( "stages the wordpress.org flavor without the theme's own blocks, which are plugin territory there", () => {
+		const theme = assemble( checkout, stage, 'wporg' );
+		const files = listFiles( theme );
+
+		for ( const left of [ ...THEME_BLOCK_FILES, 'src/blocks/assets.d.ts' ] ) {
+			assert.ok( ! files.has( left ), `${ left } is in the wordpress.org flavor` );
+		}
+
+		assert.ok( files.has( 'inc/Blocks/BlockStyles.php' ) );
+		assert.ok( files.has( 'inc/Blocks/ThemeBlocks.php' ) );
+		assert.deepEqual( stagedThemeProblems( theme, 'wporg' ), [] );
+	} );
+
 	it( 'ships the unminified sources, the readme and the screenshot in the wordpress.org flavor', () => {
 		const files = listFiles( assemble( checkout, stage, 'wporg' ) );
 
@@ -186,7 +226,7 @@ describe( 'assemble', () => {
 			'readme.txt',
 			'screenshot.png',
 			'src/app.css',
-			'src/blocks/assets.d.ts',
+			'src/header/search.ts',
 			'package.json',
 			'webpack.config.js',
 			'assets/fonts/inter/OFL.txt',
@@ -243,6 +283,9 @@ describe( 'stagedThemeProblems', () => {
 			'functions.php',
 			"<?php define('PIXONAUT_SHOP_UPDATE_TOKEN', 'x');",
 		],
+		[ 'a block registered by the theme', 'inc/Other.php', '<?php register_block_type( __DIR__ );' ],
+		[ "a block's build", 'build/blocks/icon/block.json', '{}' ],
+		[ "a block's sources", 'src/blocks/icon/block.json', '{}' ],
 	] as const ) {
 		it( `fails the wordpress.org flavor on ${ remnant }`, () => {
 			put( path, content );

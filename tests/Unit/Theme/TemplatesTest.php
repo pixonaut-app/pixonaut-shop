@@ -53,8 +53,10 @@ final class TemplatesTest extends TestCase
         'pixonaut-shop/checkout-title'      => 'checkout-title',
         'pixonaut-shop/continue-shopping'   => 'continue-shopping',
         'pixonaut-shop/footer'              => 'footer',
+        'pixonaut-shop/free-shipping-note'  => 'free-shipping-note',
         'pixonaut-shop/front-page'          => 'front-page',
         'pixonaut-shop/hero'                => 'hero',
+        'pixonaut-shop/mini-cart-empty-icon' => 'mini-cart-empty-icon',
         'pixonaut-shop/no-products'         => 'no-products',
         'pixonaut-shop/not-found'           => 'not-found',
         'pixonaut-shop/order-help'          => 'order-help',
@@ -204,7 +206,7 @@ final class TemplatesTest extends TestCase
         'woocommerce/mini-cart-items-block',
         'woocommerce/mini-cart-products-table-block',
         'woocommerce/mini-cart-footer-block',
-        'pixonaut-shop/free-shipping-note',
+        'pattern {"slug":"pixonaut-shop/free-shipping-note"}',
         'woocommerce/mini-cart-checkout-button-block',
         'woocommerce/mini-cart-cart-button-block',
     ];
@@ -215,7 +217,7 @@ final class TemplatesTest extends TestCase
      */
     public const EMPTY_MINI_CART_BLOCKS = [
         'woocommerce/empty-mini-cart-contents-block',
-        'pixonaut-shop/icon',
+        'pattern {"slug":"pixonaut-shop/mini-cart-empty-icon"}',
         'pattern',
         'woocommerce/mini-cart-shopping-button-block',
     ];
@@ -775,7 +777,8 @@ final class TemplatesTest extends TestCase
         $this->assertBlocksInOrder('parts/mini-cart.html', self::EMPTY_MINI_CART_BLOCKS);
 
         $part = $this->read('parts/mini-cart.html');
-        self::assertStringContainsString('<!-- wp:pixonaut-shop/icon {"icon":"bag","circle":true', $part);
+        self::assertStringContainsString('<!-- wp:pattern {"slug":"pixonaut-shop/mini-cart-empty-icon"} /-->', $part);
+        self::assertStringContainsString('<!-- wp:pixonaut-shop/icon {"icon":"bag","circle":true', $this->read('patterns/mini-cart-empty-icon.php'));
         self::assertStringContainsString('<!-- wp:pattern {"slug":"woocommerce/mini-cart-empty-cart-message"} /-->', $part);
     }
 
@@ -788,9 +791,10 @@ final class TemplatesTest extends TestCase
         $part = $this->read('parts/mini-cart.html');
 
         self::assertMatchesRegularExpression(
-            '/<!-- wp:woocommerce\/mini-cart-footer-block .*<!-- wp:pixonaut-shop\/free-shipping-note \/-->.*<!-- \/wp:woocommerce\/mini-cart-footer-block -->/s',
+            '/<!-- wp:woocommerce\/mini-cart-footer-block .*<!-- wp:pattern \{"slug":"pixonaut-shop\/free-shipping-note"\} \/-->.*<!-- \/wp:woocommerce\/mini-cart-footer-block -->/s',
             $part
         );
+        self::assertStringContainsString('<!-- wp:pixonaut-shop/free-shipping-note /-->', $this->read('patterns/free-shipping-note.php'));
     }
 
     #[DataProvider('markupFiles')]

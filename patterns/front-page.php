@@ -20,6 +20,8 @@
 
 declare(strict_types=1);
 
+use Pixonaut\Shop\Blocks\ThemeBlocks;
+
 $pixonaut_shop_shop = (string) get_post_type_archive_link( 'product' );
 
 ?>
@@ -39,7 +41,11 @@ $pixonaut_shop_shop = (string) get_post_type_archive_link( 'product' );
 	</div>
 	<!-- /wp:group -->
 
+	<?php if ( ThemeBlocks::is_registered( 'product-categories' ) ) : ?>
 	<!-- wp:pixonaut-shop/product-categories {"number":4} /-->
+<?php else : ?>
+	<!-- wp:woocommerce/product-categories {"hasCount":false,"hasImage":true,"hasEmpty":false,"isHierarchical":false} /-->
+<?php endif; ?>
 </div>
 <!-- /wp:group -->
 

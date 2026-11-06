@@ -15,6 +15,8 @@
 
 declare(strict_types=1);
 
+use Pixonaut\Shop\Blocks\ThemeBlocks;
+
 ?>
 <!-- wp:group {"className":"is-style-panel pixonaut-shop-not-found","layout":{"type":"flex","orientation":"vertical","justifyContent":"center"}} -->
 <div class="wp-block-group is-style-panel pixonaut-shop-not-found">
@@ -48,6 +50,10 @@ declare(strict_types=1);
 	<h2 class="wp-block-heading"><?php echo esc_html__( 'Shop by category', 'pixonaut-shop' ); ?></h2>
 	<!-- /wp:heading -->
 
+	<?php if ( ThemeBlocks::is_registered( 'product-categories' ) ) : ?>
 	<!-- wp:pixonaut-shop/product-categories /-->
+<?php else : ?>
+	<!-- wp:woocommerce/product-categories {"hasCount":false,"hasImage":true,"hasEmpty":false,"isHierarchical":false} /-->
+<?php endif; ?>
 </div>
 <!-- /wp:group -->

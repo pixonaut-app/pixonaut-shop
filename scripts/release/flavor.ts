@@ -7,7 +7,9 @@
  *   wporg   for the wordpress.org theme directory, which delivers a listed
  *           theme's updates itself and allows no updater of its own: no
  *           plugin-update-checker, no `inc/Updates/`, no `Update URI` header.
- *           It carries the unminified sources the build is made from, which
+ *           Nor does it ship the theme's own blocks, which the directory
+ *           leaves to plugins; the patterns that hold them fall back without
+ *           them (`inc/Blocks/ThemeBlocks.php`). It carries the unminified sources the build is made from, which
  *           the directory asks for.
  *
  * `assemble` stages either from a built checkout (after `pnpm build`, and for
@@ -39,6 +41,22 @@ const UPDATER_SOURCES = 'inc/Updates';
 
 /** The class the GitHub flavor's updater starts from, which its zip must hold. */
 const UPDATER_CLASS = `${ UPDATER_SOURCES }/GitHubUpdater.php`;
+
+/**
+ * The theme's own blocks: their sources and build, and the PHP that
+ * registers and renders them. Only the GitHub flavor ships them.
+ */
+const THEME_BLOCK_PATHS = [
+	'src/blocks/',
+	'build/blocks/',
+	'inc/Blocks/BlockLoader.php',
+	'inc/Blocks/FreeShippingNote.php',
+	'inc/Blocks/ProductCategories.php',
+	'inc/Blocks/Icons.php',
+];
+
+/** Text in any file of the wordpress.org flavor that means a block is registered. */
+const BLOCK_REGISTRATION = /register_block_type/;
 
 /** Text in any file of the wordpress.org flavor that means an updater was left in. */
 const UPDATER_REMNANT = /PluginUpdateChecker|plugin-update-checker|PIXONAUT_SHOP_UPDATE_TOKEN/;
@@ -202,6 +220,11 @@ export function assemble( checkout: string, stage: string, flavor: Flavor ): str
 	}
 
 	rmSync( join( theme, UPDATER_SOURCES ), { recursive: true, force: true } );
+
+	for ( const path of THEME_BLOCK_PATHS ) {
+		rmSync( join( theme, path ), { recursive: true, force: true } );
+	}
+
 	writeFileSync(
 		join( theme, 'style.css' ),
 		stripUpdateUri( readFileSync( join( theme, 'style.css' ), 'utf8' ) ),
@@ -277,6 +300,13 @@ export function stagedThemeProblems( theme: string, flavor: Flavor ): string[] {
 	for ( const path of files ) {
 		if ( path.startsWith( 'vendor/' ) || path.startsWith( `${ UPDATER_SOURCES }/` ) ) {
 			problems.push( `${ path }: update checker in the ${ flavor } flavor` );
+		} else if ( THEME_BLOCK_PATHS.some( ( block ) => path.startsWith( block ) ) ) {
+			problems.push( `${ path }: the theme's own block in the ${ flavor } flavor` );
+		} else if (
+			TEXT_FILE.test( path ) &&
+			BLOCK_REGISTRATION.test( readFileSync( join( theme, path ), 'utf8' ) )
+		) {
+			problems.push( `${ path }: registers a block in the ${ flavor } flavor` );
 		} else if (
 			TEXT_FILE.test( path ) &&
 			UPDATER_REMNANT.test( readFileSync( join( theme, path ), 'utf8' ) )

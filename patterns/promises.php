@@ -16,6 +16,8 @@
 
 declare(strict_types=1);
 
+use Pixonaut\Shop\Blocks\ThemeBlocks;
+
 $pixonaut_shop_title = __( 'A short promise', 'pixonaut-shop' );
 $pixonaut_shop_text  = __( 'One sentence about it.', 'pixonaut-shop' );
 
@@ -26,7 +28,9 @@ $pixonaut_shop_text  = __( 'One sentence about it.', 'pixonaut-shop' );
 	<div class="wp-block-column">
 		<!-- wp:group {"style":{"spacing":{"blockGap":"var:preset|spacing|30"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"top"}} -->
 		<div class="wp-block-group">
+			<?php if ( ThemeBlocks::is_registered( 'icon' ) ) : ?>
 			<!-- wp:pixonaut-shop/icon {"icon":"truck","circle":true} /-->
+			<?php endif; ?>
 
 			<!-- wp:group {"style":{"spacing":{"blockGap":"0"}},"layout":{"type":"flex","orientation":"vertical"}} -->
 			<div class="wp-block-group">
@@ -48,7 +52,9 @@ $pixonaut_shop_text  = __( 'One sentence about it.', 'pixonaut-shop' );
 	<div class="wp-block-column">
 		<!-- wp:group {"style":{"spacing":{"blockGap":"var:preset|spacing|30"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"top"}} -->
 		<div class="wp-block-group">
+			<?php if ( ThemeBlocks::is_registered( 'icon' ) ) : ?>
 			<!-- wp:pixonaut-shop/icon {"icon":"gift","circle":true} /-->
+			<?php endif; ?>
 
 			<!-- wp:group {"style":{"spacing":{"blockGap":"0"}},"layout":{"type":"flex","orientation":"vertical"}} -->
 			<div class="wp-block-group">
@@ -70,7 +76,9 @@ $pixonaut_shop_text  = __( 'One sentence about it.', 'pixonaut-shop' );
 	<div class="wp-block-column">
 		<!-- wp:group {"style":{"spacing":{"blockGap":"var:preset|spacing|30"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"top"}} -->
 		<div class="wp-block-group">
+			<?php if ( ThemeBlocks::is_registered( 'icon' ) ) : ?>
 			<!-- wp:pixonaut-shop/icon {"icon":"star","circle":true} /-->
+			<?php endif; ?>
 
 			<!-- wp:group {"style":{"spacing":{"blockGap":"0"}},"layout":{"type":"flex","orientation":"vertical"}} -->
 			<div class="wp-block-group">
@@ -92,7 +100,9 @@ $pixonaut_shop_text  = __( 'One sentence about it.', 'pixonaut-shop' );
 	<div class="wp-block-column">
 		<!-- wp:group {"style":{"spacing":{"blockGap":"var:preset|spacing|30"}},"layout":{"type":"flex","flexWrap":"nowrap","verticalAlignment":"top"}} -->
 		<div class="wp-block-group">
+			<?php if ( ThemeBlocks::is_registered( 'icon' ) ) : ?>
 			<!-- wp:pixonaut-shop/icon {"icon":"lock","circle":true} /-->
+			<?php endif; ?>
 
 			<!-- wp:group {"style":{"spacing":{"blockGap":"0"}},"layout":{"type":"flex","orientation":"vertical"}} -->
 			<div class="wp-block-group">
