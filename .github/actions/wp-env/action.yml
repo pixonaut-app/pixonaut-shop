@@ -15,9 +15,9 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: pnpm/action-setup@v4
+    - uses: pnpm/action-setup@v6
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v7
       with:
         node-version: ${{ inputs.node-version }}
         cache: pnpm
@@ -28,7 +28,7 @@ runs:
         coverage: none
         tools: composer:v2
 
-    - uses: actions/cache@v4
+    - uses: actions/cache@v6
       with:
         path: ~/.composer/cache
         key: composer-${{ hashFiles('composer.lock') }}

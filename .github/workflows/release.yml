@@ -40,7 +40,7 @@ jobs:
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - id: release
-        uses: googleapis/release-please-action@v4
+        uses: googleapis/release-please-action@v5
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
@@ -52,7 +52,7 @@ jobs:
       needs.release-please.outputs.release_created == 'true')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ needs.release-please.outputs.tag_name || inputs.build_ref }}
 
@@ -73,9 +73,9 @@ jobs:
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -186,7 +186,7 @@ jobs:
           "$WP_ENV" run cli sh -c \
             '! grep -E "PHP (Fatal error|Parse error|Warning)" wp-content/debug.log 2>/dev/null'
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ env.THEME_SLUG }}-${{ steps.version.outputs.version }}
           path: ${{ env.THEME_SLUG }}-*.zip*
