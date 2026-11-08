@@ -167,6 +167,12 @@ was saved with; the Site Editor's Reset brings the theme's back.
   and `woocommerce/add-to-cart-form`, and has no
   `woocommerce/product-price` block: the price prints in the form's last
   row (`inc/Product/PriceRow.php`).
+- **Show a reduced price only through WooCommerce's price.** A price
+  WooCommerce prints (the product-price block, the price row, the cart's
+  lines) carries the lowest price of the 30 days before a reduction, which
+  Swedish law requires beside it (`inc/Product/LowestPrice.php`). A
+  "was"/"now" price or a percentage written as text in a template or
+  pattern does not.
 
 ## Building blocks
 

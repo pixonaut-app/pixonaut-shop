@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pixonaut\Shop\Tests\Support;
 
 use Pixonaut\Shop\FrontPage\Hero;
+use Pixonaut\Shop\Product\LowestPrice;
 use RuntimeException;
 use WC_Customer;
 use WC_Order;
@@ -173,6 +174,25 @@ final class ShopFixtures
     private const HERO_IMAGE_NAME = self::HERO_IMAGE_SLUG . '.png';
 
     private const HERO_IMAGE_TYPE = 'image/png';
+
+    /** A product reduced from its regular price, in a category of its own, for the lowest price's spec. */
+    public const REDUCED_PRODUCT_SLUG = 'reduced-product';
+
+    private const REDUCED_PRODUCT_NAME = 'Tee on sale';
+
+    public const REDUCED_CATEGORY_SLUG = 'on-sale';
+
+    private const REDUCED_CATEGORY_NAME = 'On sale';
+
+    private const REDUCED_REGULAR_PRICE = '300';
+
+    private const REDUCED_SALE_PRICE = '200';
+
+    /** The lowest price the reduced product had in the 30 days before its reduction. */
+    public const REDUCED_LOWEST_PRICE = '250';
+
+    /** When each of the reduced product's prices took effect, relative to now, oldest first. */
+    private const REDUCED_PRICE_HISTORY = [self::REDUCED_LOWEST_PRICE => '-20 days', self::REDUCED_SALE_PRICE => '-2 days'];
 
     /** The transient that sends the first admin page view to WooCommerce's setup wizard. */
     private const ACTIVATION_REDIRECT = '_wc_activation_redirect';
@@ -399,6 +419,54 @@ final class ShopFixtures
         update_post_meta($image, '_wp_attachment_image_alt', self::HERO_IMAGE_ALT);
 
         return $image;
+    }
+
+    /**
+     * The reduced product, with a price history in which it cost the lowest
+     * price before its reduction, written again on every run.
+     */
+    public static function reduced_product(): void
+    {
+        $category = self::category(self::REDUCED_CATEGORY_NAME, self::REDUCED_CATEGORY_SLUG);
+        $existing = get_page_by_path(self::REDUCED_PRODUCT_SLUG, OBJECT, 'product');
+        $product  = null === $existing ? new WC_Product_Simple() : wc_get_product($existing->ID);
+
+        if (! $product instanceof WC_Product) {
+            throw new RuntimeException('The reduced product is not a WooCommerce product.');
+        }
+
+        $product->set_name(self::REDUCED_PRODUCT_NAME);
+        $product->set_slug(self::REDUCED_PRODUCT_SLUG);
+        $product->set_regular_price(self::REDUCED_REGULAR_PRICE);
+        $product->set_sale_price(self::REDUCED_SALE_PRICE);
+        $product->set_category_ids([$category]);
+        $product->set_status('publish');
+        $product->save();
+
+        $now     = current_datetime();
+        $history = [];
+
+        foreach (self::REDUCED_PRICE_HISTORY as $price => $relative) {
+            $history[] = ['price' => (string) $price, 'from' => $now->modify($relative)->format(DATE_ATOM)];
+        }
+
+        update_post_meta($product->get_id(), LowestPrice::HISTORY_META, $history);
+    }
+
+    /** The reduced product and its category gone again, so no other spec's lists show them. */
+    public static function forget_reduced_product(): void
+    {
+        $existing = get_page_by_path(self::REDUCED_PRODUCT_SLUG, OBJECT, 'product');
+
+        if (null !== $existing) {
+            wp_delete_post($existing->ID, true);
+        }
+
+        $term = get_term_by('slug', self::REDUCED_CATEGORY_SLUG, self::CATEGORY_TAXONOMY);
+
+        if ($term instanceof WP_Term) {
+            wp_delete_term($term->term_id, self::CATEGORY_TAXONOMY);
+        }
     }
 
     /** A registered pattern's content, as the editor inserts it. */

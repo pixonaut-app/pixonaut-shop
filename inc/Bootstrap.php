@@ -83,10 +83,13 @@ final class Bootstrap
         (new Header\NamedMenus())->register();
     }
 
-    /** The campaign band, in the announcement part while the store's campaign runs. */
+    /**
+     * The campaign band, in the announcement part while the store's campaign
+     * runs, with the lowest price of a reduced product it links to.
+     */
     private function register_campaign(): void
     {
-        (new Campaign\CampaignBand())->register();
+        (new Campaign\CampaignBand(null, (new Product\LowestPrice())->for_url(...)))->register();
     }
 
     private function register_content(): void
@@ -125,13 +128,15 @@ final class Bootstrap
      * The product page: the preview frame at the shape the store picks, and
      * in the add-to-cart form the price in the row with the quantity and the
      * button, and a variable product's attributes as chips where the store
-     * asks for them.
+     * asks for them. Beside every reduced price, the lowest price of the 30
+     * days before the reduction, from the price history it keeps.
      */
     private function register_product(): void
     {
         (new Product\PreviewFrame(new Blocks\AspectRatios()))->register();
         (new Product\PriceRow())->register();
         (new Product\VariationSwatches())->register();
+        (new Product\LowestPrice())->register();
     }
 
     /**

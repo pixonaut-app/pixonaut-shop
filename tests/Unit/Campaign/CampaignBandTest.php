@@ -190,6 +190,29 @@ final class CampaignBandTest extends TestCase
         self::assertStringNotContainsString('Free delivery', $html);
     }
 
+    public function testBandLinkingToAReducedProductShowsItsLowestPrice(): void
+    {
+        $note = '<span class="pixonaut-shop-lowest-price">Lowest price in the last 30 days: 250 kr</span>';
+        Functions\when('get_option')->justReturn(self::campaign());
+        $band = new CampaignBand(
+            static fn (): DateTimeImmutable => new DateTimeImmutable(self::NOW, new DateTimeZone(self::ZONE)),
+            static fn (string $url): ?string => self::URL === $url ? $note : null,
+        );
+
+        self::assertStringContainsString('<a href="' . self::URL . '">' . self::TEXT . '</a> ' . $note, $this->render($band));
+    }
+
+    public function testBandLinkingElsewhereShowsNoLowestPrice(): void
+    {
+        Functions\when('get_option')->justReturn(self::campaign());
+        $band = new CampaignBand(
+            static fn (): DateTimeImmutable => new DateTimeImmutable(self::NOW, new DateTimeZone(self::ZONE)),
+            static fn (): ?string => null,
+        );
+
+        self::assertStringContainsString('<a href="' . self::URL . '">' . self::TEXT . '</a></p>', $this->render($band));
+    }
+
     public function testRegistersOnTheTemplatePartBlock(): void
     {
         $band = $this->band(null);

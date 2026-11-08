@@ -123,6 +123,12 @@ opens the drawer from the header's bag: its line, with the fake's rows, the
 subtotal and the two buttons; and, for a guest with an empty cart, the empty
 state.
 
+`lowest-price.spec.ts` makes a product reduced from its regular price, with
+a price history in which it cost less before the reduction
+(`ShopFixtures::reduced_product()`), and checks the lowest price of the 30
+days before it under the reduced price on the product page and on its card,
+and among its cart line's details; it removes the product afterwards.
+
 `blocks.spec.ts` inserts the theme's own blocks in a page and checks the
 product categories block shows a category made for the spec in the canvas,
 and the promises pattern its icons, headings and sentences, without invalid

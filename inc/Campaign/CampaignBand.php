@@ -23,6 +23,9 @@ use Exception;
  *
  * While a campaign shows, its band takes the announcement part's place. At
  * any other time the part shows what the store wrote in it, if anything.
+ * A band that links to a reduced product shows that product's lowest price
+ * of the 30 days before its reduction after its text, as a reduced price
+ * does everywhere else (`Product\LowestPrice`).
  */
 final class CampaignBand
 {
@@ -52,12 +55,17 @@ final class CampaignBand
     /** @var Closure(): DateTimeImmutable */
     private Closure $now;
 
+    /** @var (Closure(string): ?string)|null */
+    private ?Closure $price_note;
+
     /**
-     * @param (Closure(): DateTimeImmutable)|null $now The site's current time; defaults to WordPress's clock in the site's time zone.
+     * @param (Closure(): DateTimeImmutable)|null $now        The site's current time; defaults to WordPress's clock in the site's time zone.
+     * @param (Closure(string): ?string)|null     $price_note The escaped lowest-price line for the reduced product an address links to, or null for none.
      */
-    public function __construct(?Closure $now = null)
+    public function __construct(?Closure $now = null, ?Closure $price_note = null)
     {
         $this->now = $now ?? static fn (): DateTimeImmutable => current_datetime();
+        $this->price_note = $price_note;
     }
 
     public function register(): void
@@ -90,7 +98,11 @@ final class CampaignBand
         return substr($content, 0, $inner_start + 1) . \sprintf(self::BAND, $line) . substr($content, $inner_end);
     }
 
-    /** The band's escaped line, linked where the campaign has an address, or null while no campaign runs. */
+    /**
+     * The band's escaped line, linked where the campaign has an address and
+     * followed by the linked product's lowest price when it is reduced, or
+     * null while no campaign runs.
+     */
     private function line(): ?string
     {
         $option = get_option(self::OPTION);
@@ -110,7 +122,13 @@ final class CampaignBand
         $text = esc_html($option[self::TEXT_KEY]);
         $url = \is_string($option[self::URL_KEY] ?? null) ? esc_url_raw($option[self::URL_KEY]) : '';
 
-        return '' === $url ? $text : '<a href="' . esc_url($url) . '">' . $text . '</a>';
+        if ('' === $url) {
+            return $text;
+        }
+
+        $note = null === $this->price_note ? null : ($this->price_note)($url);
+
+        return '<a href="' . esc_url($url) . '">' . $text . '</a>' . (null === $note ? '' : ' ' . $note);
     }
 
     /** The moment an ISO 8601 date in the site's time zone names, or null when it is not one. */

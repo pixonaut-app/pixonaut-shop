@@ -132,6 +132,54 @@ panel, the `pixonaut-shop/product-description` pattern puts
 `pixonaut-shop/related-products` shows four related products as the product
 grid draws them.
 
+### The lowest price beside a reduction
+
+Swedish law (prisinformationslagen 7 a §, from the EU's Omnibus directive)
+requires an announced price reduction to show the lowest price the product
+had in the 30 days before the reduction. `inc/Product/LowestPrice.php` adds
+that line, "Lowest price in the last 30 days: {price}" ("Lägsta pris senaste
+30 dagarna: {price}" in Swedish), under every reduced price a shopper sees,
+and only while the product is on sale:
+
+- every price WooCommerce prints through `get_price_html()`, through
+  `woocommerce_get_price_html`: the product page's price row, the
+  `woocommerce/product-price` block on product cards and grids, and a
+  chosen variation's price;
+- a reduced line in the Cart block, the mini cart and the checkout's
+  summary, as one of the line's detail rows (`woocommerce_get_item_data`),
+  which those blocks print as text;
+- the campaign band, after its text, when the campaign links to a reduced
+  product.
+
+WooCommerce keeps no past prices, so the theme keeps them in the product's
+`_pixonaut_shop_price_history` meta: a list of `{ price, from }`, oldest
+first, where `price` is the active price (what a customer pays, as
+WooCommerce stores it) and `from` the ISO 8601 moment it took effect. An
+entry is added whenever that price changes: when WooCommerce creates or
+updates a product or a variation (`woocommerce_new_product`,
+`woocommerce_update_product` and their `_variation` twins, which the admin,
+the REST API, WP-CLI and imports all reach), and after a scheduled sale
+starts or ends (`wc_product_start_scheduled_sale`,
+`wc_product_end_scheduled_sale`, and the daily run's
+`wc_after_products_starting_sales` and `wc_after_products_ending_sales`). A
+save that leaves the price records nothing. Entries that ended more than 30
+days before the newest one are dropped; the one in effect when that window
+opens stays. A duplicated product starts a history of its own. WooCommerce's
+own prices are never written.
+
+The reference price is the lowest active price in the 30 days before the
+current price took effect, so a reduction that has run for weeks still looks
+back from its start. A history shorter than 30 days uses the lowest price it
+has. A product first seen already on sale, with no price before its sale
+price (one saved on sale before the theme was active, or created on sale),
+shows its regular price. A price that changed without a save the theme saw
+counts as taking effect now. A variation has its own history and line; a
+variable product's price range shows the lowest reference among its reduced
+variations. The price is shown as WooCommerce shows prices
+(`wc_get_price_to_display()`, `wc_price()`), with tax as the store displays
+it. A price changed by writing `_price` straight to the database, without
+WooCommerce's save, is not seen until the product is next saved.
+
 My account is WooCommerce's classic account page, printed by its shortcode
 in the store's My account page and styled by `src/styles/_account.css`; the
 theme copies none of its templates into `woocommerce/`, since they change
@@ -213,7 +261,7 @@ Their names and shapes stay as they are.
 | Option | Shape | Read by | Effect |
 | --- | --- | --- | --- |
 | `pixonaut_shop_hero` | An array: `heading`, `text`, `button_label` and `button_url`, each a string, and `image_id`, an int, an image attachment's ID. | `inc/FrontPage/Hero.php` | The `pixonaut-shop/hero` pattern shows that heading, sentence, one button and picture, with no pill, in place of its placeholders. |
-| `pixonaut_shop_campaign` | An array: `text` and `url`, strings, and `starts` and `ends`, ISO 8601 dates in the site's time zone (`2026-11-27` or `2026-11-27T08:00:00`). | `inc/Campaign/CampaignBand.php` | While `starts <= now < ends`, a band with the text, linked to the address, takes the announcement part's place on every page. |
+| `pixonaut_shop_campaign` | An array: `text` and `url`, strings, and `starts` and `ends`, ISO 8601 dates in the site's time zone (`2026-11-27` or `2026-11-27T08:00:00`). | `inc/Campaign/CampaignBand.php` | While `starts <= now < ends`, a band with the text, linked to the address, takes the announcement part's place on every page. An address that is a reduced product's adds its lowest price of the last 30 days. |
 | `pixonaut_shop_header` | `simple` or `mega`; unset is `simple`. | `inc/Header/HeaderVariant.php` | Which header the store shows. Only `simple` is built, so `mega` shows the simple header until the mega menu's header exists. |
 
 The campaign band never shows without dates: a campaign missing either date,

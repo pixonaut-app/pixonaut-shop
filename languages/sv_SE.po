@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-11-06T16:03:26+00:00\n"
+"POT-Creation-Date: 2026-11-08T16:40:13+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -181,6 +181,12 @@ msgstr "Visa inte det här igen"
 msgid "Order %s received"
 msgstr "Order %s är mottagen"
 
+#. translators: %d: the number of days before a price reduction the lowest price is looked for.
+#: inc/Product/LowestPrice.php:357
+#, php-format
+msgid "Lowest price in the last %d days"
+msgstr "Lägsta pris senaste %d dagarna"
+
 #: patterns/announcement.php
 msgctxt "Pattern title"
 msgid "Announcement"
@@ -233,7 +239,7 @@ msgid "Footer"
 msgstr "Sidfot"
 
 #. translators: 1: the current year, 2: the site's name.
-#: patterns/footer.php:22
+#: patterns/footer.php:24
 #, php-format
 msgid "© %1$s %2$s"
 msgstr "© %1$s %2$s"
@@ -283,23 +289,23 @@ msgstr ""
 "En sidas inledning på ett tonat band: en etikett, en rubrik, en mening, två "
 "knappar och en bild bredvid."
 
-#: patterns/hero.php:25
+#: patterns/hero.php:64
 msgid "News"
 msgstr "Nyhet"
 
-#: patterns/hero.php:29
+#: patterns/hero.php:68
 msgid "A heading about what you sell"
 msgstr "En rubrik om det du säljer"
 
-#: patterns/hero.php:33
+#: patterns/hero.php:72
 msgid "One or two sentences about the store."
 msgstr "En eller två meningar om butiken."
 
-#: patterns/hero.php:39
+#: patterns/hero.php:78
 msgid "Shop now"
 msgstr "Handla nu"
 
-#: patterns/hero.php:43
+#: patterns/hero.php:82
 msgid "See more"
 msgstr "Se mer"
 

@@ -110,6 +110,23 @@
 	text-decoration: none;
 }
 
+/*
+ * The lowest price of the 30 days before a reduction (Product\LowestPrice),
+ * on a line of its own under the reduced price, quiet beside it.
+ */
+.pixonaut-shop-lowest-price {
+	display: block;
+	color: var( --wp--preset--color--muted );
+	font-family: var( --wp--preset--font-family--body );
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 400;
+	line-height: 1.4;
+}
+
+.pixonaut-shop-lowest-price .woocommerce-Price-amount {
+	font-weight: inherit;
+}
+
 /* ---------- A cart line's details (the blocks' product details) ---------- */
 
 /*
