@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-08T18:26:32+00:00\n"
+"POT-Creation-Date: 2026-11-08T18:49:13+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: pixonaut-shop\n"
@@ -133,6 +133,14 @@ msgstr ""
 msgid "Text link"
 msgstr ""
 
+#: inc/Blocks/CategoryCarousel.php:82
+msgid "Previous categories"
+msgstr ""
+
+#: inc/Blocks/CategoryCarousel.php:83
+msgid "Next categories"
+msgstr ""
+
 #: inc/Blocks/FreeShippingNote.php:252
 msgid "You get free shipping"
 msgstr ""
@@ -144,7 +152,7 @@ msgid "Add %s more for free shipping"
 msgstr ""
 
 #. translators: %s: the number of products in a category.
-#: inc/Blocks/ProductCategories.php:199
+#: inc/Blocks/ProductCategories.php:173
 #, php-format
 msgid "%s product"
 msgid_plural "%s products"
@@ -163,20 +171,20 @@ msgstr ""
 msgid "Do not show this again"
 msgstr ""
 
-#: inc/Header/MegaMenu.php:283
+#: inc/Header/MegaMenu.php:275
 msgid "Menu"
 msgstr ""
 
-#: inc/Header/MegaMenu.php:313
+#: inc/Header/MegaMenu.php:305
 msgid "Main menu"
 msgstr ""
 
-#: inc/Header/MegaMenu.php:318
+#: inc/Header/MegaMenu.php:310
 msgid "Close menu"
 msgstr ""
 
 #. translators: %s: a group of the header's menu, as the store named it.
-#: inc/Header/MegaMenu.php:341
+#: inc/Header/MegaMenu.php:333
 #, php-format
 msgid "All of %s"
 msgstr ""
@@ -433,8 +441,52 @@ msgstr ""
 msgid "Popular categories"
 msgstr ""
 
+#: build/blocks/category-carousel/index.js:1
+#: build/blocks/group-tiles/index.js:1
+msgid "Category"
+msgstr ""
+
+#: build/blocks/category-carousel/index.js:1
+#: build/blocks/group-tiles/index.js:1
+msgid "Its subcategories with products show."
+msgstr ""
+
+#: build/blocks/category-carousel/index.js:1
+#: build/blocks/group-tiles/index.js:1
+msgid "Heading"
+msgstr ""
+
+#: build/blocks/category-carousel/index.js:1
+#: build/blocks/group-tiles/index.js:1
+msgid "No subcategory here has products yet."
+msgstr ""
+
+#: build/blocks/category-carousel/index.js:1
+msgid "Top-level categories"
+msgstr ""
+
+#: build/blocks/category-carousel/index.js:1
+msgid "Empty, the row has no heading."
+msgstr ""
+
 #: build/blocks/free-shipping-note/index.js:1
 msgid "Free shipping note"
+msgstr ""
+
+#: build/blocks/group-tiles/index.js:1
+msgid "Choose a category"
+msgstr ""
+
+#: build/blocks/group-tiles/index.js:1
+msgid "Empty, the heading is the category's name."
+msgstr ""
+
+#: build/blocks/group-tiles/index.js:1
+msgid "Group tiles"
+msgstr ""
+
+#: build/blocks/group-tiles/index.js:1
+msgid "Choose the category whose subcategories show as tiles, such as an occasion."
 msgstr ""
 
 #: build/blocks/icon/index.js:1
@@ -558,6 +610,32 @@ msgstr ""
 msgid "Category order"
 msgstr ""
 
+#: build/blocks/category-carousel/block.json
+msgctxt "block title"
+msgid "Category carousel"
+msgstr ""
+
+#: build/blocks/category-carousel/block.json
+msgctxt "block description"
+msgid "A scrolling row of round category pictures with their names: the subcategories of one product category, or the top-level categories."
+msgstr ""
+
+#: build/blocks/category-carousel/block.json
+#: build/blocks/group-tiles/block.json
+msgctxt "block keyword"
+msgid "categories"
+msgstr ""
+
+#: build/blocks/category-carousel/block.json
+msgctxt "block keyword"
+msgid "slider"
+msgstr ""
+
+#: build/blocks/category-carousel/block.json
+msgctxt "block keyword"
+msgid "scroll"
+msgstr ""
+
 #: build/blocks/free-shipping-note/block.json
 msgctxt "block title"
 msgid "Free shipping note"
@@ -571,6 +649,26 @@ msgstr ""
 #: build/blocks/free-shipping-note/block.json
 msgctxt "block keyword"
 msgid "shipping"
+msgstr ""
+
+#: build/blocks/group-tiles/block.json
+msgctxt "block title"
+msgid "Group tiles"
+msgstr ""
+
+#: build/blocks/group-tiles/block.json
+msgctxt "block description"
+msgid "A heading and the subcategories of one product category, such as an occasion or who a gift is for, as picture tiles."
+msgstr ""
+
+#: build/blocks/group-tiles/block.json
+msgctxt "block keyword"
+msgid "occasion"
+msgstr ""
+
+#: build/blocks/group-tiles/block.json
+msgctxt "block keyword"
+msgid "subcategories"
 msgstr ""
 
 #: build/blocks/icon/block.json

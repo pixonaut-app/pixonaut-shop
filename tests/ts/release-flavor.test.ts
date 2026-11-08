@@ -62,6 +62,10 @@ const CHECKOUT_FILES: Record< string, string > = {
 	'inc/Blocks/BlockLoader.php': '<?php register_block_type( $dir );',
 	'inc/Blocks/FreeShippingNote.php': '<?php',
 	'inc/Blocks/ProductCategories.php': '<?php',
+	'inc/Blocks/GroupTiles.php': '<?php',
+	'inc/Blocks/CategoryCarousel.php': '<?php',
+	'inc/Blocks/CategoryLinks.php': '<?php',
+	'inc/Blocks/CategoryList.php': '<?php',
 	'inc/Blocks/Icons.php': '<?php',
 	'build/app.css': '',
 	'build/app.css.map': '',
@@ -83,6 +87,10 @@ const THEME_BLOCK_FILES = [
 	'inc/Blocks/BlockLoader.php',
 	'inc/Blocks/FreeShippingNote.php',
 	'inc/Blocks/ProductCategories.php',
+	'inc/Blocks/GroupTiles.php',
+	'inc/Blocks/CategoryCarousel.php',
+	'inc/Blocks/CategoryLinks.php',
+	'inc/Blocks/CategoryList.php',
 	'inc/Blocks/Icons.php',
 ];
 

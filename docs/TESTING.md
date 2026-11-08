@@ -147,7 +147,19 @@ variant.
 `blocks.spec.ts` inserts the theme's own blocks in a page and checks the
 product categories block shows a category made for the spec in the canvas,
 and the promises pattern its icons, headings and sentences, without invalid
-blocks.
+blocks. It also inserts the group tiles and the category carousel from the
+inserter and picks a category for each, in the tiles' placeholder and in
+the sidebar.
+
+`category-carousel.spec.ts` checks the category carousel on a page of its
+own (`ShopFixtures::category_rows()`: a group with twelve subcategories, one
+of them a group of two, and one product filed under all of them): the next
+arrow shows on a row that overflows and scrolls it, the previous arrow
+brings it back, a row that fits shows neither, Tab reaches every category
+and then the arrows, Enter and Space on an arrow scroll the row, focus moves
+to the other arrow when one hides at the end, with reduced motion a press
+scrolls at once, and with JavaScript off the row still scrolls and no arrow
+shows.
 
 `site-editor.spec.ts` opens every template in the Site Editor and fails on
 any block validation error. Two things keep it honest, and both must stay:

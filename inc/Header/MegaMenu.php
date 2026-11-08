@@ -182,19 +182,7 @@ final class MegaMenu
 
         _prime_term_caches($categories);
         update_termmeta_cache($categories);
-
-        $pictures = array_values(array_unique(array_filter(array_map(
-            static function (int $term): int {
-                $picture = get_term_meta($term, CategoryImage::THUMBNAIL_META, true);
-
-                return is_numeric($picture) ? (int) $picture : 0;
-            },
-            $categories
-        ))));
-
-        if ([] !== $pictures) {
-            _prime_post_caches($pictures, false, true);
-        }
+        CategoryImage::prime($categories);
     }
 
     /**

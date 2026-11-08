@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-11-08T18:26:32+00:00\n"
+"POT-Creation-Date: 2026-11-08T18:49:13+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -141,6 +141,14 @@ msgstr "Använd valknappar"
 msgid "Text link"
 msgstr "Textlänk"
 
+#: inc/Blocks/CategoryCarousel.php:82
+msgid "Previous categories"
+msgstr "Föregående kategorier"
+
+#: inc/Blocks/CategoryCarousel.php:83
+msgid "Next categories"
+msgstr "Fler kategorier"
+
 #: inc/Blocks/FreeShippingNote.php:252
 msgid "You get free shipping"
 msgstr "Du får fri frakt"
@@ -152,7 +160,7 @@ msgid "Add %s more for free shipping"
 msgstr "Handla för %s till för fri frakt"
 
 #. translators: %s: the number of products in a category.
-#: inc/Blocks/ProductCategories.php:199
+#: inc/Blocks/ProductCategories.php:173
 #, php-format
 msgid "%s product"
 msgid_plural "%s products"
@@ -175,20 +183,20 @@ msgstr "Installera WooCommerce"
 msgid "Do not show this again"
 msgstr "Visa inte det här igen"
 
-#: inc/Header/MegaMenu.php:283
+#: inc/Header/MegaMenu.php:275
 msgid "Menu"
 msgstr "Meny"
 
-#: inc/Header/MegaMenu.php:313
+#: inc/Header/MegaMenu.php:305
 msgid "Main menu"
 msgstr "Huvudmeny"
 
-#: inc/Header/MegaMenu.php:318
+#: inc/Header/MegaMenu.php:310
 msgid "Close menu"
 msgstr "Stäng menyn"
 
 #. translators: %s: a group of the header's menu, as the store named it.
-#: inc/Header/MegaMenu.php:341
+#: inc/Header/MegaMenu.php:333
 #, php-format
 msgid "All of %s"
 msgstr "Allt i %s"
@@ -456,9 +464,54 @@ msgstr ""
 msgid "Popular categories"
 msgstr "Populära kategorier"
 
+#: build/blocks/category-carousel/index.js:1
+#: build/blocks/group-tiles/index.js:1
+msgid "Category"
+msgstr "Kategori"
+
+#: build/blocks/category-carousel/index.js:1
+#: build/blocks/group-tiles/index.js:1
+msgid "Its subcategories with products show."
+msgstr "Dess underkategorier med produkter visas."
+
+#: build/blocks/category-carousel/index.js:1
+#: build/blocks/group-tiles/index.js:1
+msgid "Heading"
+msgstr "Rubrik"
+
+#: build/blocks/category-carousel/index.js:1
+#: build/blocks/group-tiles/index.js:1
+msgid "No subcategory here has products yet."
+msgstr "Ingen underkategori här har produkter än."
+
+#: build/blocks/category-carousel/index.js:1
+msgid "Top-level categories"
+msgstr "Kategorier på översta nivån"
+
+#: build/blocks/category-carousel/index.js:1
+msgid "Empty, the row has no heading."
+msgstr "Tom får raden ingen rubrik."
+
 #: build/blocks/free-shipping-note/index.js:1
 msgid "Free shipping note"
 msgstr "Fraktfritt-meddelande"
+
+#: build/blocks/group-tiles/index.js:1
+msgid "Choose a category"
+msgstr "Välj en kategori"
+
+#: build/blocks/group-tiles/index.js:1
+msgid "Empty, the heading is the category's name."
+msgstr "Tom blir rubriken kategorins namn."
+
+#: build/blocks/group-tiles/index.js:1
+msgid "Group tiles"
+msgstr "Grupprutor"
+
+#: build/blocks/group-tiles/index.js:1
+msgid ""
+"Choose the category whose subcategories show as tiles, such as an occasion."
+msgstr "Välj kategorin vars underkategorier visas som rutor, till exempel ett tillfälle."
 
 #: build/blocks/icon/index.js:1
 msgctxt "icon"
@@ -581,6 +634,34 @@ msgstr "Antal produkter"
 msgid "Category order"
 msgstr "Kategoriordning"
 
+#: build/blocks/category-carousel/block.json
+msgctxt "block title"
+msgid "Category carousel"
+msgstr "Kategorikarusell"
+
+#: build/blocks/category-carousel/block.json
+msgctxt "block description"
+msgid ""
+"A scrolling row of round category pictures with their names: the "
+"subcategories of one product category, or the top-level categories."
+msgstr "En rullande rad med runda kategoribilder och deras namn: underkategorierna till en produktkategori, eller kategorierna på översta nivån."
+
+#: build/blocks/category-carousel/block.json
+#: build/blocks/group-tiles/block.json
+msgctxt "block keyword"
+msgid "categories"
+msgstr "kategorier"
+
+#: build/blocks/category-carousel/block.json
+msgctxt "block keyword"
+msgid "slider"
+msgstr "bildspel"
+
+#: build/blocks/category-carousel/block.json
+msgctxt "block keyword"
+msgid "scroll"
+msgstr "rulla"
+
 #: build/blocks/free-shipping-note/block.json
 msgctxt "block title"
 msgid "Free shipping note"
@@ -599,6 +680,28 @@ msgstr ""
 msgctxt "block keyword"
 msgid "shipping"
 msgstr "frakt"
+
+#: build/blocks/group-tiles/block.json
+msgctxt "block title"
+msgid "Group tiles"
+msgstr "Grupprutor"
+
+#: build/blocks/group-tiles/block.json
+msgctxt "block description"
+msgid ""
+"A heading and the subcategories of one product category, such as an occasion "
+"or who a gift is for, as picture tiles."
+msgstr "En rubrik och underkategorierna till en produktkategori, till exempel ett tillfälle eller vem en present är till, som bildrutor."
+
+#: build/blocks/group-tiles/block.json
+msgctxt "block keyword"
+msgid "occasion"
+msgstr "tillfälle"
+
+#: build/blocks/group-tiles/block.json
+msgctxt "block keyword"
+msgid "subcategories"
+msgstr "underkategorier"
 
 #: build/blocks/icon/block.json
 msgctxt "block title"

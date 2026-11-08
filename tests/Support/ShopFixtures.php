@@ -196,6 +196,35 @@ final class ShopFixtures
 
     private const MEGA_MENU_DATE = '2020-01-01 00:00:00';
 
+    /**
+     * The category carousel's spec (`category_rows()`): a group with more
+     * subcategories than fit in one row, the first of them a group of two,
+     * and one product filed under all of them, as a broad store files a
+     * gift under several. The rows sit on a page of their own.
+     */
+    private const ROWS_GROUP_SLUG = 'carousel-spec';
+
+    private const ROWS_GROUP_NAME = 'Carousel spec';
+
+    /** More than a 1280px window shows in one row at the carousel's 120px pictures. */
+    public const ROWS_MANY = 12;
+
+    /** Fewer than any window shows in one row. */
+    public const ROWS_FEW = 2;
+
+    private const ROWS_PRODUCT_SLUG = 'carousel-spec-product';
+
+    private const ROWS_PRODUCT_NAME = 'Gift for every row';
+
+    public const ROWS_PAGE_SLUG = 'category-rows';
+
+    /** The headings of the page's three blocks, which the spec finds them by. */
+    public const ROWS_MANY_HEADING = 'Many categories';
+
+    public const ROWS_FEW_HEADING = 'Few categories';
+
+    public const ROWS_TILES_HEADING = 'Group tiles';
+
     /** A product reduced from its regular price, in a category of its own, for the lowest price's spec. */
     public const REDUCED_PRODUCT_SLUG = 'reduced-product';
 
@@ -547,6 +576,66 @@ final class ShopFixtures
         return $menu;
     }
 
+    /**
+     * The category carousel's categories, product and page, made again on
+     * every run (`ROWS_*`). Returns the page's path.
+     */
+    public static function category_rows(): string
+    {
+        $image      = self::image(self::MEGA_IMAGE_SLUG, true);
+        $group      = self::category(self::ROWS_GROUP_NAME, self::ROWS_GROUP_SLUG);
+        $categories = [];
+
+        for ($row = 1; $row <= self::ROWS_MANY; ++$row) {
+            $categories[] = self::category(self::ROWS_GROUP_NAME . " {$row}", self::ROWS_GROUP_SLUG . "-{$row}", $group);
+        }
+
+        $few_parent = $categories[0];
+
+        for ($row = 1; $row <= self::ROWS_FEW; ++$row) {
+            $categories[] = self::category(self::ROWS_GROUP_NAME . " 1.{$row}", self::ROWS_GROUP_SLUG . "-1-{$row}", $few_parent);
+        }
+
+        foreach ($categories as $category) {
+            update_term_meta($category, CategoryImage::THUMBNAIL_META, $image);
+        }
+
+        $product = self::product(self::ROWS_PRODUCT_SLUG, self::ROWS_PRODUCT_NAME, $group);
+        $product->set_category_ids($categories);
+        $product->save();
+
+        $few_term = get_term($few_parent, self::CATEGORY_TAXONOMY);
+        $content  = self::carousel(self::ROWS_GROUP_SLUG, self::ROWS_MANY_HEADING)
+            . self::carousel($few_term instanceof WP_Term ? $few_term->slug : '', self::ROWS_FEW_HEADING)
+            . '<!-- wp:pixonaut-shop/group-tiles ' . wp_json_encode([
+                'parent'  => self::ROWS_GROUP_SLUG,
+                'heading' => self::ROWS_TILES_HEADING,
+                'align'   => 'wide',
+            ]) . ' /-->';
+
+        $existing = get_page_by_path(self::ROWS_PAGE_SLUG);
+        $page     = wp_insert_post([
+            'ID'           => null === $existing ? 0 : $existing->ID,
+            'post_type'    => 'page',
+            'post_status'  => 'publish',
+            'post_name'    => self::ROWS_PAGE_SLUG,
+            'post_title'   => self::ROWS_GROUP_NAME,
+            'post_content' => wp_slash($content),
+        ], true);
+
+        if ($page instanceof WP_Error) {
+            throw new RuntimeException($page->get_error_message());
+        }
+
+        return (string) wp_make_link_relative((string) get_permalink($page));
+    }
+
+    private static function carousel(string $parent_slug, string $heading): string
+    {
+        return '<!-- wp:pixonaut-shop/category-carousel '
+            . wp_json_encode(['parent' => $parent_slug, 'heading' => $heading, 'align' => 'wide']) . ' /-->';
+    }
+
     /** The reduced product and its category gone again, so no other spec's lists show them. */
     public static function forget_reduced_product(): void
     {
@@ -576,7 +665,7 @@ final class ShopFixtures
     }
 
     /** The category's term ID, made the first time. */
-    private static function category(string $name, string $slug): int
+    private static function category(string $name, string $slug, int $parent_id = 0): int
     {
         $term = get_term_by('slug', $slug, self::CATEGORY_TAXONOMY);
 
@@ -584,7 +673,7 @@ final class ShopFixtures
             return $term->term_id;
         }
 
-        $term = wp_insert_term($name, self::CATEGORY_TAXONOMY, ['slug' => $slug]);
+        $term = wp_insert_term($name, self::CATEGORY_TAXONOMY, ['slug' => $slug, 'parent' => $parent_id]);
 
         if ($term instanceof WP_Error) {
             throw new RuntimeException($term->get_error_message());

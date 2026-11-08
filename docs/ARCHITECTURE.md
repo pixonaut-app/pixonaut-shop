@@ -88,8 +88,37 @@ suite tests without WordPress.
 | Block | Class | What it shows |
 | --- | --- | --- |
 | `pixonaut-shop/product-categories` | `Blocks\ProductCategories` | The store's top-level product categories with products, by product count or the store's category order, as tiles (picture, name, count) or outline buttons. WooCommerce's default category is left out; nothing renders without a category. |
+| `pixonaut-shop/group-tiles` | `Blocks\GroupTiles` | A heading, then the subcategories with products of the category chosen for it (`parent`, a slug), in the store's category order, as picture tiles (picture, name). The heading is the category's name unless one is chosen. Nothing renders without a chosen category, for a slug the store does not have, or without a subcategory that has products, so no heading stands alone. |
+| `pixonaut-shop/category-carousel` | `Blocks\CategoryCarousel` | An optional heading, then one row of round category pictures with their names, scrolling sideways: the subcategories of the chosen category, or the top-level categories without one. Its view script shows the arrows (below). Nothing renders without a category to show. |
 | `pixonaut-shop/icon` | `Blocks\Icons` | One line icon from a fixed set, in `currentColor`, optionally in a circle. A name is saved in the block, so it never changes. |
 | `pixonaut-shop/free-shipping-note` | `Blocks\FreeShippingNote` | How much more the cart needs for free shipping, or that shipping is free, from the free-shipping method of the zone the cart ships to; nothing without one that has a minimum. Placed only inside the mini-cart. |
+
+The three category blocks share `Blocks\CategoryList`: the children of a
+category (or the top-level ones) in the store's own order (WooCommerce's
+`menu_order`), without WooCommerce's default category, and only those whose
+catalogue count (the `product_count_product_cat` term meta, subcategories'
+products included) is above zero, as WooCommerce's own `hide_empty` would
+leave out; `get_terms()` loads their meta in one query and
+`Archive\CategoryImage::prime()` their pictures in another before any
+`<img>` is printed. The group tiles and the carousel also share
+`Blocks\CategoryLinks` for their attributes, heading and links. Names and
+headings are escaped as text, links as URLs; pictures are the category's
+`thumbnail_id` at `woocommerce_thumbnail`, lazy, with an empty `alt` (the
+name is beside them) and a `sizes` that matches the block's stylesheet. A
+category is chosen by slug, not ID, so a page written for one store means
+the same in another, and the editor lists the store's categories, each
+under its parent, through the REST API's `product_cat` route.
+
+The carousel's row is a list that scrolls by itself (`overflow-x: auto`,
+`scroll-snap-type: x mandatory`), so touch, a trackpad and Tab work without
+script, and the browser scrolls a focused category into view. Its previous
+and next buttons are printed with `hidden`, `aria-controls` naming the row,
+and an `aria-label` ("Previous categories", "Next categories"); the block's
+`viewScript` (`src/blocks/category-carousel/view.ts`) shows each while the
+row can scroll its way, scrolls by most of the row's width on a press
+(smoothly, or at once under `prefers-reduced-motion: reduce`), moves focus
+to the other button when the one pressed hides at an end, and hides the
+row's scrollbar once it runs. The row's ID comes from `wp_unique_id()`.
 
 The wordpress.org theme directory leaves blocks to plugins, so the build
 uploaded there ships none of these (`docs/DEPLOY.md`). Every pattern that

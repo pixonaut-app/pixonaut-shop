@@ -33,4 +33,26 @@ final class CategoryImage
 
         return wp_get_attachment_image((int) $image_id, self::IMAGE_SIZE, false, ['alt' => ''] + $attributes);
     }
+
+    /**
+     * Loads the pictures of these categories, whose meta is already loaded,
+     * in one query, before `html()` looks them up one by one.
+     *
+     * @param array<int> $term_ids
+     */
+    public static function prime(array $term_ids): void
+    {
+        $pictures = array_values(array_unique(array_filter(array_map(
+            static function (int $term): int {
+                $picture = get_term_meta($term, self::THUMBNAIL_META, true);
+
+                return is_numeric($picture) ? (int) $picture : 0;
+            },
+            $term_ids
+        ))));
+
+        if ([] !== $pictures) {
+            _prime_post_caches($pictures, false, true);
+        }
+    }
 }

@@ -239,6 +239,42 @@ was saved with; the Site Editor's Reset brings the theme's back.
   categories the store has with products, as tiles or buttons, and renders
   nothing without any. `<!-- wp:pixonaut-shop/product-categories /-->`
   places four tiles; `{"layout":"buttons"}` six buttons.
+- **A broad store's groups are the Group tiles block**
+  (`pixonaut-shop/group-tiles`): a heading and the subcategories of one
+  category as picture tiles. A broad store sorts its gifts into groups of
+  categories, a product filed under as many as fit (an occasion, who it is
+  for, a kind of gift): each group is a top-level category with the
+  categories under it, each with its picture on the category's edit screen
+  (Products → Categories → Thumbnail). `{"parent":"tillfalle"}` shows the
+  subcategories of the category with that slug under its name;
+  `"heading"` replaces the name. In the editor, pick the category in the
+  block's placeholder or its sidebar. It renders nothing until a
+  subcategory has products.
+- **A row of categories is the Category carousel block**
+  (`pixonaut-shop/category-carousel`): round pictures with names in one
+  row that scrolls, with arrows on a computer. Without `parent` it shows
+  the top-level categories; with one, that category's subcategories.
+  `"heading"` adds a heading; without one the row has none.
+- **A broad store's front page** is built from these in the block editor,
+  in its own page set as the homepage, top to bottom:
+
+  1. the campaign band, which takes the announcement bar's place on every
+     page while a campaign runs (the `pixonaut_shop_campaign` option), so
+     nothing is placed for it;
+  2. the hero (`<!-- wp:pattern {"slug":"pixonaut-shop/hero"} /-->`);
+  3. the occasions:
+     `<!-- wp:pixonaut-shop/group-tiles {"parent":"tillfalle","heading":"Tillfälle","align":"wide"} /-->`;
+  4. who a gift is for:
+     `<!-- wp:pixonaut-shop/group-tiles {"parent":"till-vem","heading":"Till vem","align":"wide"} /-->`;
+  5. the category carousel:
+     `<!-- wp:pixonaut-shop/category-carousel {"align":"wide"} /-->`, or
+     with a `parent` for one group's categories;
+  6. the popular gifts
+     (`<!-- wp:pattern {"slug":"pixonaut-shop/popular-products"} /-->`).
+
+  The slugs are the store's own; a block whose category the store does not
+  have, or whose categories have no products yet, renders nothing, heading
+  included, so the page never shows an empty section.
 - **The front page is the store's own page**, started from the
   `pixonaut-shop/front-page` pattern (`Post Types: page`, `Block Types:
   core/post-content`, so the editor offers it for a new page): the

@@ -139,6 +139,7 @@ describe( 'affected', () => {
 		'src/blocks/icon/block.json',
 		'src/blocks/icon/edit.tsx',
 		'src/blocks/product-categories/render.php',
+		'src/blocks/category-carousel/view.ts',
 		'src/blocks/product-categories/style.css',
 	] ) {
 		it( `builds, checks and runs the block specs for ${ path }`, () => {
@@ -147,7 +148,7 @@ describe( 'affected', () => {
 				php: true,
 				js: true,
 				integration: true,
-				specs: [ 'blocks', 'mini-cart', 'site-editor' ],
+				specs: [ 'blocks', 'category-carousel', 'mini-cart', 'site-editor' ],
 				shards: 1,
 			} );
 		} );

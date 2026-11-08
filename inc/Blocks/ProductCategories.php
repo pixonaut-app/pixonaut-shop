@@ -34,19 +34,6 @@ final class ProductCategories
         self::LAYOUT_BUTTONS => 6,
     ];
 
-    private const TAXONOMY = 'product_cat';
-
-    /**
-     * The term meta holding WooCommerce's count of a category's
-     * catalogue-visible products, its subcategories' included. Read directly
-     * because WooCommerce only swaps it into a term's `count` outside the
-     * admin and Ajax, where the editor renders the block.
-     */
-    private const PRODUCT_COUNT_META = 'product_count_product_cat';
-
-    /** The option naming the category WooCommerce files a product under when it has none. */
-    private const DEFAULT_CATEGORY_OPTION = 'default_product_cat';
-
     private const BLOCK_CLASS = 'wp-block-pixonaut-shop-product-categories';
 
     /**
@@ -88,15 +75,7 @@ final class ProductCategories
      */
     public function query_args(array $attributes, int $default_category): array
     {
-        return [
-            'taxonomy'   => self::TAXONOMY,
-            'parent'     => 0,
-            'hide_empty' => false,
-            'exclude'    => $default_category > 0 ? [$default_category] : [],
-            // WooCommerce sorts by its own category order for `menu_order`.
-            'orderby'    => 'menu_order',
-            'order'      => 'ASC',
-        ];
+        return CategoryList::query_args(CategoryList::TOP_LEVEL, $default_category);
     }
 
     /**
@@ -111,8 +90,7 @@ final class ProductCategories
     public function render(array $attributes): string
     {
         $attributes = $this->attributes($attributes);
-        $default    = get_option(self::DEFAULT_CATEGORY_OPTION);
-        $terms      = get_terms($this->query_args($attributes, is_numeric($default) ? (int) $default : 0));
+        $terms      = get_terms($this->query_args($attributes, CategoryList::default_category()));
 
         if (!\is_array($terms)) {
             return '';
@@ -125,6 +103,10 @@ final class ProductCategories
 
         if ([] === $categories) {
             return '';
+        }
+
+        if (self::LAYOUT_TILES === $attributes['layout']) {
+            CategoryImage::prime(array_map(static fn (array $category): int => $category['term']->term_id, $categories));
         }
 
         $inner = self::LAYOUT_BUTTONS === $attributes['layout']
@@ -149,15 +131,7 @@ final class ProductCategories
      */
     private function with_products(array $terms, array $attributes): array
     {
-        $categories = [];
-
-        foreach ($terms as $term) {
-            $count = get_term_meta($term->term_id, self::PRODUCT_COUNT_META, true);
-
-            if (is_numeric($count) && (int) $count > 0) {
-                $categories[] = ['term' => $term, 'count' => (int) $count];
-            }
-        }
+        $categories = CategoryList::with_products($terms);
 
         if (self::ORDER_BY_COUNT === $attributes['orderBy']) {
             // usort is stable, so categories with as many products keep the store's order.

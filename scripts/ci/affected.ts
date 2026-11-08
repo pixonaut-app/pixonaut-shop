@@ -100,10 +100,16 @@ const EVERYTHING: Jobs = {
 
 /**
  * What a change to the theme's own blocks can break: the blocks in the editor
- * and the patterns built from them opening without invalid blocks, and the
- * mini-cart drawer, which holds the free-shipping note.
+ * and the patterns built from them opening without invalid blocks, the
+ * mini-cart drawer, which holds the free-shipping note, and the category
+ * carousel's arrows, which its view script works.
  */
-export const BLOCK_SPECS: readonly string[] = [ 'blocks', 'mini-cart', 'site-editor' ];
+export const BLOCK_SPECS: readonly string[] = [
+	'blocks',
+	'mini-cart',
+	'site-editor',
+	'category-carousel',
+];
 
 /**
  * What Pixonaut for WooCommerce's output, and the fake plugin that stands in
