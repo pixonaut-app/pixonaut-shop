@@ -22,7 +22,8 @@
     "tests": {
       "mappings": {
         "wp-content/mu-plugins/fake-pixonaut.php": "./tests/e2e/fake-pixonaut.php",
-        "wp-content/mu-plugins/github-offline.php": "./tests/e2e/github-offline.php"
+        "wp-content/mu-plugins/github-offline.php": "./tests/e2e/github-offline.php",
+        "wp-content/mu-plugins/mega-menu.php": "./tests/e2e/mega-menu.php"
       }
     }
   }

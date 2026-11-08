@@ -129,10 +129,37 @@ a price history in which it cost less before the reduction
 days before it under the reduced price on the product page and on its card,
 and among its cart line's details; it removes the product afterwards.
 
+`mega-menu.spec.ts` checks the mega header: the menu button opens the panel
+at its first group, a group shows its categories as tiles on hover and on
+focus, the arrow keys move between the groups, Tab stays in the open panel,
+Escape and a click outside close it and focus returns to the button,
+opening it moves nothing in the header's row, the menu is a navigation
+landmark, and on a phone the drawer opens a group under its button on a tap
+or Enter. With JavaScript off, the button still opens the panel, which lists
+every group's items, a link in it leads on, and Escape closes it. Its menu is `ShopFixtures::mega_menu()`, saved under a
+name of its own. The header variant and the header's menu are each one for
+the whole site, so `tests/e2e/mega-menu.php`, mapped into the tests site's
+mu-plugins, shows the mega header with that menu only to a visitor carrying
+the `pixonaut_shop_tests_mega_menu` cookie, and the spec runs beside the
+specs of the simple header. `MegaMenuTest` renders the header with each
+variant.
+
 `blocks.spec.ts` inserts the theme's own blocks in a page and checks the
 product categories block shows a category made for the spec in the canvas,
 and the promises pattern its icons, headings and sentences, without invalid
-blocks.
+blocks. It also inserts the group tiles and the category carousel from the
+inserter and picks a category for each, in the tiles' placeholder and in
+the sidebar.
+
+`category-carousel.spec.ts` checks the category carousel on a page of its
+own (`ShopFixtures::category_rows()`: a group with twelve subcategories, one
+of them a group of two, and one product filed under all of them): the next
+arrow shows on a row that overflows and scrolls it, the previous arrow
+brings it back, a row that fits shows neither, Tab reaches every category
+and then the arrows, Enter and Space on an arrow scroll the row, focus moves
+to the other arrow when one hides at the end, with reduced motion a press
+scrolls at once, and with JavaScript off the row still scrolls and no arrow
+shows.
 
 `site-editor.spec.ts` opens every template in the Site Editor and fails on
 any block validation error. Two things keep it honest, and both must stay:

@@ -139,6 +139,7 @@ describe( 'affected', () => {
 		'src/blocks/icon/block.json',
 		'src/blocks/icon/edit.tsx',
 		'src/blocks/product-categories/render.php',
+		'src/blocks/category-carousel/view.ts',
 		'src/blocks/product-categories/style.css',
 	] ) {
 		it( `builds, checks and runs the block specs for ${ path }`, () => {
@@ -147,7 +148,7 @@ describe( 'affected', () => {
 				php: true,
 				js: true,
 				integration: true,
-				specs: [ 'blocks', 'mini-cart', 'site-editor' ],
+				specs: [ 'blocks', 'category-carousel', 'mini-cart', 'site-editor' ],
 				shards: 1,
 			} );
 		} );
@@ -217,22 +218,22 @@ describe( 'affected', () => {
 		} );
 	} );
 
-	it( 'runs the shop and the searches for what an archive without products shows', () => {
+	it( 'runs the shop, the searches and the mega menu for a change to the archive area', () => {
 		assert.deepEqual( jobsFor( 'inc/Archive/ShownWhenEmpty.php' ), {
 			...NO_JOBS,
 			php: true,
 			integration: true,
-			specs: [ 'search', 'shop' ],
+			specs: [ 'mega-menu', 'search', 'shop' ],
 			shards: 1,
 		} );
 	} );
 
-	it( 'runs the header for what loads the script its search runs', () => {
+	it( 'runs the header and the mega menu for a change to the header area', () => {
 		assert.deepEqual( jobsFor( 'inc/Header/HeaderSearch.php' ), {
 			...NO_JOBS,
 			php: true,
 			integration: true,
-			specs: [ 'header' ],
+			specs: [ 'header', 'mega-menu' ],
 			shards: 1,
 		} );
 	} );
@@ -327,6 +328,16 @@ describe( 'affected', () => {
 			ALL_SPECS.filter( ( name ) => HEADER_SCRIPT_SPECS.includes( name ) ),
 		);
 		assert.deepEqual( result.unmatched, [] );
+	} );
+
+	it( 'opens the mega menu for the tests site plugin that shows it, and lints it', () => {
+		assert.deepEqual( jobsFor( 'tests/e2e/mega-menu.php' ), {
+			...NO_JOBS,
+			php: true,
+			integration: true,
+			specs: [ 'mega-menu' ],
+			shards: 1,
+		} );
 	} );
 
 	it( 'runs the unit suite for a font file, which it checks theme.json names', () => {

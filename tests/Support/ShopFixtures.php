@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixonaut\Shop\Tests\Support;
 
+use Pixonaut\Shop\Archive\CategoryImage;
 use Pixonaut\Shop\FrontPage\Hero;
 use Pixonaut\Shop\Product\LowestPrice;
 use RuntimeException;
@@ -166,14 +167,63 @@ final class ShopFixtures
 
     public const HERO_IMAGE_ALT = 'The store at a glance';
 
-    /** The hero's picture: the theme's own screenshot, copied to the uploads. */
-    private const HERO_IMAGE_SOURCE = 'screenshot.png';
+    /** The fixtures' pictures: the theme's own screenshot, copied to the uploads. */
+    private const IMAGE_SOURCE = 'screenshot.png';
+
+    private const IMAGE_EXTENSION = '.png';
+
+    private const IMAGE_TYPE = 'image/png';
 
     private const HERO_IMAGE_SLUG = 'pixonaut-shop-hero';
 
-    private const HERO_IMAGE_NAME = self::HERO_IMAGE_SLUG . '.png';
+    /**
+     * The mega header's menu (`mega_menu()`): its groups and their
+     * categories, by name and slug, and the picture the categories that have
+     * one share. Saved under a name of its own, so the other specs' headers
+     * keep theirs; the spec shows it through `tests/e2e/mega-menu.php`.
+     */
+    private const MEGA_MENU_SLUG = 'pixonaut-shop-tests-mega-menu';
 
-    private const HERO_IMAGE_TYPE = 'image/png';
+    private const MEGA_IMAGE_SLUG = 'pixonaut-shop-mega-tile';
+
+    private const MEGA_GROUPS = [
+        'Occasion' => ['Birthday' => 'mega-birthday', 'Wedding' => 'mega-wedding'],
+        'For whom' => ['For her' => 'mega-for-her', 'Without a picture' => 'mega-without-picture'],
+    ];
+
+    /** The category among them that has no picture. */
+    private const MEGA_UNPICTURED = 'mega-without-picture';
+
+    private const MEGA_MENU_DATE = '2020-01-01 00:00:00';
+
+    /**
+     * The category carousel's spec (`category_rows()`): a group with more
+     * subcategories than fit in one row, the first of them a group of two,
+     * and one product filed under all of them, as a broad store files a
+     * gift under several. The rows sit on a page of their own.
+     */
+    private const ROWS_GROUP_SLUG = 'carousel-spec';
+
+    private const ROWS_GROUP_NAME = 'Carousel spec';
+
+    /** More than a 1280px window shows in one row at the carousel's 120px pictures. */
+    public const ROWS_MANY = 12;
+
+    /** Fewer than any window shows in one row. */
+    public const ROWS_FEW = 2;
+
+    private const ROWS_PRODUCT_SLUG = 'carousel-spec-product';
+
+    private const ROWS_PRODUCT_NAME = 'Gift for every row';
+
+    public const ROWS_PAGE_SLUG = 'category-rows';
+
+    /** The headings of the page's three blocks, which the spec finds them by. */
+    public const ROWS_MANY_HEADING = 'Many categories';
+
+    public const ROWS_FEW_HEADING = 'Few categories';
+
+    public const ROWS_TILES_HEADING = 'Group tiles';
 
     /** A product reduced from its regular price, in a category of its own, for the lowest price's spec. */
     public const REDUCED_PRODUCT_SLUG = 'reduced-product';
@@ -393,22 +443,35 @@ final class ShopFixtures
     /** The hero's picture's attachment ID, uploaded the first time. */
     private static function hero_image(): int
     {
-        $existing = get_page_by_path(self::HERO_IMAGE_SLUG, OBJECT, 'attachment');
+        $image = self::image(self::HERO_IMAGE_SLUG);
+        update_post_meta($image, '_wp_attachment_image_alt', self::HERO_IMAGE_ALT);
+
+        return $image;
+    }
+
+    /**
+     * The attachment ID of the theme's screenshot uploaded under the name
+     * given, the first time. A sized one has its sizes made, as an upload
+     * in the media library does, so its `<img>` carries its width and height.
+     */
+    private static function image(string $slug, bool $sized = false): int
+    {
+        $existing = get_page_by_path($slug, OBJECT, 'attachment');
 
         if (null !== $existing) {
             return $existing->ID;
         }
 
-        $upload = wp_upload_bits(self::HERO_IMAGE_NAME, null, (string) file_get_contents(get_theme_file_path(self::HERO_IMAGE_SOURCE)));
+        $upload = wp_upload_bits($slug . self::IMAGE_EXTENSION, null, (string) file_get_contents(get_theme_file_path(self::IMAGE_SOURCE)));
 
         if (false !== $upload['error']) {
             throw new RuntimeException((string) $upload['error']);
         }
 
         $image = wp_insert_attachment([
-            'post_mime_type' => self::HERO_IMAGE_TYPE,
-            'post_name'      => self::HERO_IMAGE_SLUG,
-            'post_title'     => self::HERO_IMAGE_NAME,
+            'post_mime_type' => self::IMAGE_TYPE,
+            'post_name'      => $slug,
+            'post_title'     => $slug . self::IMAGE_EXTENSION,
             'post_status'    => 'inherit',
         ], $upload['file'], 0, true);
 
@@ -416,7 +479,10 @@ final class ShopFixtures
             throw new RuntimeException($image->get_error_message());
         }
 
-        update_post_meta($image, '_wp_attachment_image_alt', self::HERO_IMAGE_ALT);
+        if ($sized) {
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+            wp_update_attachment_metadata($image, wp_generate_attachment_metadata($image, $upload['file']));
+        }
 
         return $image;
     }
@@ -453,6 +519,123 @@ final class ShopFixtures
         update_post_meta($product->get_id(), LowestPrice::HISTORY_META, $history);
     }
 
+    /**
+     * The mega header's menu, made the first time: a group per entry of
+     * `MEGA_GROUPS` with its categories, a plain link, and a group of plain
+     * links. Returns the menu's ID.
+     */
+    public static function mega_menu(): int
+    {
+        $image   = self::image(self::MEGA_IMAGE_SLUG, true);
+        $content = '';
+
+        foreach (self::MEGA_GROUPS as $group => $categories) {
+            $content .= '<!-- wp:navigation-submenu ' . wp_json_encode(['label' => $group, 'url' => '#', 'kind' => 'custom']) . ' -->';
+
+            foreach ($categories as $name => $slug) {
+                $term = self::category($name, $slug);
+
+                if (self::MEGA_UNPICTURED !== $slug) {
+                    update_term_meta($term, CategoryImage::THUMBNAIL_META, $image);
+                }
+
+                $link     = get_term_link($term, self::CATEGORY_TAXONOMY);
+                $content .= '<!-- wp:navigation-link ' . wp_json_encode([
+                    'label' => $name,
+                    'type'  => self::CATEGORY_TAXONOMY,
+                    'id'    => $term,
+                    'url'   => \is_string($link) ? $link : '',
+                    'kind'  => 'taxonomy',
+                ]) . ' /-->';
+            }
+
+            $content .= '<!-- /wp:navigation-submenu -->';
+        }
+
+        $content .= '<!-- wp:navigation-link {"label":"Sale","url":"/shop/","kind":"custom"} /-->'
+            . '<!-- wp:navigation-submenu {"label":"Customer service","url":"#","kind":"custom"} -->'
+            . '<!-- wp:navigation-link {"label":"Contact","url":"/contact/","kind":"custom"} /-->'
+            . '<!-- /wp:navigation-submenu -->';
+
+        $existing = get_page_by_path(self::MEGA_MENU_SLUG, OBJECT, 'wp_navigation');
+        $menu     = wp_insert_post([
+            'ID'           => null === $existing ? 0 : $existing->ID,
+            'post_type'    => 'wp_navigation',
+            'post_name'    => self::MEGA_MENU_SLUG,
+            'post_title'   => 'Mega menu',
+            'post_status'  => 'publish',
+            'post_content' => $content,
+            // Older than any menu another spec saves, so core never falls back to it.
+            'post_date'    => self::MEGA_MENU_DATE,
+        ], true);
+
+        if ($menu instanceof WP_Error) {
+            throw new RuntimeException($menu->get_error_message());
+        }
+
+        return $menu;
+    }
+
+    /**
+     * The category carousel's categories, product and page, made again on
+     * every run (`ROWS_*`). Returns the page's path.
+     */
+    public static function category_rows(): string
+    {
+        $image      = self::image(self::MEGA_IMAGE_SLUG, true);
+        $group      = self::category(self::ROWS_GROUP_NAME, self::ROWS_GROUP_SLUG);
+        $categories = [];
+
+        for ($row = 1; $row <= self::ROWS_MANY; ++$row) {
+            $categories[] = self::category(self::ROWS_GROUP_NAME . " {$row}", self::ROWS_GROUP_SLUG . "-{$row}", $group);
+        }
+
+        $few_parent = $categories[0];
+
+        for ($row = 1; $row <= self::ROWS_FEW; ++$row) {
+            $categories[] = self::category(self::ROWS_GROUP_NAME . " 1.{$row}", self::ROWS_GROUP_SLUG . "-1-{$row}", $few_parent);
+        }
+
+        foreach ($categories as $category) {
+            update_term_meta($category, CategoryImage::THUMBNAIL_META, $image);
+        }
+
+        $product = self::product(self::ROWS_PRODUCT_SLUG, self::ROWS_PRODUCT_NAME, $group);
+        $product->set_category_ids($categories);
+        $product->save();
+
+        $few_term = get_term($few_parent, self::CATEGORY_TAXONOMY);
+        $content  = self::carousel(self::ROWS_GROUP_SLUG, self::ROWS_MANY_HEADING)
+            . self::carousel($few_term instanceof WP_Term ? $few_term->slug : '', self::ROWS_FEW_HEADING)
+            . '<!-- wp:pixonaut-shop/group-tiles ' . wp_json_encode([
+                'parent'  => self::ROWS_GROUP_SLUG,
+                'heading' => self::ROWS_TILES_HEADING,
+                'align'   => 'wide',
+            ]) . ' /-->';
+
+        $existing = get_page_by_path(self::ROWS_PAGE_SLUG);
+        $page     = wp_insert_post([
+            'ID'           => null === $existing ? 0 : $existing->ID,
+            'post_type'    => 'page',
+            'post_status'  => 'publish',
+            'post_name'    => self::ROWS_PAGE_SLUG,
+            'post_title'   => self::ROWS_GROUP_NAME,
+            'post_content' => wp_slash($content),
+        ], true);
+
+        if ($page instanceof WP_Error) {
+            throw new RuntimeException($page->get_error_message());
+        }
+
+        return (string) wp_make_link_relative((string) get_permalink($page));
+    }
+
+    private static function carousel(string $parent_slug, string $heading): string
+    {
+        return '<!-- wp:pixonaut-shop/category-carousel '
+            . wp_json_encode(['parent' => $parent_slug, 'heading' => $heading, 'align' => 'wide']) . ' /-->';
+    }
+
     /** The reduced product and its category gone again, so no other spec's lists show them. */
     public static function forget_reduced_product(): void
     {
@@ -482,7 +665,7 @@ final class ShopFixtures
     }
 
     /** The category's term ID, made the first time. */
-    private static function category(string $name, string $slug): int
+    private static function category(string $name, string $slug, int $parent_id = 0): int
     {
         $term = get_term_by('slug', $slug, self::CATEGORY_TAXONOMY);
 
@@ -490,7 +673,7 @@ final class ShopFixtures
             return $term->term_id;
         }
 
-        $term = wp_insert_term($name, self::CATEGORY_TAXONOMY, ['slug' => $slug]);
+        $term = wp_insert_term($name, self::CATEGORY_TAXONOMY, ['slug' => $slug, 'parent' => $parent_id]);
 
         if ($term instanceof WP_Error) {
             throw new RuntimeException($term->get_error_message());

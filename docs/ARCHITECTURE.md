@@ -88,8 +88,44 @@ suite tests without WordPress.
 | Block | Class | What it shows |
 | --- | --- | --- |
 | `pixonaut-shop/product-categories` | `Blocks\ProductCategories` | The store's top-level product categories with products, by product count or the store's category order, as tiles (picture, name, count) or outline buttons. WooCommerce's default category is left out; nothing renders without a category. |
+| `pixonaut-shop/group-tiles` | `Blocks\GroupTiles` | A heading, then the subcategories with products of the category chosen for it (`parent`, a slug), in the store's category order, as picture tiles (picture, name). The heading is the category's name unless one is chosen. Nothing renders without a chosen category, for a slug the store does not have, or without a subcategory that has products, so no heading stands alone. |
+| `pixonaut-shop/category-carousel` | `Blocks\CategoryCarousel` | An optional heading, then one row of soft-shaped category pictures with their names, scrolling sideways: the subcategories of the chosen category, or the top-level categories without one. Its view script shows the arrows (below). Nothing renders without a category to show. |
 | `pixonaut-shop/icon` | `Blocks\Icons` | One line icon from a fixed set, in `currentColor`, optionally in a circle. A name is saved in the block, so it never changes. |
 | `pixonaut-shop/free-shipping-note` | `Blocks\FreeShippingNote` | How much more the cart needs for free shipping, or that shipping is free, from the free-shipping method of the zone the cart ships to; nothing without one that has a minimum. Placed only inside the mini-cart. |
+
+The three category blocks share `Blocks\CategoryList`: the children of a
+category (or the top-level ones) in the store's own order (WooCommerce's
+`menu_order`), without WooCommerce's default category, and only those whose
+catalogue count (the `product_count_product_cat` term meta, subcategories'
+products included) is above zero, as WooCommerce's own `hide_empty` would
+leave out; `get_terms()` loads their meta in one query and
+`Archive\CategoryImage::prime()` their pictures in another before any
+`<img>` is printed. The group tiles and the carousel also share
+`Blocks\CategoryLinks` for their attributes, heading and links. Names and
+headings are escaped as text, links as URLs; pictures are the category's
+`thumbnail_id` at `woocommerce_thumbnail`, lazy, with an empty `alt` (the
+name is beside them) and a `sizes` that matches the block's stylesheet. A
+category is chosen by slug, not ID, so a page written for one store means
+the same in another, and the editor lists the store's categories, each
+under its parent, through the REST API's `product_cat` route.
+
+The carousel's row is a list that scrolls by itself (`overflow-x: auto`,
+`scroll-snap-type: x proximity`), so touch, a trackpad and Tab work without
+script, and the browser scrolls a focused category into view. The row is a
+list named by its heading (`aria-labelledby`), or "Categories" without one.
+It keeps 4px around its pictures for a focused category's ring, which the
+scroller would otherwise clip, and scroll padding as wide as an arrow, so a
+category scrolled into view stops clear of the arrows; a category focused
+while already in view but under an arrow is scrolled clear by the script.
+Its previous
+and next buttons are printed with `hidden`, `aria-controls` naming the row,
+and an `aria-label` ("Previous categories", "Next categories"); the block's
+`viewScript` (`src/blocks/category-carousel/view.ts`) shows each while the
+row can scroll its way, scrolls by most of the row's width on a press
+(smoothly, or at once under `prefers-reduced-motion: reduce`), moves focus
+to the other button when the one pressed hides at an end (or to the row's
+last category when a wider row hides both), and hides the
+row's scrollbar once it runs. The row's ID comes from `wp_unique_id()`.
 
 The wordpress.org theme directory leaves blocks to plugins, so the build
 uploaded there ships none of these (`docs/DEPLOY.md`). Every pattern that
@@ -267,6 +303,77 @@ each name up once per request, and again after a menu is saved or deleted. A
 block that already names a menu keeps it, and one whose menu is missing keeps
 core's fallback.
 
+### The mega header
+
+With the `pixonaut_shop_header` option at `mega`, the header's row is the
+menu button, the logo and title, then search, account and the mini-cart.
+`inc/Header/MegaMenu.php` prints the button and its panel in place of the
+header's navigation block, on `pre_render_block`, so core never renders the
+block there. The panel is built on the server from the same menu the simple
+header shows (the one `NamedMenus` finds, or the one picked for the block in
+the Site Editor): each top link or submenu of the menu is a group. A group's
+own links and submenus are its items; a submenu among them is one item, and
+what it holds is left out. Items picked as product categories (a navigation
+link of kind `taxonomy` and type `product_cat`) link to the category and show
+its picture, the term's `thumbnail_id` at `woocommerce_thumbnail`
+(`inc/Archive/CategoryImage.php`, shared with the product categories block),
+lazy and with its width, height and `sizes`. A group with any category among
+its items shows them all as tiles, a tile without a picture keeping an empty
+square; a group with none lists its items as links. A top item with nothing
+under it is a plain link among the groups, and a group whose own address is
+not `#` links to it as "All of …". Labels are printed as plain text. Links
+follow core's navigation link block: a link picked as a page or post that
+is not published is left out, `opensInNewTab` prints `target="_blank"` (and
+adds `noopener` to the link's own `rel`, which is kept), the link to the
+page shown carries `aria-current="page"`, and an item without an address
+is left out rather than printed with an empty `href`. Without
+a menu, or with one holding no links, the block renders as core's navigation,
+as in the simple header.
+
+The panel's lookups are batched: the categories' terms and their meta are
+loaded together (`_prime_term_caches()`, `update_termmeta_cache()`), then
+their pictures' attachments (`_prime_post_caches()`), before any item reads
+them. Its IDs come from `wp_unique_id()`, so `aria-controls` and
+`popovertarget` stay right if the header renders twice on a page.
+
+A browser without the Popover API (Safari before 17) ignores `popover` and
+`popovertarget`, and throws on `:popover-open`. There the stylesheet hides
+the panel (`@supports not selector(:popover-open)`) until the script
+(`src/header/mega-menu-panel.ts`, which checks `'popover' in
+HTMLElement.prototype`) opens it with the `is-open` class and sets the
+button's `aria-expanded`; the close button and Escape close it. Without
+the script as well, the button does nothing there.
+
+The menu is a `<nav>` named "Main menu". The panel is a popover
+(`popover` on the panel, `popovertarget` on the button and on the drawer's
+close button), so the browser opens it, closes it on Escape or a click
+outside, and puts it in the top layer over a scrim (`::backdrop`), with no
+script. Without the script every group's items show under their group's
+button. CSS anchor positioning hangs the panel under the header's row
+(`anchor-name` on the row); a browser without it gets the top the script
+measures, or the window's top without the script.
+
+`src/header/mega-menu.ts` (built as `header-mega-menu`, loaded only with the
+panel) adds the rest and marks the menu `is-enhanced`. It keeps the button's
+`aria-expanded` in step with the popover's `toggle` event, moves focus to the
+first group on opening, keeps Tab within the open panel, and returns focus
+to the button when it closes. The menu is a disclosure, not a dialog: the
+panel has no dialog role and the page around it stays as it is. Each group
+is a button with `aria-expanded` over its items' `role="group"`. In the
+panel one group's items show at a time, switched on hover with a mouse, on
+focus and on click; the arrow keys, Home and End move between the groups.
+Below WordPress's 782px breakpoint the panel is a drawer from the start edge,
+where a tap or Enter opens a group's items under it and closes the others',
+and the page under it does not scroll; the desktop panel keeps the page's
+scrollbar, so the row never moves. The stylesheet (`src/styles/_mega-menu.css`)
+tells the script which of the two the panel is through
+`--pixonaut-shop-mega-drawer`, so the breakpoint is written in one file. The
+panel fades in only without `prefers-reduced-motion`. The simple header
+prints none of this.
+
+The Site Editor renders the header's navigation block in the browser, so it
+shows the menu as the simple header does in either variant.
+
 ## Options other tools write
 
 Two options are a contract with the tools that set up a store, which write
@@ -277,7 +384,7 @@ Their names and shapes stay as they are.
 | --- | --- | --- | --- |
 | `pixonaut_shop_hero` | An array: `heading`, `text`, `button_label` and `button_url`, each a string, and `image_id`, an int, an image attachment's ID. | `inc/FrontPage/Hero.php` | The `pixonaut-shop/hero` pattern shows that heading, sentence, one button and picture, with no pill, in place of its placeholders. |
 | `pixonaut_shop_campaign` | An array: `text` and `url`, strings, and `starts` and `ends`, ISO 8601 dates in the site's time zone (`2026-11-27` or `2026-11-27T08:00:00`). | `inc/Campaign/CampaignBand.php` | While `starts <= now < ends`, a band with the text, linked to the address, takes the announcement part's place on every page. An address that is a reduced product's adds its lowest price of the last 30 days. |
-| `pixonaut_shop_header` | `simple` or `mega`; unset is `simple`. | `inc/Header/HeaderVariant.php` | Which header the store shows. Only `simple` is built, so `mega` shows the simple header until the mega menu's header exists. |
+| `pixonaut_shop_header` | `simple` or `mega`; unset is `simple`. | `inc/Header/HeaderVariant.php` | Which header the store shows: `simple`, the menu in the row, or `mega`, the menu button that opens the mega menu's panel. |
 
 The campaign band never shows without dates: a campaign missing either date,
 or holding one that is not a real date, or ending before it starts, is

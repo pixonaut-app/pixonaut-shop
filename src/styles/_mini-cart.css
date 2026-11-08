@@ -8,8 +8,6 @@
  */
 
 .wc-block-components-drawer__screen-overlay {
-	/* How much of `strong` the scrim shows, so the page stays in sight behind the drawer. */
-	--pixonaut-shop-scrim-strength: 45%;
 	background-color: color-mix(
 		in srgb,
 		var( --wp--preset--color--strong ) var( --pixonaut-shop-scrim-strength ),

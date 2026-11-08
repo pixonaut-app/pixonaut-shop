@@ -52,6 +52,10 @@ const THEME_BLOCK_PATHS = [
 	'inc/Blocks/BlockLoader.php',
 	'inc/Blocks/FreeShippingNote.php',
 	'inc/Blocks/ProductCategories.php',
+	'inc/Blocks/GroupTiles.php',
+	'inc/Blocks/CategoryCarousel.php',
+	'inc/Blocks/CategoryLinks.php',
+	'inc/Blocks/CategoryList.php',
 	'inc/Blocks/Icons.php',
 ];
 

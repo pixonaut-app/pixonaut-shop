@@ -36,8 +36,24 @@ store is Site Editor work:
   The Site Editor's preview shows core's fallback menu in a block until a
   menu is picked for it there, while the live site shows the named menu.
   Which header a store shows is the `pixonaut_shop_header` option, which
-  the tool that set up the store writes: `simple`, the one row, or `mega`.
-  Only the simple header exists so far, and a store set to `mega` shows it.
+  the tool that set up the store writes: `simple`, the one row with the
+  menu in it, or `mega`, where the menu button opens a panel built from the
+  same menu.
+- **Building the mega menu's groups** — in the header's menu
+  (`pixonaut-shop-header`), each top item is a group down the panel's
+  start: add a **Submenu** for each (Occasion, For whom, Gifts, Campaigns,
+  then Customer service, My account), in the order they should show. Inside
+  a submenu, add its items with **Add link** and search for the category:
+  an item picked from the product categories shows as a tile with the
+  category's picture (the one set under **Products → Categories**) and its
+  name. A category without a picture keeps an empty square. A group with no
+  category in it, such as Customer service, lists its links instead. Give
+  a submenu its own address to add an "All of …" link to the group; leave it
+  as `#` for none. A top item with nothing under it is a plain link among
+  the groups. Only the first level under a group shows: a submenu inside a
+  group is one item, without what it holds. On phones the same groups are a
+  drawer, each opening under its name. The Site Editor's preview shows the
+  menu as the simple header does; the panel shows on the site.
 - **The announcement part** (Patterns → Template parts → Announcement) —
   empty, so no bar shows. Insert the Announcement pattern into it and write
   the text; empty it again to remove the bar. While a campaign runs (the
@@ -223,6 +239,43 @@ was saved with; the Site Editor's Reset brings the theme's back.
   categories the store has with products, as tiles or buttons, and renders
   nothing without any. `<!-- wp:pixonaut-shop/product-categories /-->`
   places four tiles; `{"layout":"buttons"}` six buttons.
+- **A broad store's groups are the Group tiles block**
+  (`pixonaut-shop/group-tiles`): a heading and the subcategories of one
+  category as picture tiles. A broad store sorts its gifts into groups of
+  categories, a product filed under as many as fit (an occasion, who it is
+  for, a kind of gift): each group is a top-level category with the
+  categories under it, each with its picture on the category's edit screen
+  (Products → Categories → Thumbnail). `{"parent":"tillfalle"}` shows the
+  subcategories of the category with that slug under its name;
+  `"heading"` replaces the name. In the editor, pick the category in the
+  block's placeholder or its sidebar. It renders nothing until a
+  subcategory has products. A slug the store does not have renders nothing
+  on the site; the editor says so and offers the picker.
+- **A row of categories is the Category carousel block**
+  (`pixonaut-shop/category-carousel`): soft-shaped pictures with names in one
+  row that scrolls, with arrows on a computer. Without `parent` it shows
+  the top-level categories; with one, that category's subcategories.
+  `"heading"` adds a heading; without one the row has none.
+- **A broad store's front page** is built from these in the block editor,
+  in its own page set as the homepage, top to bottom:
+
+  1. the campaign band, which takes the announcement bar's place on every
+     page while a campaign runs (the `pixonaut_shop_campaign` option), so
+     nothing is placed for it;
+  2. the hero (`<!-- wp:pattern {"slug":"pixonaut-shop/hero"} /-->`);
+  3. the occasions:
+     `<!-- wp:pixonaut-shop/group-tiles {"parent":"tillfalle","heading":"Tillfälle","align":"wide"} /-->`;
+  4. who a gift is for:
+     `<!-- wp:pixonaut-shop/group-tiles {"parent":"till-vem","heading":"Till vem","align":"wide"} /-->`;
+  5. the category carousel:
+     `<!-- wp:pixonaut-shop/category-carousel {"align":"wide"} /-->`, or
+     with a `parent` for one group's categories;
+  6. the popular gifts
+     (`<!-- wp:pattern {"slug":"pixonaut-shop/popular-products"} /-->`).
+
+  The slugs are the store's own; a block whose category the store does not
+  have, or whose categories have no products yet, renders nothing, heading
+  included, so the page never shows an empty section.
 - **The front page is the store's own page**, started from the
   `pixonaut-shop/front-page` pattern (`Post Types: page`, `Block Types:
   core/post-content`, so the editor offers it for a new page): the

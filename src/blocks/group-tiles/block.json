@@ -1,0 +1,30 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "pixonaut-shop/group-tiles",
+	"title": "Group tiles",
+	"category": "woocommerce",
+	"description": "A heading and the subcategories of one product category, such as an occasion or who a gift is for, as picture tiles.",
+	"keywords": [ "categories", "occasion", "subcategories" ],
+	"textdomain": "pixonaut-shop",
+	"attributes": {
+		"parent": {
+			"type": "string",
+			"default": ""
+		},
+		"heading": {
+			"type": "string",
+			"default": ""
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ]
+	},
+	"example": {
+		"attributes": {}
+	},
+	"editorScript": "file:./index.tsx",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php"
+}

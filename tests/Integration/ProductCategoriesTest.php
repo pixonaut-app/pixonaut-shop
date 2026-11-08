@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Pixonaut\Shop\Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
-use WC_Product_Simple;
 
 /**
  * The product categories block against categories made here: the store's
@@ -14,59 +13,22 @@ use WC_Product_Simple;
  */
 final class ProductCategoriesTest extends TestCase
 {
-    private const BLOCK = 'pixonaut-shop/product-categories';
+    use MakesCategories;
 
-    private const TAXONOMY = 'product_cat';
+    private const BLOCK = 'pixonaut-shop/product-categories';
 
     /** The term meta WooCommerce keeps a category's place in the store's own order in. */
     private const ORDER_META = 'order';
 
-    private const THUMBNAIL_META = 'thumbnail_id';
-
-    /** @var list<int> */
-    private array $term_ids = [];
-
-    /** @var list<int> */
-    private array $post_ids = [];
-
-    /**
-     * Leaves out of the block's query the categories that were there before
-     * the test, such as the shop fixtures other suites add, so each test
-     * sees only the categories it makes.
-     *
-     * @var callable(array<string, mixed>, list<string>): array<string, mixed>
-     */
-    private $only_new_categories;
-
     protected function setUp(): void
     {
         parent::setUp();
-
-        $existing = get_terms(['taxonomy' => self::TAXONOMY, 'hide_empty' => false, 'fields' => 'ids']);
-        self::assertIsArray($existing);
-
-        $this->only_new_categories = static function (array $args, array $taxonomies) use ($existing): array {
-            if ([self::TAXONOMY] === $taxonomies) {
-                $args['exclude'] = array_merge((array) ($args['exclude'] ?? []), $existing);
-            }
-
-            return $args;
-        };
-        add_filter('get_terms_args', $this->only_new_categories, 10, 2);
+        $this->start_making_categories();
     }
 
     protected function tearDown(): void
     {
-        remove_filter('get_terms_args', $this->only_new_categories);
-
-        foreach ($this->post_ids as $id) {
-            wp_delete_post($id, true);
-        }
-
-        foreach ($this->term_ids as $id) {
-            wp_delete_term($id, self::TAXONOMY);
-        }
-
+        $this->stop_making_categories();
         parent::tearDown();
     }
 
@@ -119,7 +81,7 @@ final class ProductCategoriesTest extends TestCase
     {
         $mugs = $this->category('Mugs', 1);
         $this->category('Posters', 1);
-        update_term_meta($mugs, self::THUMBNAIL_META, $this->image());
+        $this->picture($mugs);
 
         $tiles = $this->render();
 
@@ -175,44 +137,10 @@ final class ProductCategoriesTest extends TestCase
     }
 
     /**
-     * A category with this many published products of its own, shown in the
-     * catalogue as `$visibility` says.
-     */
-    private function category(string $name, int $products, int $parent_id = 0, string $visibility = 'visible'): int
-    {
-        $term = wp_insert_term($name, self::TAXONOMY, ['parent' => $parent_id]);
-        self::assertIsArray($term);
-        $this->term_ids[] = $term['term_id'];
-
-        for ($i = 0; $i < $products; ++$i) {
-            $product = new WC_Product_Simple();
-            $product->set_name("{$name} product {$i}");
-            $product->set_status('publish');
-            $product->set_category_ids([$term['term_id']]);
-            $product->set_catalog_visibility($visibility);
-            $this->post_ids[] = $product->save();
-        }
-
-        return $term['term_id'];
-    }
-
-    /** An image in the media library; its file is never read for the markup. */
-    private function image(): int
-    {
-        $id = wp_insert_attachment(['post_mime_type' => 'image/png', 'post_title' => 'Mugs'], 'mugs.png');
-        self::assertIsInt($id);
-        $this->post_ids[] = $id;
-
-        return $id;
-    }
-
-    /**
      * @param array<string, mixed> $attributes
      */
     private function render(array $attributes = []): string
     {
-        $comment_attributes = [] === $attributes ? '' : wp_json_encode($attributes) . ' ';
-
-        return do_blocks('<!-- wp:' . self::BLOCK . ' ' . $comment_attributes . '/-->');
+        return $this->render_block(self::BLOCK, $attributes);
     }
 }

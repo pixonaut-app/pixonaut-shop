@@ -26,12 +26,15 @@ final class NamedMenus
 
     public const LEGAL = 'pixonaut-shop-legal';
 
+    /** The class the header's navigation block carries. */
+    public const HEADER_CLASS = 'pixonaut-shop-header__menu';
+
     /**
      * The class each menu's navigation block carries in the header and
      * footer, and the menu name it stands for.
      */
     public const MENUS = [
-        'pixonaut-shop-header__menu' => self::HEADER,
+        self::HEADER_CLASS => self::HEADER,
         'pixonaut-shop-footer__links' => self::FOOTER,
         'pixonaut-shop-footer__service' => self::SERVICE,
         'pixonaut-shop-footer__legal' => self::LEGAL,
@@ -103,7 +106,7 @@ final class NamedMenus
     }
 
     /** The menu name the block's classes stand for, if any does. */
-    private static function menu_name(mixed $class_name): ?string
+    public static function menu_name(mixed $class_name): ?string
     {
         if (! \is_string($class_name)) {
             return null;

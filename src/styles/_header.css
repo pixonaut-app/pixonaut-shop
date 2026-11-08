@@ -56,7 +56,8 @@
 	text-underline-offset: 0.4em;
 }
 
-/* Search, account and the mini-cart: icons on a square the size of a fingertip. */
+/* The mega menu's button, search, account and the mini-cart: icons on a square the size of a fingertip. */
+.pixonaut-shop-header .pixonaut-shop-mega__toggle,
 .pixonaut-shop-header .wp-block-search__button,
 .pixonaut-shop-header .wp-block-woocommerce-customer-account a,
 .pixonaut-shop-header .wc-block-mini-cart__button {
@@ -74,6 +75,8 @@
 	color: var( --wp--preset--color--contrast );
 }
 
+.pixonaut-shop-header .pixonaut-shop-mega__toggle:hover,
+.pixonaut-shop-header .pixonaut-shop-mega__toggle[ aria-expanded="true" ],
 .pixonaut-shop-header .wp-block-search__button:hover,
 .pixonaut-shop-header .wp-block-woocommerce-customer-account a:hover,
 .pixonaut-shop-header .wc-block-mini-cart__button:hover {

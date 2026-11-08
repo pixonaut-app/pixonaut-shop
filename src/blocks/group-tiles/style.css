@@ -1,0 +1,79 @@
+/*
+ * A heading, then the subcategories as picture tiles: a square picture on
+ * `tint-2` with `radius-large`, the name under it, as many to a row as fit
+ * at 11rem or more, and two to a row on phones. Lighter than the product
+ * categories block's cards, since two groups sit one under the other on a
+ * front page.
+ *
+ * Phones are WordPress's own breakpoint: below 782px, where its columns
+ * stack, written as max-width 781px.
+ */
+.wp-block-pixonaut-shop-group-tiles {
+	--pixonaut-shop-group-tile: 11rem;
+}
+
+.wp-block-pixonaut-shop-group-tiles__heading {
+	margin: 0 0 var( --wp--preset--spacing--40 );
+}
+
+.wp-block-pixonaut-shop-group-tiles__items {
+	display: grid;
+	grid-template-columns: repeat( auto-fill, minmax( var( --pixonaut-shop-group-tile ), 1fr ) );
+	gap: var( --wp--preset--spacing--50 ) var( --wp--preset--spacing--40 );
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+@media ( max-width: 781px ) {
+	.wp-block-pixonaut-shop-group-tiles__items {
+		grid-template-columns: repeat( 2, minmax( 0, 1fr ) );
+		gap: var( --wp--preset--spacing--40 ) var( --wp--preset--spacing--30 );
+	}
+}
+
+.wp-block-pixonaut-shop-group-tiles__item {
+	display: flex;
+	margin: 0;
+}
+
+.wp-block-pixonaut-shop-group-tiles__link {
+	display: grid;
+	flex: 1;
+	align-content: start;
+	gap: var( --wp--preset--spacing--30 );
+	color: var( --wp--preset--color--contrast );
+	font-weight: 600;
+	text-decoration: none;
+}
+
+/* Square; empty, it shows the ground. */
+.wp-block-pixonaut-shop-group-tiles__picture {
+	display: block;
+	overflow: hidden;
+	aspect-ratio: 1;
+	border-radius: var( --wp--custom--radius--large );
+	background: var( --wp--preset--color--tint-2 );
+}
+
+.wp-block-pixonaut-shop-group-tiles__picture img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.wp-block-pixonaut-shop-group-tiles__link:hover .wp-block-pixonaut-shop-group-tiles__name {
+	color: var( --wp--preset--color--accent );
+	text-decoration: underline;
+}
+
+@media ( prefers-reduced-motion: no-preference ) {
+	.wp-block-pixonaut-shop-group-tiles__picture img {
+		transition: transform 0.3s ease;
+	}
+
+	.wp-block-pixonaut-shop-group-tiles__link:hover .wp-block-pixonaut-shop-group-tiles__picture img {
+		transform: scale( 1.04 );
+	}
+}
