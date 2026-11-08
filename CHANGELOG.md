@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.1.0...v1.2.0) (2026-11-08)
+
+
+### Features
+
+* named menus, hero and campaign options, and the 30-day lowest price ([#7](https://github.com/pixonaut-app/pixonaut-shop/issues/7)) ([865b576](https://github.com/pixonaut-app/pixonaut-shop/commit/865b576cf98e80b38d4bd6ea4a7edbe26ac1ff42))
+
 ## [1.1.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.0.0...v1.1.0) (2026-11-06)
 
 
