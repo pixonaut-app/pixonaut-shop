@@ -147,9 +147,12 @@ and only while the product is on sale:
   chosen variation's price;
 - a reduced line in the Cart block, the mini cart and the checkout's
   summary, as one of the line's detail rows (`woocommerce_get_item_data`),
-  which those blocks print as text;
+  which those blocks print as text, with or without tax as the cart shows
+  its prices (`woocommerce_tax_display_cart`);
 - the campaign band, after its text, when the campaign links to a reduced
   product.
+
+The admin's product list shows the price without it.
 
 WooCommerce keeps no past prices, so the theme keeps them in the product's
 `_pixonaut_shop_price_history` meta: a list of `{ price, from }`, oldest
@@ -175,10 +178,22 @@ price (one saved on sale before the theme was active, or created on sale),
 shows its regular price. A price that changed without a save the theme saw
 counts as taking effect now. A variation has its own history and line; a
 variable product's price range shows the lowest reference among its reduced
-variations. The price is shown as WooCommerce shows prices
-(`wc_get_price_to_display()`, `wc_price()`), with tax as the store displays
+variations: those in the range WooCommerce shows (hidden and out-of-stock
+ones left out) whose sale price is below their regular price, read from the
+range's cached prices (`get_variation_prices( true )`) and primed in one
+query, so no other variation is loaded. A reference price worked out once is
+kept for the rest of the request, since a grid prints a price several
+times; any product save forgets them. One `LowestPrice` serves the prices
+and the campaign band. The price is shown as WooCommerce shows prices
+(`wc_get_price_to_display()`, `wc_price()`), with tax as the shop displays
 it. A price changed by writing `_price` straight to the database, without
 WooCommerce's save, is not seen until the product is next saved.
+
+A scheduled sale starts when WooCommerce's scheduled job for it runs, which
+WP-Cron can start minutes after the sale's start date. Between the two,
+WooCommerce already counts the product as on sale while its stored price is
+still the regular one, so the line shows beside the regular price until the
+job applies the sale price and the history records it.
 
 My account is WooCommerce's classic account page, printed by its shortcode
 in the store's My account page and styled by `src/styles/_account.css`; the

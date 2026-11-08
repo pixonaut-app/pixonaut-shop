@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-11-08T16:40:13+00:00\n"
+"POT-Creation-Date: 2026-11-08T17:06:30+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -182,7 +182,7 @@ msgid "Order %s received"
 msgstr "Order %s är mottagen"
 
 #. translators: %d: the number of days before a price reduction the lowest price is looked for.
-#: inc/Product/LowestPrice.php:357
+#: inc/Product/LowestPrice.php:453
 #, php-format
 msgid "Lowest price in the last %d days"
 msgstr "Lägsta pris senaste %d dagarna"

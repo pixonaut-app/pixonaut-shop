@@ -6,6 +6,7 @@ namespace Pixonaut\Shop\Product;
 
 use Closure;
 use DateTimeImmutable;
+use WC_Cart;
 use WC_Product;
 
 /**
@@ -66,8 +67,25 @@ final class LowestPrice
     /** Product types whose price is their children's, with no price of their own. */
     private const DERIVED_TYPES = ['variable', 'grouped'];
 
+    /** The product type whose shown range comes from `get_variation_prices()`. */
+    private const VARIABLE_TYPE = 'variable';
+
+    /** WooCommerce's setting for whether the cart shows prices with tax, and its value when it does. */
+    private const CART_TAX_DISPLAY_OPTION = 'woocommerce_tax_display_cart';
+
+    private const TAX_INCLUSIVE = 'incl';
+
     /** @var Closure(): DateTimeImmutable */
     private Closure $now;
+
+    /**
+     * Each product's displayed reference price worked out in this request,
+     * null for one not reduced, by product ID: a grid prints a product's
+     * price several times. Any save forgets them.
+     *
+     * @var array<int, ?float>
+     */
+    private array $references = [];
 
     /**
      * @param (Closure(): DateTimeImmutable)|null $now The current time; defaults to WordPress's clock.
@@ -129,6 +147,7 @@ final class LowestPrice
      */
     public function record(WC_Product $product): void
     {
+        $this->references = [];
         $price = $product->get_price('edit');
 
         if ($product->is_type(self::DERIVED_TYPES) || ! is_numeric($price)) {
@@ -145,11 +164,12 @@ final class LowestPrice
 
     /**
      * The price HTML of a reduced product, with its reference price after
-     * it; any other product's as it is.
+     * it; any other product's as it is. The admin's product list shows the
+     * price alone: no shopper sees it.
      */
     public function with_price_html(mixed $price_html, mixed $product): mixed
     {
-        if (! \is_string($price_html) || '' === $price_html || ! $product instanceof WC_Product) {
+        if (! \is_string($price_html) || '' === $price_html || ! $product instanceof WC_Product || (is_admin() && ! wp_doing_ajax())) {
             return $price_html;
         }
 
@@ -161,16 +181,21 @@ final class LowestPrice
     /**
      * A cart line's detail rows, with the reference price after them when
      * the line's product is reduced. The cart, the mini cart and the
-     * checkout's summary show these rows under the line.
+     * checkout's summary show these rows under the line, with or without
+     * tax as the cart shows its prices.
      */
     public function with_item_data(mixed $item_data, mixed $cart_item): mixed
     {
         $product = \is_array($cart_item) ? ($cart_item['data'] ?? null) : null;
-        $reference = $product instanceof WC_Product ? $this->reference($product) : null;
+        $raw = $product instanceof WC_Product ? $this->raw_reference($product) : null;
 
-        if (! \is_array($item_data) || null === $reference) {
+        if (! \is_array($item_data) || null === $raw || ! $product instanceof WC_Product) {
             return $item_data;
         }
+
+        $reference = self::cart_includes_tax()
+            ? (float) wc_get_price_including_tax($product, ['price' => $raw])
+            : (float) wc_get_price_excluding_tax($product, ['price' => $raw]);
 
         // The blocks print rows as text, so the price is the text wc_price() shows.
         $price = html_entity_decode(wp_strip_all_tags(wc_price($reference)), ENT_QUOTES, 'UTF-8');
@@ -215,19 +240,18 @@ final class LowestPrice
      */
     public function reference(WC_Product $product): ?float
     {
-        if (! $product->is_on_sale()) {
-            return null;
+        $id = $product->get_id();
+
+        if (! \array_key_exists($id, $this->references)) {
+            if ($product->is_type(self::DERIVED_TYPES)) {
+                $this->references[$id] = $product->is_on_sale() ? $this->lowest_child_reference($product) : null;
+            } else {
+                $raw = $this->raw_reference($product);
+                $this->references[$id] = null === $raw ? null : (float) wc_get_price_to_display($product, ['price' => $raw]);
+            }
         }
 
-        if ($product->is_type(self::DERIVED_TYPES)) {
-            return $this->lowest_child_reference($product);
-        }
-
-        $price = $product->get_price('edit');
-        $lowest = self::lowest($this->history($product->get_id()), \is_string($price) ? $price : '', ($this->now)());
-        $reference = $lowest ?? $product->get_regular_price('edit');
-
-        return is_numeric($reference) ? (float) wc_get_price_to_display($product, ['price' => (float) $reference]) : null;
+        return $this->references[$id];
     }
 
     /**
@@ -297,8 +321,13 @@ final class LowestPrice
     private function lowest_child_reference(WC_Product $product): ?float
     {
         $lowest = null;
+        $child_ids = $this->reduced_children($product);
 
-        foreach ($product->get_children() as $child_id) {
+        if ([] !== $child_ids) {
+            _prime_post_caches($child_ids);
+        }
+
+        foreach ($child_ids as $child_id) {
             $child = wc_get_product($child_id);
             $reference = $child instanceof WC_Product ? $this->reference($child) : null;
 
@@ -308,6 +337,73 @@ final class LowestPrice
         }
 
         return $lowest;
+    }
+
+    /**
+     * The reference price of a reduced product with a price of its own, as
+     * WooCommerce stores it (before tax is added or taken off for display),
+     * or null when it is not reduced or its price is its children's.
+     */
+    private function raw_reference(WC_Product $product): ?float
+    {
+        if ($product->is_type(self::DERIVED_TYPES) || ! $product->is_on_sale()) {
+            return null;
+        }
+
+        $price = $product->get_price('edit');
+        $lowest = self::lowest($this->history($product->get_id()), \is_string($price) ? $price : '', ($this->now)());
+        $reference = $lowest ?? $product->get_regular_price('edit');
+
+        return is_numeric($reference) ? (float) $reference : null;
+    }
+
+    /**
+     * The IDs of a product's children that may be reduced. A variable
+     * product's are its variations in the range it shows (hidden and
+     * out-of-stock ones left out, as the range leaves them out) whose sale
+     * price is below their regular price, read from the prices WooCommerce
+     * caches for the range, so no other variation is loaded. A grouped
+     * product's are all its products.
+     *
+     * @return list<int>
+     */
+    private function reduced_children(WC_Product $product): array
+    {
+        if (! $product->is_type(self::VARIABLE_TYPE) || ! \is_callable([$product, 'get_variation_prices'])) {
+            return array_values(array_map('intval', $product->get_children()));
+        }
+
+        $prices = $product->get_variation_prices(true);
+
+        if (! \is_array($prices)) {
+            return [];
+        }
+
+        $regular_prices = \is_array($prices['regular_price'] ?? null) ? $prices['regular_price'] : [];
+        $sale_prices = \is_array($prices['sale_price'] ?? null) ? $prices['sale_price'] : [];
+        $reduced = [];
+
+        foreach ($sale_prices as $id => $sale_price) {
+            $regular_price = $regular_prices[$id] ?? null;
+
+            if (is_numeric($sale_price) && is_numeric($regular_price) && (float) $sale_price < (float) $regular_price) {
+                $reduced[] = (int) $id;
+            }
+        }
+
+        return $reduced;
+    }
+
+    /** Whether the cart shows prices with tax, as its own setting (and a tax-exempt customer) has it. */
+    private static function cart_includes_tax(): bool
+    {
+        $cart = \function_exists('WC') ? WC()->cart : null;
+
+        if ($cart instanceof WC_Cart) {
+            return $cart->display_prices_including_tax();
+        }
+
+        return self::TAX_INCLUSIVE === get_option(self::CART_TAX_DISPLAY_OPTION);
     }
 
     /**

@@ -35,6 +35,9 @@ final class LowestPriceTest extends TestCase
 
     private const GRID_PATTERN = 'pixonaut-shop/product-grid';
 
+    /** WooCommerce's setting that hides out-of-stock products and variations from the catalogue. */
+    private const HIDE_OUT_OF_STOCK_OPTION = 'woocommerce_hide_out_of_stock_items';
+
     /** The sale-price start date's meta, which WooCommerce's scheduled sale reads. */
     private const SALE_FROM_META = '_sale_price_dates_from';
 
@@ -82,6 +85,60 @@ final class LowestPriceTest extends TestCase
         do_action('wc_product_start_scheduled_sale', $product->get_id());
 
         self::assertSame([self::REGULAR, self::SALE], $this->recorded_prices($product));
+    }
+
+    /**
+     * The price a shopper sees once a scheduled sale has started carries
+     * the line, with the price before the sale; before it, none.
+     */
+    public function testShowsTheLowestPriceOnceAScheduledSaleHasStarted(): void
+    {
+        $product = $this->simple_product(null);
+        $product->set_sale_price(self::SALE);
+        $product->set_date_on_sale_from((string) (time() + HOUR_IN_SECONDS));
+        $product->save();
+        self::assertStringNotContainsString(self::LABEL, $this->price_html($product));
+
+        update_post_meta($product->get_id(), self::SALE_FROM_META, time() - MINUTE_IN_SECONDS);
+        wc_delete_product_transients($product->get_id());
+        do_action('wc_product_start_scheduled_sale', $product->get_id());
+
+        $price_html = $this->price_html($product);
+        self::assertMatchesRegularExpression('/<ins\b.*' . self::SALE . '.*' . self::LABEL . ': .*' . self::REGULAR . '/s', $price_html);
+    }
+
+    /** Raised five days before it was reduced: the line shows the price before the raise. */
+    public function testShowsThePriceBeforeARaiseThatPrecededTheReduction(): void
+    {
+        $product = $this->simple_product('120', 'Raised tee', '150');
+        $this->history($product, ['100' => '-90 days', '150' => '-5 days', '120' => '-1 minute']);
+
+        self::assertMatchesRegularExpression('/' . self::LABEL . ': .*100/s', $this->price_html($product));
+    }
+
+    /**
+     * A variation hidden from the range (out of stock, with the store
+     * hiding those) is left out of the range's line, as from the range.
+     */
+    public function testRangeLeavesOutAVariationItDoesNotShow(): void
+    {
+        update_option(self::HIDE_OUT_OF_STOCK_OPTION, 'yes');
+
+        try {
+            [$variable, $small, $large] = $this->variable_product();
+            $small->set_stock_status('outofstock');
+            $small->save();
+            WC_Product_Variable::sync($variable->get_id());
+            $this->history($small, ['100' => '-20 days', self::SALE => '-2 days']);
+            $this->history($large, ['180' => '-20 days', self::SALE => '-2 days']);
+
+            $price_html = $this->price_html($variable);
+
+            self::assertMatchesRegularExpression('/' . self::LABEL . ': .*180/s', $price_html);
+            self::assertStringNotContainsString('100', $price_html);
+        } finally {
+            delete_option(self::HIDE_OUT_OF_STOCK_OPTION);
+        }
     }
 
     public function testShowsTheLowestPriceOnAReducedProductsPage(): void
@@ -166,11 +223,11 @@ final class LowestPriceTest extends TestCase
         self::assertMatchesRegularExpression('/Tees on sale<\/a> <span class="pixonaut-shop-lowest-price">' . self::LABEL . ': .*' . self::EARLIER . '/s', $header);
     }
 
-    private function simple_product(?string $sale_price, string $name = 'Plain tee'): WC_Product
+    private function simple_product(?string $sale_price, string $name = 'Plain tee', string $regular_price = self::REGULAR): WC_Product
     {
         $product = new WC_Product_Simple();
         $product->set_name($name);
-        $product->set_regular_price(self::REGULAR);
+        $product->set_regular_price($regular_price);
         $product->set_sale_price($sale_price ?? '');
         $product->set_status('publish');
         $this->product_ids[] = $product->save();
@@ -234,6 +291,15 @@ final class LowestPriceTest extends TestCase
         }
 
         update_post_meta($product->get_id(), LowestPrice::HISTORY_META, $history);
+    }
+
+    /** The product's price HTML as a shopper sees it, read fresh from the store. */
+    private function price_html(WC_Product $product): string
+    {
+        $fresh = wc_get_product($product->get_id());
+        self::assertInstanceOf(WC_Product::class, $fresh);
+
+        return $fresh->get_price_html();
     }
 
     /** @return list<string> */

@@ -39,6 +39,18 @@ final class LowestPriceTest extends TestCase
     /** @var list<array{int, string, mixed}> Every `update_post_meta()` call, in order. */
     private array $written = [];
 
+    /** @var list<int> Every product ID `wc_get_product()` was asked for, in order. */
+    private array $loaded = [];
+
+    /** @var list<list<int>> Every `_prime_post_caches()` call's IDs, in order. */
+    private array $primed = [];
+
+    /** The cart's `woocommerce_tax_display_cart` setting in a test. */
+    private string $cart_tax_display = 'incl';
+
+    /** What the stand-in for VAT divides a price including it by, for a price excluding it. */
+    private const WITH_VAT = 1.25;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -53,6 +65,52 @@ final class LowestPriceTest extends TestCase
         Functions\when('wc_price')->alias(static fn (float $price): string => '<span class="amount">' . $price . '&nbsp;kr</span>');
         Functions\when('wc_get_price_to_display')->alias(static fn (WC_Product $product, array $args): float => (float) $args['price']);
         Functions\when('wp_strip_all_tags')->alias(static fn (string $text): string => strip_tags($text));
+        Functions\when('wc_get_price_including_tax')->alias(static fn (WC_Product $product, array $args): float => (float) $args['price']);
+        Functions\when('wc_get_price_excluding_tax')->alias(static fn (WC_Product $product, array $args): float => (float) $args['price'] / self::WITH_VAT);
+        Functions\when('get_option')->alias(fn (string $name): mixed => 'woocommerce_tax_display_cart' === $name ? $this->cart_tax_display : false);
+        Functions\when('is_admin')->justReturn(false);
+        Functions\when('wp_doing_ajax')->justReturn(false);
+        Functions\when('_prime_post_caches')->alias(function (array $ids): void {
+            $this->primed[] = array_values($ids);
+        });
+    }
+
+    /**
+     * `wc_get_product()` over these products, counting each load.
+     *
+     * @param array<int, WC_Product> $products
+     */
+    private function products(array $products): void
+    {
+        Functions\when('wc_get_product')->alias(function (int $id) use ($products): WC_Product|false {
+            $this->loaded[] = $id;
+
+            return $products[$id] ?? false;
+        });
+    }
+
+    /**
+     * A variable product's prices as `get_variation_prices()` gives them: its
+     * visible variations' only, each reduced from the regular price to the
+     * sale price unless named as not reduced.
+     *
+     * @param list<int> $shown       The variations the range shows.
+     * @param list<int> $not_reduced Those of them at their regular price.
+     *
+     * @return array{price: array<int, string>, regular_price: array<int, string>, sale_price: array<int, string>}
+     */
+    private static function variation_prices(array $shown, array $not_reduced = []): array
+    {
+        $prices = ['price' => [], 'regular_price' => [], 'sale_price' => []];
+
+        foreach ($shown as $id) {
+            $price = \in_array($id, $not_reduced, true) ? self::REGULAR : self::SALE;
+            $prices['price'][$id] = $price;
+            $prices['regular_price'][$id] = self::REGULAR;
+            $prices['sale_price'][$id] = $price;
+        }
+
+        return $prices;
     }
 
     private static function now(): DateTimeImmutable
@@ -76,7 +134,10 @@ final class LowestPriceTest extends TestCase
         return new LowestPrice(static fn (): DateTimeImmutable => self::now());
     }
 
-    /** @param list<int> $children */
+    /**
+     * @param list<int>                         $children
+     * @param array<string, array<int, string>> $variation_prices
+     */
     private static function product(
         int $id,
         string $type = 'simple',
@@ -84,6 +145,7 @@ final class LowestPriceTest extends TestCase
         string $price = self::SALE,
         string $regular = self::REGULAR,
         array $children = [],
+        array $variation_prices = [],
     ): WC_Product {
         $product = Mockery::mock(WC_Product::class);
         $product->allows('get_id')->andReturn($id);
@@ -92,6 +154,7 @@ final class LowestPriceTest extends TestCase
         $product->allows('get_price')->andReturn($price);
         $product->allows('get_regular_price')->andReturn($regular);
         $product->allows('get_children')->andReturn($children);
+        $product->allows('get_variation_prices')->with(true)->andReturn($variation_prices);
 
         return $product;
     }
@@ -169,8 +232,8 @@ final class LowestPriceTest extends TestCase
             12 => self::product(12, 'variation'),
             13 => self::product(13, 'variation', false, self::SALE, self::SALE),
         ];
-        Functions\when('wc_get_product')->alias(static fn (int $id): WC_Product|false => $variations[$id] ?? false);
-        $variable = self::product(self::PRODUCT_ID, 'variable', true, self::SALE, self::REGULAR, [11, 12, 13]);
+        $this->products($variations);
+        $variable = self::product(self::PRODUCT_ID, 'variable', true, self::SALE, self::REGULAR, [11, 12, 13], self::variation_prices([11, 12, 13], [13]));
         $lowest_price = $this->lowest_price();
 
         self::assertSame(180.0, $lowest_price->reference($variations[11]));
@@ -178,6 +241,103 @@ final class LowestPriceTest extends TestCase
         self::assertSame(160.0, $lowest_price->reference($variable), 'The range shows the lowest of the reduced variations.');
         self::assertStringContainsString('180&nbsp;kr', $lowest_price->with_price_html(self::PRICE_HTML, $variations[11]));
         self::assertStringContainsString('160&nbsp;kr', $lowest_price->with_price_html(self::PRICE_HTML, $variable));
+    }
+
+    /** Raised before it was reduced: the window reaches back past the raise. */
+    public function testRaisedThenReducedLooksBackPastTheRaise(): void
+    {
+        $history = [self::entry('100', '-90 days'), self::entry('150', '-5 days'), self::entry('120', '+0 days')];
+
+        self::assertSame('100', LowestPrice::lowest($history, '120', self::now()));
+    }
+
+    /** A sale price lowered during the sale: the earlier sale price is the lowest before it. */
+    public function testASalePriceLoweredMidSaleLooksBackToTheEarlierSalePrice(): void
+    {
+        $history = [self::entry('100', '-60 days'), self::entry('80', '-10 days'), self::entry('70', '+0 days')];
+
+        self::assertSame('80', LowestPrice::lowest($history, '70', self::now()));
+    }
+
+    /** A price that ended at the very moment the window opens was never charged inside it. */
+    public function testAnEntryEndingExactlyWhenTheWindowOpensIsLeftOut(): void
+    {
+        $history = [self::entry('50', '-60 days'), self::entry('100', '-30 days'), self::entry('70', '+0 days')];
+
+        self::assertSame('100', LowestPrice::lowest($history, '70', self::now()));
+    }
+
+    /**
+     * A grid prints a variable product's price several times; its reduced
+     * variations are primed once and loaded once a request.
+     */
+    public function testLoadsAVariableProductsReducedVariationsOncePerRequest(): void
+    {
+        $this->histories = [
+            11 => [self::entry('180', '-20 days'), self::entry(self::SALE, '-2 days')],
+            12 => [self::entry('160', '-20 days'), self::entry(self::SALE, '-2 days')],
+        ];
+        $this->products([11 => self::product(11, 'variation'), 12 => self::product(12, 'variation'), 13 => self::product(13, 'variation', false, self::REGULAR)]);
+        $variable = self::product(self::PRODUCT_ID, 'variable', true, self::SALE, self::REGULAR, [11, 12, 13], self::variation_prices([11, 12, 13], [13]));
+        $lowest_price = $this->lowest_price();
+
+        for ($printed = 0; $printed < 3; ++$printed) {
+            self::assertStringContainsString('160&nbsp;kr', $lowest_price->with_price_html(self::PRICE_HTML, $variable));
+        }
+
+        self::assertSame([[11, 12]], $this->primed);
+        self::assertSame([11, 12], $this->loaded);
+    }
+
+    /**
+     * A hidden or out-of-stock variation is not in the range the product
+     * shows, so its lower reference is not the range's.
+     */
+    public function testLeavesOutVariationsTheRangeDoesNotShow(): void
+    {
+        $this->histories = [
+            11 => [self::entry('180', '-20 days'), self::entry(self::SALE, '-2 days')],
+            // Hidden or out of stock, and reduced, with a lower price before it.
+            14 => [self::entry('100', '-20 days'), self::entry(self::SALE, '-2 days')],
+        ];
+        $this->products([11 => self::product(11, 'variation'), 14 => self::product(14, 'variation')]);
+        $variable = self::product(self::PRODUCT_ID, 'variable', true, self::SALE, self::REGULAR, [11, 14], self::variation_prices([11]));
+
+        self::assertSame(180.0, $this->lowest_price()->reference($variable));
+        self::assertNotContains(14, $this->loaded);
+    }
+
+    /** A price change seen in a request is the one its later prices show. */
+    public function testRecordingForgetsTheReferencesWorkedOutBefore(): void
+    {
+        $this->histories[self::PRODUCT_ID] = [self::entry('250', '-20 days'), self::entry(self::SALE, '-2 days')];
+        $lowest_price = $this->lowest_price();
+        self::assertSame(250.0, $lowest_price->reference(self::product(self::PRODUCT_ID)));
+
+        $this->histories[self::PRODUCT_ID] = [self::entry('220', '-20 days'), self::entry(self::SALE, '-2 days')];
+        $lowest_price->record_saved(self::PRODUCT_ID, self::product(self::PRODUCT_ID));
+
+        self::assertSame(220.0, $lowest_price->reference(self::product(self::PRODUCT_ID)));
+    }
+
+    /** The cart shows prices with or without tax by its own setting, which may differ from the shop's. */
+    public function testCartLineFollowsTheCartsTaxDisplay(): void
+    {
+        $this->histories[self::PRODUCT_ID] = [self::entry('250', '-20 days'), self::entry(self::SALE, '-2 days')];
+        $this->cart_tax_display = 'excl';
+
+        $rows = $this->lowest_price()->with_item_data([], ['data' => self::product(self::PRODUCT_ID)]);
+
+        self::assertSame("200\u{00A0}kr", $rows[0]['display'] ?? null);
+    }
+
+    /** The admin's product list shows the price without the line. */
+    public function testLeavesTheAdminProductListAlone(): void
+    {
+        $this->histories[self::PRODUCT_ID] = [self::entry('250', '-20 days'), self::entry(self::SALE, '-2 days')];
+        Functions\when('is_admin')->justReturn(true);
+
+        self::assertSame(self::PRICE_HTML, $this->lowest_price()->with_price_html(self::PRICE_HTML, self::product(self::PRODUCT_ID)));
     }
 
     public function testShownOnlyWhileOnSale(): void
