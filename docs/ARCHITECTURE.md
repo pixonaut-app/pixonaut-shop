@@ -132,6 +132,69 @@ panel, the `pixonaut-shop/product-description` pattern puts
 `pixonaut-shop/related-products` shows four related products as the product
 grid draws them.
 
+### The lowest price beside a reduction
+
+Swedish law (prisinformationslagen 7 a §, from the EU's Omnibus directive)
+requires an announced price reduction to show the lowest price the product
+had in the 30 days before the reduction. `inc/Product/LowestPrice.php` adds
+that line, "Lowest price in the last 30 days: {price}" ("Lägsta pris senaste
+30 dagarna: {price}" in Swedish), under every reduced price a shopper sees,
+and only while the product is on sale:
+
+- every price WooCommerce prints through `get_price_html()`, through
+  `woocommerce_get_price_html`: the product page's price row, the
+  `woocommerce/product-price` block on product cards and grids, and a
+  chosen variation's price;
+- a reduced line in the Cart block, the mini cart and the checkout's
+  summary, as one of the line's detail rows (`woocommerce_get_item_data`),
+  which those blocks print as text, with or without tax as the cart shows
+  its prices (`woocommerce_tax_display_cart`);
+- the campaign band, after its text, when the campaign links to a reduced
+  product.
+
+The admin's product list shows the price without it.
+
+WooCommerce keeps no past prices, so the theme keeps them in the product's
+`_pixonaut_shop_price_history` meta: a list of `{ price, from }`, oldest
+first, where `price` is the active price (what a customer pays, as
+WooCommerce stores it) and `from` the ISO 8601 moment it took effect. An
+entry is added whenever that price changes: when WooCommerce creates or
+updates a product or a variation (`woocommerce_new_product`,
+`woocommerce_update_product` and their `_variation` twins, which the admin,
+the REST API, WP-CLI and imports all reach), and after a scheduled sale
+starts or ends (`wc_product_start_scheduled_sale`,
+`wc_product_end_scheduled_sale`, and the daily run's
+`wc_after_products_starting_sales` and `wc_after_products_ending_sales`). A
+save that leaves the price records nothing. Entries that ended more than 30
+days before the newest one are dropped; the one in effect when that window
+opens stays. A duplicated product starts a history of its own. WooCommerce's
+own prices are never written.
+
+The reference price is the lowest active price in the 30 days before the
+current price took effect, so a reduction that has run for weeks still looks
+back from its start. A history shorter than 30 days uses the lowest price it
+has. A product first seen already on sale, with no price before its sale
+price (one saved on sale before the theme was active, or created on sale),
+shows its regular price. A price that changed without a save the theme saw
+counts as taking effect now. A variation has its own history and line; a
+variable product's price range shows the lowest reference among its reduced
+variations: those in the range WooCommerce shows (hidden and out-of-stock
+ones left out) whose sale price is below their regular price, read from the
+range's cached prices (`get_variation_prices( true )`) and primed in one
+query, so no other variation is loaded. A reference price worked out once is
+kept for the rest of the request, since a grid prints a price several
+times; any product save forgets them. One `LowestPrice` serves the prices
+and the campaign band. The price is shown as WooCommerce shows prices
+(`wc_get_price_to_display()`, `wc_price()`), with tax as the shop displays
+it. A price changed by writing `_price` straight to the database, without
+WooCommerce's save, is not seen until the product is next saved.
+
+A scheduled sale starts when WooCommerce's scheduled job for it runs, which
+WP-Cron can start minutes after the sale's start date. Between the two,
+WooCommerce already counts the product as on sale while its stored price is
+still the regular one, so the line shows beside the regular price until the
+job applies the sale price and the history records it.
+
 My account is WooCommerce's classic account page, printed by its shortcode
 in the store's My account page and styled by `src/styles/_account.css`; the
 theme copies none of its templates into `woocommerce/`, since they change
@@ -192,6 +255,56 @@ adds the heading to any navigation block carrying the
 `pixonaut-shop-headed-menu` class that names a published menu. The Site
 Editor renders the block in the browser, past that filter, so the editor
 script `src/editor/menu-heading.js` heads it there the same way.
+
+Each of the theme's menus is found by name. A navigation block that names no
+menu shows core's fallback, the newest menu, so every menu would show the same
+links. `inc/Header/NamedMenus.php` points the block carrying
+`pixonaut-shop-header__menu`, `pixonaut-shop-footer__links`,
+`pixonaut-shop-footer__service` or `pixonaut-shop-footer__legal` at the
+published menu saved under `pixonaut-shop-header`, `pixonaut-shop-footer`,
+`pixonaut-shop-service` or `pixonaut-shop-legal`, before it renders. It looks
+each name up once per request, and again after a menu is saved or deleted. A
+block that already names a menu keeps it, and one whose menu is missing keeps
+core's fallback.
+
+## Options other tools write
+
+Two options are a contract with the tools that set up a store, which write
+them; the theme only reads them, and a store's own edits never write them.
+Their names and shapes stay as they are.
+
+| Option | Shape | Read by | Effect |
+| --- | --- | --- | --- |
+| `pixonaut_shop_hero` | An array: `heading`, `text`, `button_label` and `button_url`, each a string, and `image_id`, an int, an image attachment's ID. | `inc/FrontPage/Hero.php` | The `pixonaut-shop/hero` pattern shows that heading, sentence, one button and picture, with no pill, in place of its placeholders. |
+| `pixonaut_shop_campaign` | An array: `text` and `url`, strings, and `starts` and `ends`, ISO 8601 dates in the site's time zone (`2026-11-27` or `2026-11-27T08:00:00`). | `inc/Campaign/CampaignBand.php` | While `starts <= now < ends`, a band with the text, linked to the address, takes the announcement part's place on every page. An address that is a reduced product's adds its lowest price of the last 30 days. |
+| `pixonaut_shop_header` | `simple` or `mega`; unset is `simple`. | `inc/Header/HeaderVariant.php` | Which header the store shows. Only `simple` is built, so `mega` shows the simple header until the mega menu's header exists. |
+
+The campaign band never shows without dates: a campaign missing either date,
+or holding one that is not a real date, or ending before it starts, is
+hidden, so one prepared ahead stays hidden until its owner sets its dates.
+`CampaignBand` filters the announcement `core/template-part` block's output,
+reads WordPress's clock in the site's time zone (`current_datetime()`) and
+prints the same group the announcement pattern holds, with the text escaped
+for HTML and the address as a URL (an address WordPress rejects leaves the
+text without a link). Outside the dates, the part shows what the store wrote
+in it, if anything. A page cache keeps serving a page as it rendered it, so
+it can show the band after its end until the cache is purged or expires.
+
+The hero is read where the pattern is: `patterns/hero.php` prints the
+option's hero as the same blocks its placeholders are (a core/media-text on
+a Band (tint 1) group, locked to its content), so a page holding a reference
+to the pattern shows it on the site, and the editor inserts it as blocks the
+store edits like any other. A page the store has saved from the editor holds
+its own blocks, and a later change to the option leaves it as it is. The
+picture is printed as core/media-text saves it, with its `wp-image-<id>`
+class and the attachment's alt text, so the editor finds the block valid;
+WordPress adds its sizes, `srcset` and lazy loading as the page renders. The
+text is escaped for HTML and the button's address as a URL. An option that
+is not an array with all five keys of these types, whose heading or button
+label is empty or only spaces, whose button address is one WordPress will
+not link to (empty, or `javascript:`), or whose `image_id` is not an image
+in the media library, is not a hero: the pattern keeps its
+placeholders, as it does while the option is unset.
 
 ## The update checker
 

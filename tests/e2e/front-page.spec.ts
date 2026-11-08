@@ -1,6 +1,7 @@
 import { expect, type RequestUtils, test } from '@wordpress/e2e-test-utils-playwright';
 
 import { editPostWithPatterns } from './support/editor';
+import { TEST_SUPPORT, wpEval } from './support/wp-cli';
 
 /**
  * The front page: a page made from the front page pattern and set as the
@@ -8,6 +9,7 @@ import { editPostWithPatterns } from './support/editor';
  * Its hero, the categories and the popular products show on the site, and
  * the page opens in the page editor and the Site Editor without invalid
  * blocks. Its placeholders are found here by their English source strings.
+ * With the store's hero saved in its option, the hero shows that instead.
  */
 
 /** The page the global setup makes from the pattern. */
@@ -90,6 +92,68 @@ test.describe( 'The front page', () => {
 		const canvas = page.frameLocator( EDITOR_CANVAS_IFRAME );
 
 		await expect( canvas.getByText( 'A heading about what you sell' ) ).toBeVisible();
+		await expect( canvas.getByText( 'Block contains unexpected or invalid content' ) ).toHaveCount(
+			0,
+		);
+		expect( failures ).toEqual( [] );
+	} );
+} );
+
+test.describe( "The front page with the store's hero", () => {
+	let failures: string[] = [];
+	let hero: { heading: string; text: string; button: string; alt: string };
+
+	test.beforeAll( () => {
+		wpEval( `${ TEST_SUPPORT }ShopFixtures::hero();` );
+		const [ heading, text, button, alt ] = wpEval(
+			[ 'HERO_HEADING', 'HERO_TEXT', 'HERO_BUTTON_LABEL', 'HERO_IMAGE_ALT' ]
+				.map( ( name ) => `echo ${ TEST_SUPPORT }ShopFixtures::${ name }, "\\n";` )
+				.join( ' ' ),
+		).split( '\n' );
+		hero = { heading, text, button, alt };
+	} );
+
+	test.afterAll( () => {
+		wpEval( `${ TEST_SUPPORT }ShopFixtures::forget_hero();` );
+	} );
+
+	test.beforeEach( ( { page } ) => {
+		failures = [];
+		page.on( 'console', ( message ) => {
+			if ( message.text().includes( VALIDATION_FAILURE ) ) {
+				failures.push( message.text() );
+			}
+		} );
+	} );
+
+	test( 'shows its heading, its sentence, one button and its picture', async ( { page } ) => {
+		await page.goto( '/' );
+
+		const shown = page.locator( 'main' ).locator( HERO );
+
+		await expect( shown.getByRole( 'heading', { level: 1, name: hero.heading } ) ).toBeVisible();
+		await expect( shown.getByText( hero.text ) ).toBeVisible();
+		await expect( shown.getByRole( 'link' ) ).toHaveCount( 1 );
+		await expect( shown.getByRole( 'link', { name: hero.button } ) ).toHaveAttribute(
+			'href',
+			/\/shop\/$/,
+		);
+		await expect( shown.getByRole( 'img', { name: hero.alt } ) ).toBeVisible();
+		await expect( shown.getByText( 'A heading about what you sell' ) ).toHaveCount( 0 );
+	} );
+
+	test( 'opens in the page editor without invalid blocks', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		const id = await frontPageId( requestUtils );
+
+		await editPostWithPatterns( admin, page, id );
+		const canvas = page.frameLocator( EDITOR_CANVAS_IFRAME );
+
+		await expect( canvas.getByText( hero.heading ) ).toBeVisible();
+		await expect( canvas.getByRole( 'img', { name: hero.alt } ) ).toBeVisible();
 		await expect( canvas.getByText( 'Block contains unexpected or invalid content' ) ).toHaveCount(
 			0,
 		);

@@ -6,6 +6,7 @@ namespace Pixonaut\Shop\Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
 use Pixonaut\Shop\I18n\TextDomain;
+use Pixonaut\Shop\Product\LowestPrice;
 use Pixonaut\Shop\Support\ThemeVersion;
 
 final class ThemeSetupTest extends TestCase
@@ -70,6 +71,15 @@ final class ThemeSetupTest extends TestCase
             (new TextDomain())->load();
 
             self::assertSame('Sidan hittades inte', __('Page not found', 'pixonaut-shop'));
+            // The line beside a reduced price, as Swedish stores show it.
+            self::assertSame(
+                'Lägsta pris senaste 30 dagarna',
+                \sprintf(
+                    /* translators: %d: the number of days before a price reduction the lowest price is looked for. */
+                    __('Lowest price in the last %d days', 'pixonaut-shop'),
+                    LowestPrice::WINDOW_DAYS
+                )
+            );
         } finally {
             remove_filter('locale', $swedish);
             unload_textdomain(TextDomain::DOMAIN);

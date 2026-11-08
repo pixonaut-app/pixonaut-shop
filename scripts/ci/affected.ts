@@ -144,6 +144,9 @@ export const E2E_OWNERS: Readonly< Record< string, SpecSelection > > = {
 	'inc/Bootstrap.php': 'all',
 	// A page's excerpt, which no spec opens a page to see; the integration
 	// suite renders a page with and without one.
+	// The campaign band in the header's announcement part, which the header
+	// spec opens.
+	'inc/Campaign': [ 'header' ],
 	'inc/Content': [],
 	'inc/Dependencies': 'all',
 	// Which template the homepage renders: the front page, or the posts list.
@@ -157,9 +160,10 @@ export const E2E_OWNERS: Readonly< Record< string, SpecSelection > > = {
 	// plugin fires on the tests site: the cart, the mini-cart, the checkout's
 	// summary, the product page and the order received page.
 	'inc/Pixonaut': PLUGIN_SPECS,
-	// The price row the product page's add-to-cart form prints, and a
-	// variable product's options as swatches.
-	'inc/Product': [ 'buy-row', 'product-options', 'product-page' ],
+	// The price row the product page's add-to-cart form prints, a variable
+	// product's options as swatches, and the lowest price beside a reduced
+	// price on the product page, its card and its cart line.
+	'inc/Product': [ 'buy-row', 'lowest-price', 'product-options', 'product-page' ],
 	'inc/Support': 'all',
 	// The update checker makes no request without a token, which no site the
 	// suite visits has; the integration suite tests it against a fake GitHub.
@@ -185,7 +189,7 @@ export const SITE_WIDE_SPECS: readonly string[] = [
  * template opening in the Site Editor without invalid blocks, the front
  * page, the header's menu, the mini-cart drawer, the not-found page, the
  * order received page, the product page, the searches, the shop, the cart
- * and the checkout.
+ * and the checkout, and the lowest price beside a reduced price.
  */
 export const PAGE_SPECS: readonly string[] = [
 	'buy-row',
@@ -193,6 +197,7 @@ export const PAGE_SPECS: readonly string[] = [
 	'checkout',
 	'front-page',
 	'header',
+	'lowest-price',
 	'mini-cart',
 	'not-found',
 	'order-received',
@@ -215,6 +220,7 @@ export const LOOK_SPECS: readonly string[] = [
 	'checkout',
 	'front-page',
 	'header',
+	'lowest-price',
 	'mini-cart',
 	'not-found',
 	'order-received',

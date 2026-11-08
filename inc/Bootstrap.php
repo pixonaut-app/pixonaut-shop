@@ -21,11 +21,14 @@ final class Bootstrap
         $this->register_assets();
         $this->register_blocks();
         $this->register_header();
+        // One for the request: it keeps the reference prices it has worked out.
+        $lowest_price = new Product\LowestPrice();
+        $this->register_campaign($lowest_price);
         $this->register_content();
         $this->register_archive();
         $this->register_front_page();
         $this->register_dependencies();
-        $this->register_product();
+        $this->register_product($lowest_price);
         $this->register_account();
         $this->register_orders();
         $this->register_pixonaut();
@@ -72,10 +75,23 @@ final class Bootstrap
         }
     }
 
-    /** The header's search, which keeps an empty field open rather than submit it. */
+    /**
+     * The header's search, which keeps an empty field open rather than submit
+     * it, and the header's and footer's menus, each found by its name.
+     */
     private function register_header(): void
     {
         (new Header\HeaderSearch())->register();
+        (new Header\NamedMenus())->register();
+    }
+
+    /**
+     * The campaign band, in the announcement part while the store's campaign
+     * runs, with the lowest price of a reduced product it links to.
+     */
+    private function register_campaign(Product\LowestPrice $lowest_price): void
+    {
+        (new Campaign\CampaignBand(null, $lowest_price->for_url(...)))->register();
     }
 
     private function register_content(): void
@@ -114,13 +130,15 @@ final class Bootstrap
      * The product page: the preview frame at the shape the store picks, and
      * in the add-to-cart form the price in the row with the quantity and the
      * button, and a variable product's attributes as chips where the store
-     * asks for them.
+     * asks for them. Beside every reduced price, the lowest price of the 30
+     * days before the reduction, from the price history it keeps.
      */
-    private function register_product(): void
+    private function register_product(Product\LowestPrice $lowest_price): void
     {
         (new Product\PreviewFrame(new Blocks\AspectRatios()))->register();
         (new Product\PriceRow())->register();
         (new Product\VariationSwatches())->register();
+        $lowest_price->register();
     }
 
     /**

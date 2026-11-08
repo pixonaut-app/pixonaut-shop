@@ -207,6 +207,16 @@ describe( 'affected', () => {
 		} );
 	} );
 
+	it( 'runs the header for the campaign band in its announcement part', () => {
+		assert.deepEqual( jobsFor( 'inc/Campaign/CampaignBand.php' ), {
+			...NO_JOBS,
+			php: true,
+			integration: true,
+			specs: [ 'header' ],
+			shards: 1,
+		} );
+	} );
+
 	it( 'runs the shop and the searches for what an archive without products shows', () => {
 		assert.deepEqual( jobsFor( 'inc/Archive/ShownWhenEmpty.php' ), {
 			...NO_JOBS,
@@ -227,12 +237,12 @@ describe( 'affected', () => {
 		} );
 	} );
 
-	it( 'runs the product page and its options for the price row and the swatches in its add-to-cart form', () => {
+	it( 'runs the product page, its options and the lowest price for a change to the product area', () => {
 		assert.deepEqual( jobsFor( 'inc/Product/PriceRow.php' ), {
 			...NO_JOBS,
 			php: true,
 			integration: true,
-			specs: [ 'buy-row', 'product-options', 'product-page' ],
+			specs: [ 'buy-row', 'lowest-price', 'product-options', 'product-page' ],
 			shards: 1,
 		} );
 	} );

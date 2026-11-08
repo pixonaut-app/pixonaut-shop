@@ -24,14 +24,26 @@ store is Site Editor work:
   one the same way.
 - **Site Identity / the Site Logo block** — the logo, site title, tagline
   and site icon.
-- **Navigation** — the header's and footer's menus. Pick a menu for each
-  of the footer's three navigation blocks: the two side by side are headed
-  by the menu's name as it is set under Navigation, and the third, after
-  the copyright line, holds the legal pages. Until a block names a menu,
-  core shows its fallback menu there, without a heading.
+- **Navigation** — the header's and footer's menus. A menu saved under the
+  name `pixonaut-shop-header` fills the header, ones saved as
+  `pixonaut-shop-footer` and `pixonaut-shop-service` the footer's two menus
+  side by side, and one saved as `pixonaut-shop-legal` the legal links after
+  the copyright line. Pick a menu for a block in the Site Editor to show
+  another one there. The two footer menus side by side are headed by the
+  menu's name as it is set under Navigation. Until a block names a menu and
+  no menu is saved under its name, core shows its fallback menu there,
+  without a heading.
+  The Site Editor's preview shows core's fallback menu in a block until a
+  menu is picked for it there, while the live site shows the named menu.
+  Which header a store shows is the `pixonaut_shop_header` option, which
+  the tool that set up the store writes: `simple`, the one row, or `mega`.
+  Only the simple header exists so far, and a store set to `mega` shows it.
 - **The announcement part** (Patterns → Template parts → Announcement) —
   empty, so no bar shows. Insert the Announcement pattern into it and write
-  the text; empty it again to remove the bar.
+  the text; empty it again to remove the bar. While a campaign runs (the
+  `pixonaut_shop_campaign` option, which the tool that set up the store
+  writes, with its text, link and start and end dates), its band shows in
+  this place instead, and it never shows without both dates.
 - **Setting up the front page** — under **Pages → Add New Page**, pick the
   **Front page** pattern the editor offers, write over its placeholders
   (the hero's pill, heading, sentence and buttons, the sections' headings
@@ -41,6 +53,11 @@ store is Site Editor work:
   no title, above the store's promises. Each section is locked to its
   content, so the text, pictures and links change but the layout stays;
   with **Your latest posts** as the homepage, the posts list shows instead.
+  A store whose hero was saved by the tool that set it up (the
+  `pixonaut_shop_hero` option) gets that hero in place of the placeholders:
+  its heading, sentence, one button and picture. Once the page is saved
+  from the editor, the hero is the page's own, and the option no longer
+  changes it.
 - **The Cart page** — WooCommerce's own Cart page works as it is: the theme
   styles its lines, totals and empty cart. For the designed empty cart, with
   WooCommerce's message in a panel and the popular products below it, open
@@ -150,6 +167,12 @@ was saved with; the Site Editor's Reset brings the theme's back.
   and `woocommerce/add-to-cart-form`, and has no
   `woocommerce/product-price` block: the price prints in the form's last
   row (`inc/Product/PriceRow.php`).
+- **Show a reduced price only through WooCommerce's price.** A price
+  WooCommerce prints (the product-price block, the price row, the cart's
+  lines) carries the lowest price of the 30 days before a reduction, which
+  Swedish law requires beside it (`inc/Product/LowestPrice.php`). A
+  "was"/"now" price or a percentage written as text in a template or
+  pattern does not.
 
 ## Building blocks
 

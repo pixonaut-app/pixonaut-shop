@@ -7,6 +7,15 @@
 	margin: 0;
 }
 
+.pixonaut-shop-announcement a {
+	color: inherit;
+}
+
+/* A campaign's product's lowest price, in the band's own colour on the band's ground. */
+.pixonaut-shop-announcement .pixonaut-shop-lowest-price {
+	color: inherit;
+}
+
 .pixonaut-shop-header {
 	border-block-end: 1px solid var( --wp--preset--color--border );
 }

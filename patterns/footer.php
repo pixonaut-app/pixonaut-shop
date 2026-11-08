@@ -11,8 +11,10 @@
  * The store's name and tagline and two menus, then a copyright line and a
  * legal menu, on the `strong` ground. The name, tagline and menus are the
  * store's own: each of the two menus is headed by the name the
- * store gave it (`Blocks\MenuHeading`). The copyright line reads the site's
- * name and this year when the footer renders.
+ * store gave it (`Blocks\MenuHeading`). The two, and the legal menu, show
+ * the menus saved as `pixonaut-shop-footer`, `pixonaut-shop-service` and
+ * `pixonaut-shop-legal` where the store has them (`Header\NamedMenus`). The
+ * copyright line reads the site's name and this year when the footer renders.
  */
 
 declare(strict_types=1);
@@ -39,9 +41,9 @@ $pixonaut_shop_copyright = sprintf(
 			</div>
 			<!-- /wp:group -->
 
-			<!-- wp:navigation {"overlayMenu":"never","className":"pixonaut-shop-headed-menu","layout":{"type":"flex","orientation":"vertical"}} /-->
+			<!-- wp:navigation {"overlayMenu":"never","className":"pixonaut-shop-footer__links pixonaut-shop-headed-menu","layout":{"type":"flex","orientation":"vertical"}} /-->
 
-			<!-- wp:navigation {"overlayMenu":"never","className":"pixonaut-shop-headed-menu","layout":{"type":"flex","orientation":"vertical"}} /-->
+			<!-- wp:navigation {"overlayMenu":"never","className":"pixonaut-shop-footer__service pixonaut-shop-headed-menu","layout":{"type":"flex","orientation":"vertical"}} /-->
 		</div>
 		<!-- /wp:group -->
 
