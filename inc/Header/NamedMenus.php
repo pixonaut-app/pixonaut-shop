@@ -22,6 +22,8 @@ final class NamedMenus
 
     public const FOOTER = 'pixonaut-shop-footer';
 
+    public const SERVICE = 'pixonaut-shop-service';
+
     public const LEGAL = 'pixonaut-shop-legal';
 
     /**
@@ -31,6 +33,7 @@ final class NamedMenus
     public const MENUS = [
         'pixonaut-shop-header__menu' => self::HEADER,
         'pixonaut-shop-footer__links' => self::FOOTER,
+        'pixonaut-shop-footer__service' => self::SERVICE,
         'pixonaut-shop-footer__legal' => self::LEGAL,
     ];
 
@@ -40,9 +43,30 @@ final class NamedMenus
 
     private const PUBLISHED = 'publish';
 
+    /** Fires when a navigation menu is saved; a deleted one fires `deleted_post`. */
+    private const NAVIGATION_SAVED = 'save_post_wp_navigation';
+
+    private const POST_DELETED = 'deleted_post';
+
+    /**
+     * The menu found under each name in this request, 0 for none, so every
+     * render of a page's header and footer asks the database once per name.
+     *
+     * @var array<string, int>
+     */
+    private static array $found = [];
+
     public function register(): void
     {
         add_filter('render_block_data', [$this, 'name_menu']);
+        add_action(self::NAVIGATION_SAVED, [self::class, 'forget']);
+        add_action(self::POST_DELETED, [self::class, 'forget']);
+    }
+
+    /** Drops the menus found so far, once a menu has been saved or deleted. */
+    public static function forget(): void
+    {
+        self::$found = [];
     }
 
     /**
@@ -98,6 +122,15 @@ final class NamedMenus
 
     /** The published menu saved under the name, or 0 when there is none. */
     private static function menu(string $name): int
+    {
+        if (! isset(self::$found[$name])) {
+            self::$found[$name] = self::find($name);
+        }
+
+        return self::$found[$name];
+    }
+
+    private static function find(string $name): int
     {
         $menus = get_posts([
             'post_type' => self::NAVIGATION_POST_TYPE,

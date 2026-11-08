@@ -20,6 +20,8 @@ final class NamedMenusTest extends TestCase
 
     private const FOOTER_MENU_CLASS = 'pixonaut-shop-footer__links';
 
+    private const SERVICE_MENU_CLASS = 'pixonaut-shop-footer__service';
+
     private const LEGAL_MENU_CLASS = 'pixonaut-shop-footer__legal';
 
     /**
@@ -51,22 +53,42 @@ final class NamedMenusTest extends TestCase
         self::assertStringNotContainsString('>Newest<', $menu);
     }
 
-    public function testEachFooterMenuRendersItsOwnNavigationPost(): void
+    public function testEachOfTheFourMenusRendersItsOwnNavigationPost(): void
     {
+        $this->menu(NamedMenus::HEADER, 'Shop', self::OLDER);
         $this->menu(NamedMenus::FOOTER, 'Delivery', self::OLDER, 'Customer service');
+        $this->menu(NamedMenus::SERVICE, 'Contact', self::OLDER, 'Help');
         $this->menu(NamedMenus::LEGAL, 'Terms', self::OLDER);
         $this->menu('', 'Newest', null);
 
         $footer = self::footer();
-        $links = self::nav($footer, self::FOOTER_MENU_CLASS);
-        $legal = self::nav($footer, self::LEGAL_MENU_CLASS);
+        $menus = [
+            'Shop' => self::nav(self::header(), self::HEADER_MENU_CLASS),
+            'Delivery' => self::nav($footer, self::FOOTER_MENU_CLASS),
+            'Contact' => self::nav($footer, self::SERVICE_MENU_CLASS),
+            'Terms' => self::nav($footer, self::LEGAL_MENU_CLASS),
+        ];
 
-        self::assertStringContainsString('>Delivery<', $links);
-        self::assertStringContainsString('<h2 class="' . MenuHeading::HEADING_CLASS . '">Customer service</h2>', $links);
-        self::assertStringNotContainsString('>Terms<', $links);
-        self::assertStringContainsString('>Terms<', $legal);
-        self::assertStringNotContainsString('>Delivery<', $legal);
-        self::assertStringNotContainsString('>Newest<', $links . $legal);
+        foreach ($menus as $label => $menu) {
+            foreach (array_keys($menus) as $other) {
+                $expected = $other === $label;
+                self::assertSame($expected, str_contains($menu, ">{$other}<"), "The menu showing {$label} " . ($expected ? 'lacks' : 'shows') . " {$other}.");
+            }
+            self::assertStringNotContainsString('>Newest<', $menu);
+        }
+        self::assertStringContainsString('<h2 class="' . MenuHeading::HEADING_CLASS . '">Customer service</h2>', $menus['Delivery']);
+        self::assertStringContainsString('<h2 class="' . MenuHeading::HEADING_CLASS . '">Help</h2>', $menus['Contact']);
+    }
+
+    public function testADraftMenuSavedUnderTheNameIsIgnored(): void
+    {
+        $this->menu(NamedMenus::HEADER, 'Draft', self::OLDER, 'Menu', 'draft');
+        $this->menu('', 'Newest', null);
+
+        $menu = self::nav(self::header(), self::HEADER_MENU_CLASS);
+
+        self::assertStringContainsString('>Newest<', $menu);
+        self::assertStringNotContainsString('>Draft<', $menu);
     }
 
     public function testAMissingNamedMenuFallsBackAsBefore(): void
@@ -112,13 +134,13 @@ final class NamedMenusTest extends TestCase
         return $nav[0];
     }
 
-    /** A published navigation menu holding one link, under the name given, or core's own, saved at the date given or now. */
-    private function menu(string $slug, string $label, ?string $date, string $title = 'Menu'): int
+    /** A navigation menu holding one link, under the name given, or core's own, saved at the date given or now. */
+    private function menu(string $slug, string $label, ?string $date, string $title = 'Menu', string $status = 'publish'): int
     {
         $post = [
             'post_type' => 'wp_navigation',
             'post_title' => $title,
-            'post_status' => 'publish',
+            'post_status' => $status,
             'post_date' => $date ?? current_time('mysql'),
             'post_content' => '<!-- wp:navigation-link {"label":"' . $label . '","url":"/' . strtolower($label) . '/","kind":"custom"} /-->',
         ];

@@ -19,11 +19,59 @@ final class NamedMenusTest extends TestCase
     /** A menu the store picked for the block in the Site Editor. */
     private const PICKED_MENU_ID = 7;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        NamedMenus::forget();
+    }
+
     public function testRegistersOnTheParsedBlockBeforeItRenders(): void
     {
         (new NamedMenus())->register();
 
         self::assertNotFalse(has_filter('render_block_data', 'Pixonaut\Shop\Header\NamedMenus->name_menu()'));
+    }
+
+    public function testForgetsTheMenusFoundWhenANavigationMenuIsSavedOrDeleted(): void
+    {
+        (new NamedMenus())->register();
+
+        self::assertNotFalse(has_action('save_post_wp_navigation', 'Pixonaut\Shop\Header\NamedMenus::forget()'));
+        self::assertNotFalse(has_action('deleted_post', 'Pixonaut\Shop\Header\NamedMenus::forget()'));
+    }
+
+    public function testLooksEachNameUpOncePerRequest(): void
+    {
+        Functions\expect('get_posts')->once()->andReturn([self::MENU_ID]);
+        $menus = new NamedMenus();
+
+        $menus->name_menu(self::block('pixonaut-shop-header__menu'));
+        $block = $menus->name_menu(self::block('pixonaut-shop-header__menu'));
+
+        self::assertSame(self::MENU_ID, $block['attrs']['ref']);
+    }
+
+    public function testRemembersThatANameHasNoMenu(): void
+    {
+        Functions\expect('get_posts')->once()->andReturn([]);
+        $menus = new NamedMenus();
+        $block = self::block('pixonaut-shop-header__menu');
+
+        $menus->name_menu($block);
+
+        self::assertSame($block, $menus->name_menu($block));
+    }
+
+    public function testLooksANameUpAgainOnceForgotten(): void
+    {
+        Functions\expect('get_posts')->twice()->andReturn([], [self::MENU_ID]);
+        $menus = new NamedMenus();
+
+        $menus->name_menu(self::block('pixonaut-shop-header__menu'));
+        NamedMenus::forget();
+        $block = $menus->name_menu(self::block('pixonaut-shop-header__menu'));
+
+        self::assertSame(self::MENU_ID, $block['attrs']['ref']);
     }
 
     /**
@@ -33,6 +81,7 @@ final class NamedMenusTest extends TestCase
     {
         yield 'the header menu' => ['pixonaut-shop-header__menu', 'pixonaut-shop-header'];
         yield 'the footer links' => ['pixonaut-shop-footer__links', 'pixonaut-shop-footer'];
+        yield 'the service links' => ['pixonaut-shop-footer__service', 'pixonaut-shop-service'];
         yield 'the legal links' => ['pixonaut-shop-footer__legal', 'pixonaut-shop-legal'];
     }
 

@@ -196,12 +196,13 @@ script `src/editor/menu-heading.js` heads it there the same way.
 Each of the theme's menus is found by name. A navigation block that names no
 menu shows core's fallback, the newest menu, so every menu would show the same
 links. `inc/Header/NamedMenus.php` points the block carrying
-`pixonaut-shop-header__menu`, `pixonaut-shop-footer__links` or
-`pixonaut-shop-footer__legal` at the published menu saved under
-`pixonaut-shop-header`, `pixonaut-shop-footer` or `pixonaut-shop-legal`, before
-it renders. A block that already names a menu keeps it, and one whose menu is
-missing keeps core's fallback. The second of the footer's menus side by side
-has no name of its own.
+`pixonaut-shop-header__menu`, `pixonaut-shop-footer__links`,
+`pixonaut-shop-footer__service` or `pixonaut-shop-footer__legal` at the
+published menu saved under `pixonaut-shop-header`, `pixonaut-shop-footer`,
+`pixonaut-shop-service` or `pixonaut-shop-legal`, before it renders. It looks
+each name up once per request, and again after a menu is saved or deleted. A
+block that already names a menu keeps it, and one whose menu is missing keeps
+core's fallback.
 
 ## The update checker
 
