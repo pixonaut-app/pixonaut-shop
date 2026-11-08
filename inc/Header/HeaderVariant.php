@@ -8,11 +8,8 @@ namespace Pixonaut\Shop\Header;
  * Which header a store shows, saved in the `pixonaut_shop_header` option by
  * a tool that sets up the store: `simple`, the one row of logo, menu,
  * search, account and cart, or `mega`, whose menu button opens a panel of
- * the store's categories.
- *
- * The mega header is not built yet, so a store that asks for it shows the
- * simple one until it is; so does a store whose option is unset or holds
- * anything else.
+ * the store's categories (`MegaMenu`). A store whose option is unset or
+ * holds anything else shows the simple header.
  */
 final class HeaderVariant
 {
@@ -24,7 +21,7 @@ final class HeaderVariant
     public const MEGA = 'mega';
 
     /** The variants the theme has a header for. */
-    private const BUILT = [self::SIMPLE];
+    private const BUILT = [self::SIMPLE, self::MEGA];
 
     /** The header the store shows. */
     public static function current(): string

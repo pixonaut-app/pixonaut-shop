@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixonaut\Shop\Tests\Support;
 
+use Pixonaut\Shop\Archive\CategoryImage;
 use Pixonaut\Shop\FrontPage\Hero;
 use Pixonaut\Shop\Product\LowestPrice;
 use RuntimeException;
@@ -166,14 +167,34 @@ final class ShopFixtures
 
     public const HERO_IMAGE_ALT = 'The store at a glance';
 
-    /** The hero's picture: the theme's own screenshot, copied to the uploads. */
-    private const HERO_IMAGE_SOURCE = 'screenshot.png';
+    /** The fixtures' pictures: the theme's own screenshot, copied to the uploads. */
+    private const IMAGE_SOURCE = 'screenshot.png';
+
+    private const IMAGE_EXTENSION = '.png';
+
+    private const IMAGE_TYPE = 'image/png';
 
     private const HERO_IMAGE_SLUG = 'pixonaut-shop-hero';
 
-    private const HERO_IMAGE_NAME = self::HERO_IMAGE_SLUG . '.png';
+    /**
+     * The mega header's menu (`mega_menu()`): its groups and their
+     * categories, by name and slug, and the picture the categories that have
+     * one share. Saved under a name of its own, so the other specs' headers
+     * keep theirs; the spec shows it through `tests/e2e/mega-menu.php`.
+     */
+    private const MEGA_MENU_SLUG = 'pixonaut-shop-tests-mega-menu';
 
-    private const HERO_IMAGE_TYPE = 'image/png';
+    private const MEGA_IMAGE_SLUG = 'pixonaut-shop-mega-tile';
+
+    private const MEGA_GROUPS = [
+        'Occasion' => ['Birthday' => 'mega-birthday', 'Wedding' => 'mega-wedding'],
+        'For whom' => ['For her' => 'mega-for-her', 'Without a picture' => 'mega-without-picture'],
+    ];
+
+    /** The category among them that has no picture. */
+    private const MEGA_UNPICTURED = 'mega-without-picture';
+
+    private const MEGA_MENU_DATE = '2020-01-01 00:00:00';
 
     /** A product reduced from its regular price, in a category of its own, for the lowest price's spec. */
     public const REDUCED_PRODUCT_SLUG = 'reduced-product';
@@ -393,22 +414,35 @@ final class ShopFixtures
     /** The hero's picture's attachment ID, uploaded the first time. */
     private static function hero_image(): int
     {
-        $existing = get_page_by_path(self::HERO_IMAGE_SLUG, OBJECT, 'attachment');
+        $image = self::image(self::HERO_IMAGE_SLUG);
+        update_post_meta($image, '_wp_attachment_image_alt', self::HERO_IMAGE_ALT);
+
+        return $image;
+    }
+
+    /**
+     * The attachment ID of the theme's screenshot uploaded under the name
+     * given, the first time. A sized one has its sizes made, as an upload
+     * in the media library does, so its `<img>` carries its width and height.
+     */
+    private static function image(string $slug, bool $sized = false): int
+    {
+        $existing = get_page_by_path($slug, OBJECT, 'attachment');
 
         if (null !== $existing) {
             return $existing->ID;
         }
 
-        $upload = wp_upload_bits(self::HERO_IMAGE_NAME, null, (string) file_get_contents(get_theme_file_path(self::HERO_IMAGE_SOURCE)));
+        $upload = wp_upload_bits($slug . self::IMAGE_EXTENSION, null, (string) file_get_contents(get_theme_file_path(self::IMAGE_SOURCE)));
 
         if (false !== $upload['error']) {
             throw new RuntimeException((string) $upload['error']);
         }
 
         $image = wp_insert_attachment([
-            'post_mime_type' => self::HERO_IMAGE_TYPE,
-            'post_name'      => self::HERO_IMAGE_SLUG,
-            'post_title'     => self::HERO_IMAGE_NAME,
+            'post_mime_type' => self::IMAGE_TYPE,
+            'post_name'      => $slug,
+            'post_title'     => $slug . self::IMAGE_EXTENSION,
             'post_status'    => 'inherit',
         ], $upload['file'], 0, true);
 
@@ -416,7 +450,10 @@ final class ShopFixtures
             throw new RuntimeException($image->get_error_message());
         }
 
-        update_post_meta($image, '_wp_attachment_image_alt', self::HERO_IMAGE_ALT);
+        if ($sized) {
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+            wp_update_attachment_metadata($image, wp_generate_attachment_metadata($image, $upload['file']));
+        }
 
         return $image;
     }
@@ -451,6 +488,63 @@ final class ShopFixtures
         }
 
         update_post_meta($product->get_id(), LowestPrice::HISTORY_META, $history);
+    }
+
+    /**
+     * The mega header's menu, made the first time: a group per entry of
+     * `MEGA_GROUPS` with its categories, a plain link, and a group of plain
+     * links. Returns the menu's ID.
+     */
+    public static function mega_menu(): int
+    {
+        $image   = self::image(self::MEGA_IMAGE_SLUG, true);
+        $content = '';
+
+        foreach (self::MEGA_GROUPS as $group => $categories) {
+            $content .= '<!-- wp:navigation-submenu ' . wp_json_encode(['label' => $group, 'url' => '#', 'kind' => 'custom']) . ' -->';
+
+            foreach ($categories as $name => $slug) {
+                $term = self::category($name, $slug);
+
+                if (self::MEGA_UNPICTURED !== $slug) {
+                    update_term_meta($term, CategoryImage::THUMBNAIL_META, $image);
+                }
+
+                $link     = get_term_link($term, self::CATEGORY_TAXONOMY);
+                $content .= '<!-- wp:navigation-link ' . wp_json_encode([
+                    'label' => $name,
+                    'type'  => self::CATEGORY_TAXONOMY,
+                    'id'    => $term,
+                    'url'   => \is_string($link) ? $link : '',
+                    'kind'  => 'taxonomy',
+                ]) . ' /-->';
+            }
+
+            $content .= '<!-- /wp:navigation-submenu -->';
+        }
+
+        $content .= '<!-- wp:navigation-link {"label":"Sale","url":"/shop/","kind":"custom"} /-->'
+            . '<!-- wp:navigation-submenu {"label":"Customer service","url":"#","kind":"custom"} -->'
+            . '<!-- wp:navigation-link {"label":"Contact","url":"/contact/","kind":"custom"} /-->'
+            . '<!-- /wp:navigation-submenu -->';
+
+        $existing = get_page_by_path(self::MEGA_MENU_SLUG, OBJECT, 'wp_navigation');
+        $menu     = wp_insert_post([
+            'ID'           => null === $existing ? 0 : $existing->ID,
+            'post_type'    => 'wp_navigation',
+            'post_name'    => self::MEGA_MENU_SLUG,
+            'post_title'   => 'Mega menu',
+            'post_status'  => 'publish',
+            'post_content' => $content,
+            // Older than any menu another spec saves, so core never falls back to it.
+            'post_date'    => self::MEGA_MENU_DATE,
+        ], true);
+
+        if ($menu instanceof WP_Error) {
+            throw new RuntimeException($menu->get_error_message());
+        }
+
+        return $menu;
     }
 
     /** The reduced product and its category gone again, so no other spec's lists show them. */

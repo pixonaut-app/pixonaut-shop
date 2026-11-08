@@ -27,12 +27,11 @@ final class HeaderVariantTest extends TestCase
         self::assertSame(HeaderVariant::SIMPLE, HeaderVariant::current());
     }
 
-    /** The mega menu's header is not built yet, so a store that asks for it gets the simple one. */
-    public function testAMegaHeaderIsSimpleUntilTheMegaHeaderExists(): void
+    public function testAMegaHeaderIsMega(): void
     {
         Functions\when('get_option')->justReturn('mega');
 
-        self::assertSame(HeaderVariant::SIMPLE, HeaderVariant::current());
+        self::assertSame(HeaderVariant::MEGA, HeaderVariant::current());
     }
 
     /**

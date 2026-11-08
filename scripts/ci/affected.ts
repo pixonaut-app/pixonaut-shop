@@ -121,8 +121,8 @@ export const PLUGIN_SPECS: readonly string[] = [
 	'product-page',
 ];
 
-/** What a change to the header's script can break: its search. */
-export const HEADER_SCRIPT_SPECS: readonly string[] = [ 'header' ];
+/** What a change to the header's scripts can break: its search and the mega header's menu. */
+export const HEADER_SCRIPT_SPECS: readonly string[] = [ 'header', 'mega-menu' ];
 
 /**
  * The specs each `inc/` entry can break. `'all'` wherever they cannot be
@@ -136,7 +136,8 @@ export const E2E_OWNERS: Readonly< Record< string, SpecSelection > > = {
 	// The shop and its category and tag archives, and the searches: how many
 	// products a page shows, and what an archive or a search without any
 	// shows instead.
-	'inc/Archive': [ 'search', 'shop' ],
+	// The category picture the mega header's menu shares with the categories block.
+	'inc/Archive': [ 'mega-menu', 'search', 'shop' ],
 	'inc/Assets': 'all',
 	// The block styles, which reach every page's global stylesheet, the
 	// menu heading, on every page's footer, and the theme's own blocks.
@@ -151,7 +152,7 @@ export const E2E_OWNERS: Readonly< Record< string, SpecSelection > > = {
 	'inc/Dependencies': 'all',
 	// Which template the homepage renders: the front page, or the posts list.
 	'inc/FrontPage': [ 'front-page' ],
-	// What loads the header search's script.
+	// What loads the header search's script, and the mega header's menu.
 	'inc/Header': HEADER_SCRIPT_SPECS,
 	'inc/I18n': 'all',
 	// What the order received page fills in when it renders: its pill.
@@ -187,7 +188,7 @@ export const SITE_WIDE_SPECS: readonly string[] = [
 /**
  * What a change to a template, part, pattern or translation can break: every
  * template opening in the Site Editor without invalid blocks, the front
- * page, the header's menu, the mini-cart drawer, the not-found page, the
+ * page, the header's menu and the mega header's, the mini-cart drawer, the not-found page, the
  * order received page, the product page, the searches, the shop, the cart
  * and the checkout, and the lowest price beside a reduced price.
  */
@@ -198,6 +199,7 @@ export const PAGE_SPECS: readonly string[] = [
 	'front-page',
 	'header',
 	'lowest-price',
+	'mega-menu',
 	'mini-cart',
 	'not-found',
 	'order-received',
@@ -210,7 +212,8 @@ export const PAGE_SPECS: readonly string[] = [
 
 /**
  * What a change to the styles can break: the pages the specs look at, the
- * header's menu collapsing at its breakpoint, the mini-cart drawer, and the
+ * header's menu collapsing at its breakpoint, the mega header's panel and
+ * drawer, the mini-cart drawer, and the
  * typeface and custom properties every page carries.
  */
 export const LOOK_SPECS: readonly string[] = [
@@ -221,6 +224,7 @@ export const LOOK_SPECS: readonly string[] = [
 	'front-page',
 	'header',
 	'lowest-price',
+	'mega-menu',
 	'mini-cart',
 	'not-found',
 	'order-received',
@@ -311,6 +315,13 @@ const RULES: readonly Rule[] = [
 		php: true,
 		integration: true,
 		e2e: PLUGIN_SPECS,
+	} ),
+	// The tests site's plugin that shows the mega header to the mega menu's
+	// spec alone.
+	rule( /^tests\/e2e\/mega-menu\.php$/, {
+		php: true,
+		integration: true,
+		e2e: [ 'mega-menu' ],
 	} ),
 	// Helpers the specs share: any spec may import one.
 	rule( /^tests\/e2e\/support\//, { js: true, e2e: 'all' } ),

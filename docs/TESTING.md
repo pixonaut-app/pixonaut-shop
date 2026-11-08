@@ -129,6 +129,19 @@ a price history in which it cost less before the reduction
 days before it under the reduced price on the product page and on its card,
 and among its cart line's details; it removes the product afterwards.
 
+`mega-menu.spec.ts` checks the mega header: the menu button opens the panel
+at its first group, a group shows its categories as tiles on hover and on
+focus, the arrow keys move between the groups, Tab stays in the open panel,
+Escape closes it and returns focus to the button, opening it moves nothing in
+the header's row, and on a phone the drawer opens a group under its button
+on a tap or Enter. Its menu is `ShopFixtures::mega_menu()`, saved under a
+name of its own. The header variant and the header's menu are each one for
+the whole site, so `tests/e2e/mega-menu.php`, mapped into the tests site's
+mu-plugins, shows the mega header with that menu only to a visitor carrying
+the `pixonaut_shop_tests_mega_menu` cookie, and the spec runs beside the
+specs of the simple header. `MegaMenuTest` renders the header with each
+variant.
+
 `blocks.spec.ts` inserts the theme's own blocks in a page and checks the
 product categories block shows a category made for the spec in the canvas,
 and the promises pattern its icons, headings and sentences, without invalid

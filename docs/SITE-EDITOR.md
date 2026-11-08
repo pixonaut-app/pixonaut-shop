@@ -36,8 +36,24 @@ store is Site Editor work:
   The Site Editor's preview shows core's fallback menu in a block until a
   menu is picked for it there, while the live site shows the named menu.
   Which header a store shows is the `pixonaut_shop_header` option, which
-  the tool that set up the store writes: `simple`, the one row, or `mega`.
-  Only the simple header exists so far, and a store set to `mega` shows it.
+  the tool that set up the store writes: `simple`, the one row with the
+  menu in it, or `mega`, where the menu button opens a panel built from the
+  same menu.
+- **Building the mega menu's groups** — in the header's menu
+  (`pixonaut-shop-header`), each top item is a group down the panel's
+  start: add a **Submenu** for each (Occasion, For whom, Gifts, Campaigns,
+  then Customer service, My account), in the order they should show. Inside
+  a submenu, add its items with **Add link** and search for the category:
+  an item picked from the product categories shows as a tile with the
+  category's picture (the one set under **Products → Categories**) and its
+  name. A category without a picture keeps an empty square. A group with no
+  category in it, such as Customer service, lists its links instead. Give
+  a submenu its own address to add an "All of …" link to the group; leave it
+  as `#` for none. A top item with nothing under it is a plain link among
+  the groups. Only the first level under a group shows: a submenu inside a
+  group is one item, without what it holds. On phones the same groups are a
+  drawer, each opening under its name. The Site Editor's preview shows the
+  menu as the simple header does; the panel shows on the site.
 - **The announcement part** (Patterns → Template parts → Announcement) —
   empty, so no bar shows. Insert the Announcement pattern into it and write
   the text; empty it again to remove the bar. While a campaign runs (the

@@ -267,6 +267,47 @@ each name up once per request, and again after a menu is saved or deleted. A
 block that already names a menu keeps it, and one whose menu is missing keeps
 core's fallback.
 
+### The mega header
+
+With the `pixonaut_shop_header` option at `mega`, the header's row is the
+menu button, the logo and title, then search, account and the mini-cart.
+`inc/Header/MegaMenu.php` prints the button and its panel in place of the
+header's navigation block, on `pre_render_block`, so core never renders the
+block there. The panel is built on the server from the same menu the simple
+header shows (the one `NamedMenus` finds, or the one picked for the block in
+the Site Editor): each top link or submenu of the menu is a group. A group's
+own links and submenus are its items; a submenu among them is one item, and
+what it holds is left out. Items picked as product categories (a navigation
+link of kind `taxonomy` and type `product_cat`) link to the category and show
+its picture, the term's `thumbnail_id` at `woocommerce_thumbnail`
+(`inc/Archive/CategoryImage.php`, shared with the product categories block),
+lazy and with its width, height and `sizes`. A group with any category among
+its items shows them all as tiles, a tile without a picture keeping an empty
+square; a group with none lists its items as links. A top item with nothing
+under it is a plain link among the groups, and a group whose own address is
+not `#` links to it as "All of …". Labels are printed as plain text. Without
+a menu, or with one holding no links, the block renders as core's navigation,
+as in the simple header.
+
+`src/header/mega-menu.ts` (built as `header-mega-menu`, loaded only with the
+panel) opens and closes it. The button carries `aria-expanded` and
+`aria-controls`; opening moves focus to the first group, Tab cycles through
+the panel and the button while it is open, Escape, a click on the scrim or the
+drawer's close button closes it and returns focus to the button. Each group
+is a button with `aria-expanded` over its items' `role="group"`. In the panel
+one group's items always show, switched on hover with a mouse, on focus and
+on click; the arrow keys, Home and End move between the groups. Below
+WordPress's 782px breakpoint the panel is a drawer from the start edge, where
+a tap or Enter opens a group's items under it and closes the others'. The
+stylesheet (`src/styles/_mega-menu.css`) tells the script which of the two
+the panel is through `--pixonaut-shop-mega-drawer`, so the breakpoint is
+written once. The panel fades in only without `prefers-reduced-motion`, and
+it opens over the page, so nothing in the header's row moves. The simple
+header prints none of this.
+
+The Site Editor renders the header's navigation block in the browser, so it
+shows the menu as the simple header does in either variant.
+
 ## Options other tools write
 
 Two options are a contract with the tools that set up a store, which write
@@ -277,7 +318,7 @@ Their names and shapes stay as they are.
 | --- | --- | --- | --- |
 | `pixonaut_shop_hero` | An array: `heading`, `text`, `button_label` and `button_url`, each a string, and `image_id`, an int, an image attachment's ID. | `inc/FrontPage/Hero.php` | The `pixonaut-shop/hero` pattern shows that heading, sentence, one button and picture, with no pill, in place of its placeholders. |
 | `pixonaut_shop_campaign` | An array: `text` and `url`, strings, and `starts` and `ends`, ISO 8601 dates in the site's time zone (`2026-11-27` or `2026-11-27T08:00:00`). | `inc/Campaign/CampaignBand.php` | While `starts <= now < ends`, a band with the text, linked to the address, takes the announcement part's place on every page. An address that is a reduced product's adds its lowest price of the last 30 days. |
-| `pixonaut_shop_header` | `simple` or `mega`; unset is `simple`. | `inc/Header/HeaderVariant.php` | Which header the store shows. Only `simple` is built, so `mega` shows the simple header until the mega menu's header exists. |
+| `pixonaut_shop_header` | `simple` or `mega`; unset is `simple`. | `inc/Header/HeaderVariant.php` | Which header the store shows: `simple`, the menu in the row, or `mega`, the menu button that opens the mega menu's panel. |
 
 The campaign band never shows without dates: a campaign missing either date,
 or holding one that is not a real date, or ending before it starts, is

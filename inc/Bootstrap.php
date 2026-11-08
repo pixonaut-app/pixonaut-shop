@@ -77,12 +77,15 @@ final class Bootstrap
 
     /**
      * The header's search, which keeps an empty field open rather than submit
-     * it, and the header's and footer's menus, each found by its name.
+     * it, the header's and footer's menus, each found by its name, and the
+     * mega header's panel in place of the header's menu.
      */
     private function register_header(): void
     {
+        $menus = new Header\NamedMenus();
         (new Header\HeaderSearch())->register();
-        (new Header\NamedMenus())->register();
+        $menus->register();
+        (new Header\MegaMenu($menus))->register();
     }
 
     /**

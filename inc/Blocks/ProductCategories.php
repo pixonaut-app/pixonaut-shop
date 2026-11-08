@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixonaut\Shop\Blocks;
 
+use Pixonaut\Shop\Archive\CategoryImage;
 use WP_Term;
 
 /**
@@ -42,12 +43,6 @@ final class ProductCategories
      * admin and Ajax, where the editor renders the block.
      */
     private const PRODUCT_COUNT_META = 'product_count_product_cat';
-
-    /** The term meta WooCommerce keeps a category's image in, as an attachment ID. */
-    private const THUMBNAIL_META = 'thumbnail_id';
-
-    /** WooCommerce's image size for a product card's picture. */
-    private const IMAGE_SIZE = 'woocommerce_thumbnail';
 
     /** The option naming the category WooCommerce files a product under when it has none. */
     private const DEFAULT_CATEGORY_OPTION = 'default_product_cat';
@@ -186,10 +181,7 @@ final class ProductCategories
                 continue;
             }
 
-            $image_id = get_term_meta($category->term_id, self::THUMBNAIL_META, true);
-            $image    = is_numeric($image_id)
-                ? wp_get_attachment_image((int) $image_id, self::IMAGE_SIZE, false, ['alt' => ''])
-                : '';
+            $image = CategoryImage::html($category->term_id);
 
             $tiles .= \sprintf(
                 '<li class="%1$s__tile"><a class="%1$s__link" href="%2$s">'
