@@ -33,12 +33,23 @@ final class CategoryLinks
         ];
     }
 
-    /** A section heading, or an empty string for no text. */
-    public static function heading(string $text, string $block_class): string
+    /**
+     * A section heading, or an empty string for no text.
+     *
+     * @param string $id An ID for what the heading names to point at; none when empty.
+     */
+    public static function heading(string $text, string $block_class, string $id = ''): string
     {
-        return '' === $text
-            ? ''
-            : \sprintf('<h2 class="wp-block-heading %s__heading">%s</h2>', $block_class, esc_html($text));
+        if ('' === $text) {
+            return '';
+        }
+
+        return \sprintf(
+            '<h2 class="wp-block-heading %s__heading"%s>%s</h2>',
+            $block_class,
+            '' === $id ? '' : ' id="' . esc_attr($id) . '"',
+            esc_html($text)
+        );
     }
 
     /**

@@ -24,6 +24,9 @@ final class CategoryCarousel
     /** The prefix of each row's ID, which its buttons name in `aria-controls`. */
     private const LIST_ID_PREFIX = 'pixonaut-shop-category-carousel-';
 
+    /** Added to the row's ID for its heading's, which names the row. */
+    private const HEADING_ID_SUFFIX = '-heading';
+
     /**
      * How wide the stylesheet draws a picture: the round's
      * `--pixonaut-shop-carousel-picture`, smaller below WordPress's 782px
@@ -68,19 +71,25 @@ final class CategoryCarousel
             return '';
         }
 
-        $id = wp_unique_id(self::LIST_ID_PREFIX);
+        $id         = wp_unique_id(self::LIST_ID_PREFIX);
+        $heading_id = $id . self::HEADING_ID_SUFFIX;
+        // The row is named by its heading, or plainly as categories without one.
+        $name = '' === $attributes['heading']
+            ? ' aria-label="' . esc_attr__('Categories', 'pixonaut-shop') . '"'
+            : ' aria-labelledby="' . esc_attr($heading_id) . '"';
 
         return \sprintf(
             '<div %1$s>%2$s<div class="%3$s__frame">'
-            . '<ul class="%3$s__list" id="%4$s">%5$s</ul>%6$s%7$s'
+            . '<ul class="%3$s__list" id="%4$s"%8$s>%5$s</ul>%6$s%7$s'
             . '</div></div>',
             get_block_wrapper_attributes(),
-            CategoryLinks::heading($attributes['heading'], self::BLOCK_CLASS),
+            CategoryLinks::heading($attributes['heading'], self::BLOCK_CLASS, $heading_id),
             self::BLOCK_CLASS,
             esc_attr($id),
             CategoryLinks::items($categories, self::BLOCK_CLASS, self::PICTURE_SIZES),
             $this->arrow('is-previous', $id, __('Previous categories', 'pixonaut-shop')),
-            $this->arrow('is-next', $id, __('Next categories', 'pixonaut-shop'))
+            $this->arrow('is-next', $id, __('Next categories', 'pixonaut-shop')),
+            $name
         );
     }
 

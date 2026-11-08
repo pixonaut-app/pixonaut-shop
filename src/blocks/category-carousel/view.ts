@@ -8,6 +8,8 @@
 
 const ROOT = '.wp-block-pixonaut-shop-category-carousel';
 const LIST = '.wp-block-pixonaut-shop-category-carousel__list';
+/** The row's last category's link. */
+const LINK = '.wp-block-pixonaut-shop-category-carousel__item:last-child a';
 const PREVIOUS = '.wp-block-pixonaut-shop-category-carousel__arrow.is-previous';
 const NEXT = '.wp-block-pixonaut-shop-category-carousel__arrow.is-next';
 
@@ -26,6 +28,11 @@ const RIGHT_TO_LEFT = 'rtl';
 
 /** Tells the stylesheet the arrows work, so the row's own scrollbar can go. */
 const ENHANCED_CLASS = 'is-enhanced';
+
+/** Smooth scrolling, or none where the visitor asked for reduced motion. */
+function motion(): ScrollBehavior {
+	return window.matchMedia( REDUCED_MOTION ).matches ? 'auto' : 'smooth';
+}
 
 function setUp( root: HTMLElement ): void {
 	const list = root.querySelector< HTMLElement >( LIST );
@@ -48,20 +55,49 @@ function setUp( root: HTMLElement ): void {
 		previous.hidden = overflow <= EDGE_SLACK || travelled <= EDGE_SLACK;
 		next.hidden = overflow <= EDGE_SLACK || travelled >= overflow - EDGE_SLACK;
 
-		// A press that reached the end hid the button it was on: keep focus on the other.
-		if ( hadFocus === next && next.hidden && ! previous.hidden ) {
-			previous.focus();
-		} else if ( hadFocus === previous && previous.hidden && ! next.hidden ) {
-			next.focus();
+		// A press that reached the end hid the button it was on: keep focus on the other. A
+		// wider row hides both: focus goes to the row's last category, not the page's start.
+		const hidden =
+			( hadFocus === next && next.hidden ) || ( hadFocus === previous && previous.hidden );
+		if ( hidden ) {
+			const other = hadFocus === next ? previous : next;
+			if ( ! other.hidden ) {
+				other.focus();
+			} else {
+				list.querySelector< HTMLElement >( LINK )?.focus();
+			}
 		}
 	};
 
 	const scroll = ( direction: number ): void => {
 		list.scrollBy( {
 			left: direction * forward() * list.clientWidth * PAGE_SHARE,
-			behavior: window.matchMedia( REDUCED_MOTION ).matches ? 'auto' : 'smooth',
+			behavior: motion(),
 		} );
 	};
+
+	// The browser scrolls a focused category into view only when it is out of the row, so one
+	// already in view could sit under an arrow. Here it is scrolled clear of the row's scroll
+	// padding, the arrows' room; `scrollIntoView()` cannot, since on a snapping row it goes to
+	// the category's snap position, which may be under an arrow again.
+	list.addEventListener( 'focusin', ( event ) => {
+		const item = ( event.target as HTMLElement ).closest( 'li' );
+		if ( ! item ) {
+			return;
+		}
+
+		const row = list.getBoundingClientRect();
+		const style = getComputedStyle( list );
+		const left = row.left + list.clientLeft + Number.parseFloat( style.scrollPaddingLeft );
+		const right =
+			row.left + list.clientLeft + list.clientWidth - Number.parseFloat( style.scrollPaddingRight );
+		const box = item.getBoundingClientRect();
+		const by = box.right > right ? box.right - right : Math.min( 0, box.left - left );
+
+		if ( by !== 0 ) {
+			list.scrollBy( { left: by, behavior: motion() } );
+		}
+	} );
 
 	previous.addEventListener( 'click', () => scroll( -1 ) );
 	next.addEventListener( 'click', () => scroll( 1 ) );

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-11-08T18:49:13+00:00\n"
+"POT-Creation-Date: 2026-11-08T19:11:53+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -141,11 +141,15 @@ msgstr "Använd valknappar"
 msgid "Text link"
 msgstr "Textlänk"
 
-#: inc/Blocks/CategoryCarousel.php:82
+#: inc/Blocks/CategoryCarousel.php:78
+msgid "Categories"
+msgstr "Kategorier"
+
+#: inc/Blocks/CategoryCarousel.php:90
 msgid "Previous categories"
 msgstr "Föregående kategorier"
 
-#: inc/Blocks/CategoryCarousel.php:83
+#: inc/Blocks/CategoryCarousel.php:91
 msgid "Next categories"
 msgstr "Fler kategorier"
 
@@ -479,39 +483,61 @@ msgstr "Dess underkategorier med produkter visas."
 msgid "Heading"
 msgstr "Rubrik"
 
-#: build/blocks/category-carousel/index.js:1
-#: build/blocks/group-tiles/index.js:1
-msgid "No subcategory here has products yet."
-msgstr "Ingen underkategori här har produkter än."
+#. translators: %s: a product category's slug.
+#: build/blocks/category-carousel/index.js:2
+#: build/blocks/group-tiles/index.js:2
+msgid "No category with the slug \"%s\" in this store."
+msgstr "Ingen kategori med kortnamnet \"%s\" i den här butiken."
 
-#: build/blocks/category-carousel/index.js:1
+#: build/blocks/category-carousel/index.js:2
 msgid "Top-level categories"
 msgstr "Kategorier på översta nivån"
 
-#: build/blocks/category-carousel/index.js:1
+#: build/blocks/category-carousel/index.js:2
+msgid "No category has products yet."
+msgstr "Ingen kategori har produkter än."
+
+#: build/blocks/category-carousel/index.js:2
+#: build/blocks/group-tiles/index.js:2
+msgid "No subcategory here has products yet."
+msgstr "Ingen underkategori här har produkter än."
+
+#: build/blocks/category-carousel/index.js:2
 msgid "Empty, the row has no heading."
 msgstr "Tom får raden ingen rubrik."
+
+#: build/blocks/category-carousel/index.js:2
+msgid "Category carousel"
+msgstr "Kategorikarusell"
+
+#: build/blocks/category-carousel/index.js:2
+msgid ""
+"Choose the category whose subcategories show in the row, or the top-level "
+"categories."
+msgstr "Välj kategorin vars underkategorier visas i raden, eller kategorierna på översta nivån."
 
 #: build/blocks/free-shipping-note/index.js:1
 msgid "Free shipping note"
 msgstr "Fraktfritt-meddelande"
 
-#: build/blocks/group-tiles/index.js:1
+#: build/blocks/group-tiles/index.js:2
 msgid "Choose a category"
 msgstr "Välj en kategori"
 
-#: build/blocks/group-tiles/index.js:1
+#: build/blocks/group-tiles/index.js:2
 msgid "Empty, the heading is the category's name."
 msgstr "Tom blir rubriken kategorins namn."
 
-#: build/blocks/group-tiles/index.js:1
+#: build/blocks/group-tiles/index.js:2
 msgid "Group tiles"
 msgstr "Grupprutor"
 
-#: build/blocks/group-tiles/index.js:1
+#: build/blocks/group-tiles/index.js:2
 msgid ""
 "Choose the category whose subcategories show as tiles, such as an occasion."
-msgstr "Välj kategorin vars underkategorier visas som rutor, till exempel ett tillfälle."
+msgstr ""
+"Välj kategorin vars underkategorier visas som rutor, till exempel ett "
+"tillfälle."
 
 #: build/blocks/icon/index.js:1
 msgctxt "icon"
@@ -644,7 +670,9 @@ msgctxt "block description"
 msgid ""
 "A scrolling row of round category pictures with their names: the "
 "subcategories of one product category, or the top-level categories."
-msgstr "En rullande rad med runda kategoribilder och deras namn: underkategorierna till en produktkategori, eller kategorierna på översta nivån."
+msgstr ""
+"En rullande rad med runda kategoribilder och deras namn: underkategorierna "
+"till en produktkategori, eller kategorierna på översta nivån."
 
 #: build/blocks/category-carousel/block.json
 #: build/blocks/group-tiles/block.json
@@ -691,7 +719,9 @@ msgctxt "block description"
 msgid ""
 "A heading and the subcategories of one product category, such as an occasion "
 "or who a gift is for, as picture tiles."
-msgstr "En rubrik och underkategorierna till en produktkategori, till exempel ett tillfälle eller vem en present är till, som bildrutor."
+msgstr ""
+"En rubrik och underkategorierna till en produktkategori, till exempel ett "
+"tillfälle eller vem en present är till, som bildrutor."
 
 #: build/blocks/group-tiles/block.json
 msgctxt "block keyword"

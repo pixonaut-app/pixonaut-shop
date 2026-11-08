@@ -110,14 +110,21 @@ the same in another, and the editor lists the store's categories, each
 under its parent, through the REST API's `product_cat` route.
 
 The carousel's row is a list that scrolls by itself (`overflow-x: auto`,
-`scroll-snap-type: x mandatory`), so touch, a trackpad and Tab work without
-script, and the browser scrolls a focused category into view. Its previous
+`scroll-snap-type: x proximity`), so touch, a trackpad and Tab work without
+script, and the browser scrolls a focused category into view. The row is a
+list named by its heading (`aria-labelledby`), or "Categories" without one.
+It keeps 4px around its pictures for a focused category's ring, which the
+scroller would otherwise clip, and scroll padding as wide as an arrow, so a
+category scrolled into view stops clear of the arrows; a category focused
+while already in view but under an arrow is scrolled clear by the script.
+Its previous
 and next buttons are printed with `hidden`, `aria-controls` naming the row,
 and an `aria-label` ("Previous categories", "Next categories"); the block's
 `viewScript` (`src/blocks/category-carousel/view.ts`) shows each while the
 row can scroll its way, scrolls by most of the row's width on a press
 (smoothly, or at once under `prefers-reduced-motion: reduce`), moves focus
-to the other button when the one pressed hides at an end, and hides the
+to the other button when the one pressed hides at an end (or to the row's
+last category when a wider row hides both), and hides the
 row's scrollbar once it runs. The row's ID comes from `wp_unique_id()`.
 
 The wordpress.org theme directory leaves blocks to plugins, so the build

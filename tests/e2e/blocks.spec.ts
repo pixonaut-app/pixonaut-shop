@@ -40,6 +40,9 @@ const PROMISE_COUNT = 4;
 const ROWS_GROUP_NAME = 'Carousel spec';
 const ROWS_FIRST_NAME = 'Carousel spec 1';
 
+/** A category slug no store has. */
+const UNKNOWN_SLUG = 'no-such-category';
+
 interface Created {
 	id: number;
 }
@@ -256,6 +259,47 @@ test.describe( "The theme's blocks", () => {
 			.selectOption( { label: ROWS_GROUP_NAME } );
 		await expect(
 			carousel.locator( '.wp-block-pixonaut-shop-category-carousel__name', {
+				hasText: new RegExp( `^${ ROWS_FIRST_NAME }$` ),
+			} ),
+		).toBeVisible();
+	} );
+
+	test( 'a category slug the store does not have says so in the editor and offers the picker', async ( {
+		admin,
+		page,
+		requestUtils,
+	} ) => {
+		wpEval( `${ TEST_SUPPORT }ShopFixtures::category_rows();` );
+
+		const { id } = await requestUtils.createPage( {
+			title: 'Unknown category',
+			status: 'draft',
+			content:
+				`<!-- wp:pixonaut-shop/group-tiles {"parent":"${ UNKNOWN_SLUG }"} /-->` +
+				`<!-- wp:pixonaut-shop/category-carousel {"parent":"${ UNKNOWN_SLUG }"} /-->`,
+		} );
+		made.push( `/wp/v2/pages/${ id }` );
+
+		await admin.editPost( id );
+
+		const canvas = page.frameLocator( EDITOR_CANVAS_IFRAME );
+
+		for ( const name of [ 'group-tiles', 'category-carousel' ] ) {
+			const block = canvas.locator( `[data-type="pixonaut-shop/${ name }"]` );
+
+			await expect(
+				block.getByText( `No category with the slug "${ UNKNOWN_SLUG }" in this store.` ),
+			).toBeVisible();
+			await expect( block.getByRole( 'combobox', { name: 'Category' } ) ).toBeVisible();
+		}
+
+		// Picking one shows its subcategories.
+		const tiles = canvas.locator( '[data-type="pixonaut-shop/group-tiles"]' );
+		await tiles
+			.getByRole( 'combobox', { name: 'Category' } )
+			.selectOption( { label: ROWS_GROUP_NAME } );
+		await expect(
+			tiles.locator( '.wp-block-pixonaut-shop-group-tiles__name', {
 				hasText: new RegExp( `^${ ROWS_FIRST_NAME }$` ),
 			} ),
 		).toBeVisible();

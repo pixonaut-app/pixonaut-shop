@@ -249,7 +249,8 @@ was saved with; the Site Editor's Reset brings the theme's back.
   subcategories of the category with that slug under its name;
   `"heading"` replaces the name. In the editor, pick the category in the
   block's placeholder or its sidebar. It renders nothing until a
-  subcategory has products.
+  subcategory has products. A slug the store does not have renders nothing
+  on the site; the editor says so and offers the picker.
 - **A row of categories is the Category carousel block**
   (`pixonaut-shop/category-carousel`): round pictures with names in one
   row that scrolls, with arrows on a computer. Without `parent` it shows

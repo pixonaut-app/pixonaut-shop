@@ -58,7 +58,7 @@ final class CategoryCarouselTest extends TestCase
 
         $html = $this->render_block(self::BLOCK, ['parent' => 'for-whom', 'heading' => 'Find a gift']);
 
-        self::assertMatchesRegularExpression('/<h2 class="[^"]*__heading[^"]*">Find a gift<\/h2>/', $html);
+        self::assertMatchesRegularExpression('/<h2 class="[^"]*__heading[^"]*"[^>]*>Find a gift<\/h2>/', $html);
         self::assertMatchesRegularExpression('/>For her<.*>For him</s', $html);
         self::assertStringNotContainsString('Mugs', $html);
     }
@@ -77,6 +77,27 @@ final class CategoryCarouselTest extends TestCase
                 $html
             );
         }
+    }
+
+    public function testTheRowIsNamedByItsHeading(): void
+    {
+        $this->category('Mugs', 1);
+
+        $html = $this->render_block(self::BLOCK, ['heading' => 'Find a gift']);
+
+        self::assertSame(1, preg_match('/<h2 class="[^"]*__heading[^"]*" id="([^"]+)">Find a gift</', $html, $heading));
+        self::assertMatchesRegularExpression('/<ul class="' . self::BLOCK_CLASS . '__list" id="[^"]+" aria-labelledby="' . preg_quote($heading[1], '/') . '"/', $html);
+        self::assertStringNotContainsString('aria-label="Categories"', $html);
+    }
+
+    public function testARowWithoutAHeadingIsNamedCategories(): void
+    {
+        $this->category('Mugs', 1);
+
+        self::assertMatchesRegularExpression(
+            '/<ul class="' . self::BLOCK_CLASS . '__list" id="[^"]+" aria-label="Categories"/',
+            $this->render_block(self::BLOCK)
+        );
     }
 
     public function testEachRenderHasItsOwnRowId(): void

@@ -1,9 +1,13 @@
 /*
- * One row of round category pictures, each on a soft `tint-1` round with
- * its name under it, that scrolls sideways and snaps to a category. The
- * arrows are circles on `base` at the row's edges, centred on the pictures;
- * the view script shows them while the row can scroll their way, and once
- * it runs (`is-enhanced`) the row's own scrollbar goes.
+ * One row of category pictures, each on a soft, slightly uneven blob of
+ * `tint-1` with its name under it, that scrolls sideways and snaps to a
+ * category it stops near. The arrows are circles on `base` at the row's edges, centred on
+ * the pictures; the view script shows them while the row can scroll their
+ * way, and once it runs (`is-enhanced`) the row's own scrollbar goes.
+ *
+ * The row keeps room around its pictures for a focused category's ring,
+ * which a scroller would otherwise clip, and scrolls a focused category
+ * clear of the arrows.
  *
  * Phones are WordPress's own breakpoint: below 782px, written as max-width
  * 781px. The pictures' widths here are the `sizes` in
@@ -12,6 +16,8 @@
 .wp-block-pixonaut-shop-category-carousel {
 	--pixonaut-shop-carousel-picture: 120px;
 	--pixonaut-shop-carousel-arrow: 2.75rem;
+	/* A focused category's ring: a 2px outline 2px away from its picture. */
+	--pixonaut-shop-carousel-ring: 4px;
 }
 
 @media ( max-width: 781px ) {
@@ -32,10 +38,20 @@
 	display: flex;
 	gap: var( --wp--preset--spacing--40 );
 	margin: 0;
-	padding: 0 0 var( --wp--preset--spacing--30 );
+	padding: var( --pixonaut-shop-carousel-ring ) var( --pixonaut-shop-carousel-ring )
+		var( --wp--preset--spacing--30 );
 	overflow-x: auto;
+	/* A category scrolled into view, by Tab or a snap, stops clear of the arrows. */
+	scroll-padding-inline: calc(
+		var( --pixonaut-shop-carousel-arrow ) +
+		var( --pixonaut-shop-carousel-ring )
+	);
 	overscroll-behavior-x: contain;
-	scroll-snap-type: x mandatory;
+	/*
+	 * Proximity, not mandatory: a mandatory snap pulls a category scrolled just clear of an
+	 * arrow back under it, to the nearest snap point.
+	 */
+	scroll-snap-type: x proximity;
 	list-style: none;
 }
 
@@ -71,21 +87,38 @@
 	text-decoration: none;
 }
 
-/* Round and slightly uneven, a soft blob; empty, it shows the ground. */
+/*
+ * A soft blob rather than a circle, each a little different so the row reads
+ * hand-made, on `tint-1`, which shows around a picture with a light ground
+ * and fills the shape where a category has none.
+ */
 .wp-block-pixonaut-shop-category-carousel__picture {
 	display: block;
 	width: var( --pixonaut-shop-carousel-picture );
 	overflow: hidden;
 	aspect-ratio: 1;
-	border-radius: 48% 52% 50% 50% / 52% 48% 52% 48%;
+	border-radius: 46% 54% 48% 52% / 55% 45% 55% 45%;
 	background: var( --wp--preset--color--tint-1 );
 }
 
+.wp-block-pixonaut-shop-category-carousel__item:nth-child( 3n + 2 )
+	.wp-block-pixonaut-shop-category-carousel__picture {
+	border-radius: 54% 46% 52% 48% / 46% 54% 47% 53%;
+}
+
+.wp-block-pixonaut-shop-category-carousel__item:nth-child( 3n )
+	.wp-block-pixonaut-shop-category-carousel__picture {
+	border-radius: 50% 50% 44% 56% / 52% 48% 56% 44%;
+}
+
+/* Inset a little, so the tint shows as a soft ground behind the picture. */
 .wp-block-pixonaut-shop-category-carousel__picture img {
 	display: block;
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
+	scale: 0.92;
+	border-radius: inherit;
 }
 
 .wp-block-pixonaut-shop-category-carousel__link:hover
@@ -94,7 +127,7 @@
 	text-decoration: underline;
 }
 
-/* The focus ring hugs the round, not the whole label. */
+/* The focus ring hugs the picture, not the whole label. */
 .wp-block-pixonaut-shop-category-carousel__link:focus-visible {
 	outline: none;
 }
@@ -108,7 +141,7 @@
 .wp-block-pixonaut-shop-category-carousel__arrow {
 	display: grid;
 	position: absolute;
-	top: calc( var( --pixonaut-shop-carousel-picture ) / 2 );
+	top: calc( var( --pixonaut-shop-carousel-ring ) + var( --pixonaut-shop-carousel-picture ) / 2 );
 	place-items: center;
 	width: var( --pixonaut-shop-carousel-arrow );
 	height: var( --pixonaut-shop-carousel-arrow );

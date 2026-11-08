@@ -1,12 +1,12 @@
 import { useBlockProps } from '@wordpress/block-editor';
-import { Placeholder } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import ServerSideRender from '@wordpress/server-side-render';
 import {
 	type CategoryAttributes,
 	CategoryControls,
-	CategoryPicker,
-	NoCategories,
+	CategoryPlaceholder,
+	emptyMessage,
+	useUnknownCategory,
 } from '../category-controls';
 import metadata from './block.json';
 
@@ -17,6 +17,7 @@ interface EditProps {
 
 export default function Edit( { attributes, setAttributes }: EditProps ) {
 	const noneLabel = __( 'Choose a category', 'pixonaut-shop' );
+	const unknown = useUnknownCategory( attributes.parent );
 
 	return (
 		<div { ...useBlockProps() }>
@@ -26,26 +27,25 @@ export default function Edit( { attributes, setAttributes }: EditProps ) {
 				noneLabel={ noneLabel }
 				headingHelp={ __( "Empty, the heading is the category's name.", 'pixonaut-shop' ) }
 			/>
-			{ '' === attributes.parent ? (
-				<Placeholder
+			{ '' === attributes.parent || unknown ? (
+				<CategoryPlaceholder
 					label={ __( 'Group tiles', 'pixonaut-shop' ) }
 					instructions={ __(
 						'Choose the category whose subcategories show as tiles, such as an occasion.',
 						'pixonaut-shop',
 					) }
-				>
-					<CategoryPicker
-						attributes={ attributes }
-						setAttributes={ setAttributes }
-						noneLabel={ noneLabel }
-					/>
-				</Placeholder>
+					attributes={ attributes }
+					setAttributes={ setAttributes }
+					noneLabel={ noneLabel }
+				/>
 			) : (
 				<ServerSideRender
 					block={ metadata.name }
 					attributes={ { ...attributes } }
 					skipBlockSupportAttributes
-					EmptyResponsePlaceholder={ NoCategories }
+					EmptyResponsePlaceholder={ emptyMessage(
+						__( 'No subcategory here has products yet.', 'pixonaut-shop' ),
+					) }
 				/>
 			) }
 		</div>

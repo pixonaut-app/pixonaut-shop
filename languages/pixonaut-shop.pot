@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-08T18:49:13+00:00\n"
+"POT-Creation-Date: 2026-11-08T19:11:53+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: pixonaut-shop\n"
@@ -133,11 +133,15 @@ msgstr ""
 msgid "Text link"
 msgstr ""
 
-#: inc/Blocks/CategoryCarousel.php:82
+#: inc/Blocks/CategoryCarousel.php:78
+msgid "Categories"
+msgstr ""
+
+#: inc/Blocks/CategoryCarousel.php:90
 msgid "Previous categories"
 msgstr ""
 
-#: inc/Blocks/CategoryCarousel.php:83
+#: inc/Blocks/CategoryCarousel.php:91
 msgid "Next categories"
 msgstr ""
 
@@ -456,36 +460,55 @@ msgstr ""
 msgid "Heading"
 msgstr ""
 
-#: build/blocks/category-carousel/index.js:1
-#: build/blocks/group-tiles/index.js:1
-msgid "No subcategory here has products yet."
+#. translators: %s: a product category's slug.
+#: build/blocks/category-carousel/index.js:2
+#: build/blocks/group-tiles/index.js:2
+#, js-format
+msgid "No category with the slug \"%s\" in this store."
 msgstr ""
 
-#: build/blocks/category-carousel/index.js:1
+#: build/blocks/category-carousel/index.js:2
 msgid "Top-level categories"
 msgstr ""
 
-#: build/blocks/category-carousel/index.js:1
+#: build/blocks/category-carousel/index.js:2
+msgid "No category has products yet."
+msgstr ""
+
+#: build/blocks/category-carousel/index.js:2
+#: build/blocks/group-tiles/index.js:2
+msgid "No subcategory here has products yet."
+msgstr ""
+
+#: build/blocks/category-carousel/index.js:2
 msgid "Empty, the row has no heading."
+msgstr ""
+
+#: build/blocks/category-carousel/index.js:2
+msgid "Category carousel"
+msgstr ""
+
+#: build/blocks/category-carousel/index.js:2
+msgid "Choose the category whose subcategories show in the row, or the top-level categories."
 msgstr ""
 
 #: build/blocks/free-shipping-note/index.js:1
 msgid "Free shipping note"
 msgstr ""
 
-#: build/blocks/group-tiles/index.js:1
+#: build/blocks/group-tiles/index.js:2
 msgid "Choose a category"
 msgstr ""
 
-#: build/blocks/group-tiles/index.js:1
+#: build/blocks/group-tiles/index.js:2
 msgid "Empty, the heading is the category's name."
 msgstr ""
 
-#: build/blocks/group-tiles/index.js:1
+#: build/blocks/group-tiles/index.js:2
 msgid "Group tiles"
 msgstr ""
 
-#: build/blocks/group-tiles/index.js:1
+#: build/blocks/group-tiles/index.js:2
 msgid "Choose the category whose subcategories show as tiles, such as an occasion."
 msgstr ""
 

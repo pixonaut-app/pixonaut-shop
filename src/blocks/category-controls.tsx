@@ -1,7 +1,7 @@
 import { InspectorControls } from '@wordpress/block-editor';
-import { PanelBody, SelectControl, TextControl } from '@wordpress/components';
+import { Notice, PanelBody, Placeholder, SelectControl, TextControl } from '@wordpress/components';
 import { useSelect } from '@wordpress/data';
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * The editor's controls the group tiles and the category carousel share: which category's
@@ -48,8 +48,14 @@ const ALL = -1;
 /** Before a subcategory's name, once per level below the top. */
 const LEVEL_MARK = '— ';
 
-/** Every product category, each under its parent and marked by its depth, in name order. */
-export function useCategoryOptions(): Option[] {
+interface CategoryOptions {
+	/** Every product category, each under its parent and marked by its depth, in name order. */
+	options: Option[];
+	/** Whether the store's categories have arrived from the REST API. */
+	loaded: boolean;
+}
+
+export function useCategoryOptions(): CategoryOptions {
 	const categories = useSelect(
 		( select ) =>
 			( select( 'core' ) as unknown as CoreSelectors ).getEntityRecords(
@@ -74,7 +80,18 @@ export function useCategoryOptions(): Option[] {
 	};
 	add( TOP_LEVEL, 0 );
 
-	return options;
+	return { options, loaded: categories !== null };
+}
+
+/**
+ * Whether the block names a category slug the store does not have, once the store's
+ * categories have loaded. The server renders nothing for one, which on its own would read as
+ * a category without products.
+ */
+export function useUnknownCategory( slug: string ): boolean {
+	const { options, loaded } = useCategoryOptions();
+
+	return loaded && slug !== '' && ! options.some( ( option ) => option.value === slug );
 }
 
 interface CategoryControlsProps {
@@ -92,7 +109,7 @@ export function CategoryPicker( {
 	setAttributes,
 	noneLabel,
 }: Omit< CategoryControlsProps, 'headingHelp' > ) {
-	const options = useCategoryOptions();
+	const { options } = useCategoryOptions();
 
 	return (
 		<SelectControl
@@ -125,7 +142,41 @@ export function CategoryControls( props: CategoryControlsProps ) {
 	);
 }
 
-/** What the editor shows where the server renders nothing. */
-export function NoCategories() {
-	return <p>{ __( 'No subcategory here has products yet.', 'pixonaut-shop' ) }</p>;
+/** What the editor shows where the server renders nothing: a sentence true for the block. */
+export function emptyMessage( message: string ) {
+	return function Empty() {
+		return <p>{ message }</p>;
+	};
+}
+
+interface CategoryPlaceholderProps extends Omit< CategoryControlsProps, 'headingHelp' > {
+	label: string;
+	instructions: string;
+}
+
+/**
+ * The block's placeholder with the category picker: before a category is chosen, or when the
+ * one chosen is not the store's, which it then says.
+ */
+export function CategoryPlaceholder( {
+	label,
+	instructions,
+	...picker
+}: CategoryPlaceholderProps ) {
+	const unknown = useUnknownCategory( picker.attributes.parent );
+
+	return (
+		<Placeholder label={ label } instructions={ instructions }>
+			{ unknown && (
+				<Notice status="warning" isDismissible={ false }>
+					{ sprintf(
+						/* translators: %s: a product category's slug. */
+						__( 'No category with the slug "%s" in this store.', 'pixonaut-shop' ),
+						picker.attributes.parent,
+					) }
+				</Notice>
+			) }
+			<CategoryPicker { ...picker } />
+		</Placeholder>
+	);
 }
