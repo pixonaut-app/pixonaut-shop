@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.2.0...v1.3.0) (2026-11-08)
+
+
+### Features
+
+* a mega menu and category blocks for stores with many products ([#9](https://github.com/pixonaut-app/pixonaut-shop/issues/9)) ([c961750](https://github.com/pixonaut-app/pixonaut-shop/commit/c961750d58121d997bcb5d8a302b56a955d4b03d))
+
 ## [1.2.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.1.0...v1.2.0) (2026-11-08)
 
 
