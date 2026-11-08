@@ -56,6 +56,12 @@ final class MegaMenu
 
     private const PUBLISHED = 'publish';
 
+    /** The `kind` of a navigation link picked as a page or post. */
+    private const POST_TYPE_KIND = 'post-type';
+
+    /** What a link that opens in a new tab adds to its `rel`, so the new page cannot reach this one. */
+    private const NEW_TAB_REL = 'noopener';
+
     /** How a navigation link names a product category it was picked as. */
     private const TAXONOMY_KIND = 'taxonomy';
 
@@ -144,7 +150,7 @@ final class MegaMenu
      *
      * @param array<mixed> $blocks
      *
-     * @return list<array{label: string, url: string, children: list<array{label: string, url: string, category: bool, image: string}>}>
+     * @return list<array{label: string, url: string, extra: string, children: list<array{label: string, url: string, extra: string, category: bool, image: string}>}>
      */
     private static function groups(array $blocks): array
     {
@@ -162,7 +168,12 @@ final class MegaMenu
         return array_map(static fn (array $group): array => [
             'label' => $group['item']['label'],
             'url' => $group['item']['url'],
-            'children' => array_map(self::child(...), $group['children']),
+            'extra' => $group['item']['extra'],
+            // An item without an address is no link, so it is left out.
+            'children' => array_values(array_filter(
+                array_map(self::child(...), $group['children']),
+                static fn (array $child): bool => '' !== $child['url']
+            )),
         ], $groups);
     }
 
@@ -188,7 +199,7 @@ final class MegaMenu
     /**
      * The term ID of a product category the item was picked as, or 0.
      *
-     * @param array{label: string, url: string, block: array<mixed>} $item
+     * @param array{label: string, url: string, extra: string, block: array<mixed>} $item
      */
     private static function category_id(array $item): int
     {
@@ -207,7 +218,7 @@ final class MegaMenu
      *
      * @param mixed $blocks
      *
-     * @return list<array{label: string, url: string, block: array<mixed>}>
+     * @return list<array{label: string, url: string, extra: string, block: array<mixed>}>
      */
     private static function items(mixed $blocks): array
     {
@@ -221,12 +232,17 @@ final class MegaMenu
             $attributes = \is_array($block['attrs'] ?? null) ? $block['attrs'] : [];
             $label      = self::text($attributes['label'] ?? '');
 
-            if ('' === $label) {
+            if ('' === $label || ! self::is_published($attributes)) {
                 continue;
             }
 
             $url     = $attributes['url'] ?? '';
-            $items[] = ['label' => $label, 'url' => \is_string($url) ? $url : '', 'block' => $block];
+            $items[] = [
+                'label' => $label,
+                'url' => \is_string($url) ? $url : '',
+                'extra' => self::link_attributes($attributes),
+                'block' => $block,
+            ];
         }
 
         return $items;
@@ -236,9 +252,9 @@ final class MegaMenu
      * A group's item, with the category's own address and picture when it
      * was picked as a product category.
      *
-     * @param array{label: string, url: string, block: array<mixed>} $item
+     * @param array{label: string, url: string, extra: string, block: array<mixed>} $item
      *
-     * @return array{label: string, url: string, category: bool, image: string}
+     * @return array{label: string, url: string, extra: string, category: bool, image: string}
      */
     private static function child(array $item): array
     {
@@ -246,12 +262,13 @@ final class MegaMenu
         $link = 0 === $term ? null : get_term_link($term, self::CATEGORY_TAXONOMY);
 
         if (! \is_string($link)) {
-            return ['label' => $item['label'], 'url' => $item['url'], 'category' => false, 'image' => ''];
+            return ['label' => $item['label'], 'url' => $item['url'], 'extra' => $item['extra'], 'category' => false, 'image' => ''];
         }
 
         return [
             'label' => $item['label'],
             'url' => $link,
+            'extra' => $item['extra'],
             'category' => true,
             'image' => CategoryImage::html($term, [
                 'loading' => 'lazy',
@@ -261,6 +278,80 @@ final class MegaMenu
         ];
     }
 
+    /**
+     * Whether the link's page or post is published, as core's navigation
+     * link block asks: a link to a draft, a private or a deleted page is left
+     * out. A link not picked as one always is.
+     *
+     * @param array<mixed> $attributes
+     */
+    private static function is_published(array $attributes): bool
+    {
+        $id = $attributes['id'] ?? null;
+
+        return self::POST_TYPE_KIND !== ($attributes['kind'] ?? null)
+            || ! \is_int($id)
+            || self::PUBLISHED === get_post_status($id);
+    }
+
+    /**
+     * The link's `target` and `rel` as the store set them, escaped, each
+     * with a space before it: a link that opens in a new tab also gets
+     * `noopener`.
+     *
+     * @param array<mixed> $attributes
+     */
+    private static function link_attributes(array $attributes): string
+    {
+        $new_tab = true === ($attributes['opensInNewTab'] ?? null);
+        $rel     = \is_string($attributes['rel'] ?? null) ? preg_split('/\s+/', trim($attributes['rel'])) : [];
+        $rel     = array_values(array_unique(array_filter(array_merge(
+            false === $rel ? [] : $rel,
+            $new_tab ? [self::NEW_TAB_REL] : []
+        ))));
+
+        return ($new_tab ? ' target="_blank"' : '')
+            . ([] === $rel ? '' : ' rel="' . esc_attr(implode(' ', $rel)) . '"');
+    }
+
+    /**
+     * A link's `href`, its other attributes, and `aria-current` when it is
+     * the address of the page shown.
+     */
+    private static function href(string $url, string $extra): string
+    {
+        return 'href="' . esc_url($url) . '"' . $extra . (self::is_current($url) ? ' aria-current="page"' : '');
+    }
+
+    /**
+     * Whether the address is the page shown: this site's, with the path of
+     * the request, its query and fragment aside.
+     */
+    private static function is_current(string $url): bool
+    {
+        $wp      = $GLOBALS['wp'] ?? null;
+        $request = \is_object($wp) && isset($wp->request) ? $wp->request : null;
+
+        if (! \is_string($request) || '' === $url || self::NO_ADDRESS === $url) {
+            return false;
+        }
+
+        $home = wp_parse_url(home_url('/'));
+        $link = wp_parse_url($url);
+
+        if (! \is_array($home) || ! \is_array($link)) {
+            return false;
+        }
+
+        if (isset($link['host']) ? $link['host'] !== ($home['host'] ?? null) : ! str_starts_with($url, '/')) {
+            return false;
+        }
+
+        $base = trim($home['path'] ?? '', '/');
+
+        return trim($link['path'] ?? '', '/') === trim(('' === $base ? '' : $base . '/') . $request, '/');
+    }
+
     /** A label as plain text: a menu item's label may hold formatting. */
     private static function text(mixed $label): string
     {
@@ -268,7 +359,7 @@ final class MegaMenu
     }
 
     /**
-     * @param non-empty-list<array{label: string, url: string, children: list<array{label: string, url: string, category: bool, image: string}>}> $groups
+     * @param non-empty-list<array{label: string, url: string, extra: string, children: list<array{label: string, url: string, extra: string, category: bool, image: string}>}> $groups
      */
     private static function panel(array $groups): string
     {
@@ -281,11 +372,11 @@ final class MegaMenu
             if ([] !== $group['children']) {
                 $rows .= self::group($group);
                 ++$count;
-            } elseif ('' !== $group['url']) {
+            } elseif ('' !== $group['url'] && self::NO_ADDRESS !== $group['url']) {
                 $rows .= \sprintf(
-                    '<a class="%s__group" href="%s">%s</a>',
+                    '<a class="%s__group" %s>%s</a>',
                     self::CLASS_NAME,
-                    esc_url($group['url']),
+                    self::href($group['url'], $group['extra']),
                     esc_html($group['label'])
                 );
                 ++$count;
@@ -319,7 +410,7 @@ final class MegaMenu
      * A group's button, and its items after it. Every group is open until
      * the script picks one, so the panel lists them all without it.
      *
-     * @param array{label: string, url: string, children: list<array{label: string, url: string, category: bool, image: string}>} $group
+     * @param array{label: string, url: string, extra: string, children: list<array{label: string, url: string, extra: string, category: bool, image: string}>} $group
      */
     private static function group(array $group): string
     {
@@ -354,7 +445,7 @@ final class MegaMenu
     /**
      * Tiles when any item is a product category, otherwise a list of links.
      *
-     * @param list<array{label: string, url: string, category: bool, image: string}> $children
+     * @param list<array{label: string, url: string, extra: string, category: bool, image: string}> $children
      */
     private static function children(array $children): string
     {
@@ -364,14 +455,14 @@ final class MegaMenu
         foreach ($children as $child) {
             $items .= $tiles
                 ? \sprintf(
-                    '<li><a class="%1$s__tile" href="%2$s"><span class="%1$s__picture%3$s">%4$s</span><span class="%1$s__name">%5$s</span></a></li>',
+                    '<li><a class="%1$s__tile" %2$s><span class="%1$s__picture%3$s">%4$s</span><span class="%1$s__name">%5$s</span></a></li>',
                     self::CLASS_NAME,
-                    esc_url($child['url']),
+                    self::href($child['url'], $child['extra']),
                     '' === $child['image'] ? ' is-empty' : '',
                     $child['image'],
                     esc_html($child['label'])
                 )
-                : \sprintf('<li><a href="%s">%s</a></li>', esc_url($child['url']), esc_html($child['label']));
+                : \sprintf('<li><a %s>%s</a></li>', self::href($child['url'], $child['extra']), esc_html($child['label']));
         }
 
         return \sprintf('<ul class="%s__%s">%s</ul>', self::CLASS_NAME, $tiles ? 'tiles' : 'links', $items);

@@ -11,13 +11,18 @@
  * in it, and on closing, focus goes back to the menu button. The stylesheet
  * says which of the two the panel is (`--pixonaut-shop-mega-drawer`), so the
  * breakpoint is written once, in `src/styles/_mega-menu.css`.
+ *
+ * A browser without the Popover API opens nothing by itself; there this script opens and
+ * closes the panel (`mega-menu-panel.ts`), from the button, the close button and Escape.
  */
 
 import { groupStep, trapStep } from './mega-menu-keys.ts';
+import { controlPanel, supportsPopover } from './mega-menu-panel.ts';
 
 const ROOT = '.pixonaut-shop-mega';
 const TOGGLE = '.pixonaut-shop-mega__toggle';
 const PANEL = '.pixonaut-shop-mega__panel';
+const CLOSE = '.pixonaut-shop-mega__close';
 /** The groups' buttons and the plain links among them, in the menu's order. */
 const GROUPS = '.pixonaut-shop-mega__group';
 const FOCUSABLE = 'a[href], button:not([disabled])';
@@ -38,7 +43,7 @@ const ANCHORING = 'anchor-name: --pixonaut-shop-mega';
 /** The class on `<html>` while the panel is open, which stops the page scrolling under the drawer. */
 const OPEN_CLASS = 'pixonaut-shop-mega-is-open';
 
-const OPEN = 'open';
+const ESCAPE = 'Escape';
 const MOUSE = 'mouse';
 
 function setUp( root: HTMLElement ): void {
@@ -56,8 +61,6 @@ function setUp( root: HTMLElement ): void {
 
 	const isDrawer = (): boolean =>
 		getComputedStyle( root ).getPropertyValue( DRAWER_PROPERTY ).trim() === DRAWER;
-	const isOpen = (): boolean => panel.matches( ':popover-open' );
-
 	const itemsOf = ( button: HTMLButtonElement ): HTMLElement | null =>
 		document.getElementById( button.getAttribute( 'aria-controls' ) ?? '' );
 
@@ -92,9 +95,7 @@ function setUp( root: HTMLElement ): void {
 	toggle.setAttribute( 'aria-expanded', 'false' );
 	show( isDrawer() ? null : ( buttons[ 0 ] ?? null ) );
 
-	panel.addEventListener( 'toggle', ( event ) => {
-		const opened = ( event as ToggleEvent ).newState === OPEN;
-
+	const changed = ( opened: boolean ): void => {
 		toggle.setAttribute( 'aria-expanded', String( opened ) );
 		document.documentElement.classList.toggle( OPEN_CLASS, opened );
 
@@ -115,7 +116,15 @@ function setUp( root: HTMLElement ): void {
 		if ( ! active || active === document.body || panel.contains( active ) ) {
 			toggle.focus();
 		}
-	} );
+	};
+
+	const popover = supportsPopover( HTMLElement.prototype );
+	const control = controlPanel(
+		{ panel, toggle, closers: [ ...panel.querySelectorAll< HTMLElement >( CLOSE ) ] },
+		popover,
+		changed,
+	);
+	const isOpen = (): boolean => control.isOpen();
 
 	for ( const button of buttons ) {
 		button.addEventListener( 'click', () => {
@@ -139,6 +148,12 @@ function setUp( root: HTMLElement ): void {
 
 	document.addEventListener( 'keydown', ( event ) => {
 		if ( ! isOpen() ) {
+			return;
+		}
+
+		// The browser closes a popover on Escape; without one, this does.
+		if ( event.key === ESCAPE && ! popover ) {
+			control.close();
 			return;
 		}
 

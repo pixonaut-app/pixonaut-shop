@@ -89,7 +89,7 @@ suite tests without WordPress.
 | --- | --- | --- |
 | `pixonaut-shop/product-categories` | `Blocks\ProductCategories` | The store's top-level product categories with products, by product count or the store's category order, as tiles (picture, name, count) or outline buttons. WooCommerce's default category is left out; nothing renders without a category. |
 | `pixonaut-shop/group-tiles` | `Blocks\GroupTiles` | A heading, then the subcategories with products of the category chosen for it (`parent`, a slug), in the store's category order, as picture tiles (picture, name). The heading is the category's name unless one is chosen. Nothing renders without a chosen category, for a slug the store does not have, or without a subcategory that has products, so no heading stands alone. |
-| `pixonaut-shop/category-carousel` | `Blocks\CategoryCarousel` | An optional heading, then one row of round category pictures with their names, scrolling sideways: the subcategories of the chosen category, or the top-level categories without one. Its view script shows the arrows (below). Nothing renders without a category to show. |
+| `pixonaut-shop/category-carousel` | `Blocks\CategoryCarousel` | An optional heading, then one row of soft-shaped category pictures with their names, scrolling sideways: the subcategories of the chosen category, or the top-level categories without one. Its view script shows the arrows (below). Nothing renders without a category to show. |
 | `pixonaut-shop/icon` | `Blocks\Icons` | One line icon from a fixed set, in `currentColor`, optionally in a circle. A name is saved in the block, so it never changes. |
 | `pixonaut-shop/free-shipping-note` | `Blocks\FreeShippingNote` | How much more the cart needs for free shipping, or that shipping is free, from the free-shipping method of the zone the cart ships to; nothing without one that has a minimum. Placed only inside the mini-cart. |
 
@@ -321,7 +321,12 @@ lazy and with its width, height and `sizes`. A group with any category among
 its items shows them all as tiles, a tile without a picture keeping an empty
 square; a group with none lists its items as links. A top item with nothing
 under it is a plain link among the groups, and a group whose own address is
-not `#` links to it as "All of …". Labels are printed as plain text. Without
+not `#` links to it as "All of …". Labels are printed as plain text. Links
+follow core's navigation link block: a link picked as a page or post that
+is not published is left out, `opensInNewTab` prints `target="_blank"` (and
+adds `noopener` to the link's own `rel`, which is kept), the link to the
+page shown carries `aria-current="page"`, and an item without an address
+is left out rather than printed with an empty `href`. Without
 a menu, or with one holding no links, the block renders as core's navigation,
 as in the simple header.
 
@@ -330,6 +335,14 @@ loaded together (`_prime_term_caches()`, `update_termmeta_cache()`), then
 their pictures' attachments (`_prime_post_caches()`), before any item reads
 them. Its IDs come from `wp_unique_id()`, so `aria-controls` and
 `popovertarget` stay right if the header renders twice on a page.
+
+A browser without the Popover API (Safari before 17) ignores `popover` and
+`popovertarget`, and throws on `:popover-open`. There the stylesheet hides
+the panel (`@supports not selector(:popover-open)`) until the script
+(`src/header/mega-menu-panel.ts`, which checks `'popover' in
+HTMLElement.prototype`) opens it with the `is-open` class and sets the
+button's `aria-expanded`; the close button and Escape close it. Without
+the script as well, the button does nothing there.
 
 The menu is a `<nav>` named "Main menu". The panel is a popover
 (`popover` on the panel, `popovertarget` on the button and on the drawer's

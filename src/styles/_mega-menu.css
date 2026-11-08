@@ -55,9 +55,32 @@
  * The popover sits in the top layer, over the page and the header. Under
  * the row where the browser anchors it there; elsewhere, at the top its
  * script measures, under the header, across the window.
+ *
+ * A browser without the Popover API (Safari before 17) ignores `popover`,
+ * so the panel would show, fixed over the page, from the start. There it is
+ * hidden until the script opens it (`.is-open`), and only then fixed, in
+ * the same place, over the page by its z-index instead of the top layer.
  */
+@supports selector( :popover-open ) {
+	.pixonaut-shop-mega__panel {
+		position: fixed;
+	}
+}
+
+@supports not selector( :popover-open ) {
+	.pixonaut-shop-mega__panel:not( .is-open ) {
+		display: none;
+	}
+
+	.pixonaut-shop-mega__panel.is-open {
+		position: fixed;
+		/* Above WordPress's admin bar (99999), as the top layer would be. */
+		z-index: 100000;
+	}
+}
+
+/* Where the panel goes once it is fixed; the drawer's query below moves it. */
 .pixonaut-shop-mega__panel {
-	position: fixed;
 	inset: auto;
 	top: calc( var( --pixonaut-shop-mega-top, 0px ) + var( --wp--preset--spacing--20 ) );
 	right: var( --wp--preset--spacing--50 );

@@ -38,6 +38,11 @@ final class MegaMenuTest extends TestCase
 
     private const SHOP_URL = 'https://shop.test';
 
+    /** Pages a menu links to: one not published, one published. */
+    private const DRAFT_PAGE = 500;
+
+    private const PUBLISHED_PAGE = 501;
+
     private const BUILT_THEME = __DIR__ . '/fixtures/built';
 
     private const UNBUILT_THEME = __DIR__ . '/fixtures/unbuilt';
@@ -86,8 +91,95 @@ final class MegaMenuTest extends TestCase
 
             return "<img data-id=\"{$id}\" data-size=\"{$size}\" data-attributes='" . json_encode($attributes) . "'>";
         });
+        Functions\when('home_url')->alias(static fn (string $path = ''): string => self::SHOP_URL . $path);
+        Functions\when('wp_parse_url')->alias(static fn (string $url): array|false => parse_url($url));
         $this->theme(self::UNBUILT_THEME);
         $this->menus[self::MENU_ID] = self::sample_menu();
+    }
+
+    protected function tearDown(): void
+    {
+        unset($GLOBALS['wp']);
+        parent::tearDown();
+    }
+
+    public function testLeavesOutALinkToAPostThatIsNotPublished(): void
+    {
+        $this->header(HeaderVariant::MEGA);
+        $help = [
+            self::post_link('Draft page', self::DRAFT_PAGE),
+            self::post_link('About us', self::PUBLISHED_PAGE),
+        ];
+        $this->menus[self::MENU_ID] = [self::submenu('Help', '#', $help)];
+        Functions\when('get_post_status')->alias(fn (int $id): string|false => match (true) {
+            isset($this->menus[$id]), self::PUBLISHED_PAGE === $id => 'publish',
+            self::DRAFT_PAGE === $id => 'draft',
+            default => false,
+        });
+
+        $html = (string) self::render(self::header_block());
+
+        self::assertStringNotContainsString('Draft page', $html);
+        self::assertStringContainsString('>About us</a>', $html);
+    }
+
+    public function testALinkOpensInANewTabWithItsRelAsTheStoreChose(): void
+    {
+        $this->header(HeaderVariant::MEGA);
+        $help = [
+            self::link('Blog', self::SHOP_URL . '/blog/', ['opensInNewTab' => true, 'rel' => 'nofollow']),
+            self::link('Returns', self::SHOP_URL . '/returns/', ['rel' => 'help']),
+        ];
+        $this->menus[self::MENU_ID] = [self::submenu('Help', '#', $help)];
+
+        $html = (string) self::render(self::header_block());
+
+        self::assertStringContainsString('<a href="https://shop.test/blog/" target="_blank" rel="nofollow noopener">Blog</a>', $html);
+        self::assertStringContainsString('<a href="https://shop.test/returns/" rel="help">Returns</a>', $html);
+    }
+
+    public function testMarksTheLinkToTheCurrentPage(): void
+    {
+        $this->header(HeaderVariant::MEGA);
+        self::request('contact');
+
+        $html = (string) self::render(self::header_block());
+
+        self::assertStringContainsString('<a href="https://shop.test/contact/" aria-current="page">Contact</a>', $html);
+        self::assertSame(1, substr_count($html, 'aria-current'));
+    }
+
+    public function testMarksTheCurrentCategorysTileAndATopLink(): void
+    {
+        $this->header(HeaderVariant::MEGA);
+        self::request('product-category/' . self::BIRTHDAY);
+
+        self::assertMatchesRegularExpression(
+            '/<a class="pixonaut-shop-mega__tile" href="https:\/\/shop.test\/product-category\/' . self::BIRTHDAY . '\/" aria-current="page">/',
+            (string) self::render(self::header_block())
+        );
+
+        self::request('sale');
+        self::assertStringContainsString(
+            '<a class="pixonaut-shop-mega__group" href="https://shop.test/sale/" aria-current="page">Sale</a>',
+            (string) self::render(self::header_block())
+        );
+    }
+
+    public function testLeavesOutAnItemWithoutAnAddress(): void
+    {
+        $this->header(HeaderVariant::MEGA);
+        $help = [
+            self::link('Nowhere', ''),
+            self::link('Contact', '/contact/'),
+        ];
+        $this->menus[self::MENU_ID] = [self::submenu('Help', '#', $help)];
+
+        $html = (string) self::render(self::header_block());
+
+        self::assertStringNotContainsString('href=""', $html);
+        self::assertStringNotContainsString('Nowhere', $html);
+        self::assertStringContainsString('>Contact</a>', $html);
     }
 
     public function testRegistersBeforeABlockRenders(): void
@@ -322,6 +414,13 @@ final class MegaMenuTest extends TestCase
         self::assertSame([MegaMenu::SCRIPT_HANDLE], $handles->getArrayCopy());
     }
 
+    /** The path of the page shown, as core's `$wp` holds it. */
+    private static function request(string $path): void
+    {
+        // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- a test sets what a request would.
+        $GLOBALS['wp'] = (object) ['request' => $path];
+    }
+
     /**
      * @param array<string, mixed> $block
      */
@@ -411,9 +510,28 @@ final class MegaMenuTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    private static function link(string $label, string $url): array
+    /**
+     * @param array<string, mixed> $more More of the link's attributes, such as `opensInNewTab`.
+     *
+     * @return array<string, mixed>
+     */
+    private static function link(string $label, string $url, array $more = []): array
     {
-        return ['blockName' => 'core/navigation-link', 'attrs' => ['label' => $label, 'url' => $url, 'kind' => 'custom'], 'innerBlocks' => []];
+        return ['blockName' => 'core/navigation-link', 'attrs' => ['label' => $label, 'url' => $url, 'kind' => 'custom'] + $more, 'innerBlocks' => []];
+    }
+
+    /**
+     * A link picked as a page.
+     *
+     * @return array<string, mixed>
+     */
+    private static function post_link(string $label, int $id): array
+    {
+        return [
+            'blockName' => 'core/navigation-link',
+            'attrs' => ['label' => $label, 'url' => self::SHOP_URL . "/?page_id={$id}", 'kind' => 'post-type', 'type' => 'page', 'id' => $id],
+            'innerBlocks' => [],
+        ];
     }
 
     /**
