@@ -21,6 +21,7 @@ final class Bootstrap
         $this->register_assets();
         $this->register_blocks();
         $this->register_header();
+        $this->register_campaign();
         $this->register_content();
         $this->register_archive();
         $this->register_front_page();
@@ -80,6 +81,12 @@ final class Bootstrap
     {
         (new Header\HeaderSearch())->register();
         (new Header\NamedMenus())->register();
+    }
+
+    /** The campaign band, in the announcement part while the store's campaign runs. */
+    private function register_campaign(): void
+    {
+        (new Campaign\CampaignBand())->register();
     }
 
     private function register_content(): void

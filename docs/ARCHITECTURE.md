@@ -213,7 +213,19 @@ Their names and shapes stay as they are.
 | Option | Shape | Read by | Effect |
 | --- | --- | --- | --- |
 | `pixonaut_shop_hero` | An array: `heading`, `text`, `button_label` and `button_url`, each a string, and `image_id`, an int, an image attachment's ID. | `inc/FrontPage/Hero.php` | The `pixonaut-shop/hero` pattern shows that heading, sentence, one button and picture, with no pill, in place of its placeholders. |
+| `pixonaut_shop_campaign` | An array: `text` and `url`, strings, and `starts` and `ends`, ISO 8601 dates in the site's time zone (`2026-11-27` or `2026-11-27T08:00:00`). | `inc/Campaign/CampaignBand.php` | While `starts <= now < ends`, a band with the text, linked to the address, takes the announcement part's place on every page. |
 | `pixonaut_shop_header` | `simple` or `mega`; unset is `simple`. | `inc/Header/HeaderVariant.php` | Which header the store shows. Only `simple` is built, so `mega` shows the simple header until the mega menu's header exists. |
+
+The campaign band never shows without dates: a campaign missing either date,
+or holding one that is not a real date, or ending before it starts, is
+hidden, so one prepared ahead stays hidden until its owner sets its dates.
+`CampaignBand` filters the announcement `core/template-part` block's output,
+reads WordPress's clock in the site's time zone (`current_datetime()`) and
+prints the same group the announcement pattern holds, with the text escaped
+for HTML and the address as a URL (an address WordPress rejects leaves the
+text without a link). Outside the dates, the part shows what the store wrote
+in it, if anything. A page cache keeps serving a page as it rendered it, so
+it can show the band after its end until the cache is purged or expires.
 
 The hero is read where the pattern is: `patterns/hero.php` prints the
 option's hero as the same blocks its placeholders are (a core/media-text on

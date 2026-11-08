@@ -40,7 +40,10 @@ store is Site Editor work:
   Only the simple header exists so far, and a store set to `mega` shows it.
 - **The announcement part** (Patterns → Template parts → Announcement) —
   empty, so no bar shows. Insert the Announcement pattern into it and write
-  the text; empty it again to remove the bar.
+  the text; empty it again to remove the bar. While a campaign runs (the
+  `pixonaut_shop_campaign` option, which the tool that set up the store
+  writes, with its text, link and start and end dates), its band shows in
+  this place instead, and it never shows without both dates.
 - **Setting up the front page** — under **Pages → Add New Page**, pick the
   **Front page** pattern the editor offers, write over its placeholders
   (the hero's pill, heading, sentence and buttons, the sections' headings

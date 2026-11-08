@@ -144,6 +144,9 @@ export const E2E_OWNERS: Readonly< Record< string, SpecSelection > > = {
 	'inc/Bootstrap.php': 'all',
 	// A page's excerpt, which no spec opens a page to see; the integration
 	// suite renders a page with and without one.
+	// The campaign band in the header's announcement part, which the header
+	// spec opens.
+	'inc/Campaign': [ 'header' ],
 	'inc/Content': [],
 	'inc/Dependencies': 'all',
 	// Which template the homepage renders: the front page, or the posts list.

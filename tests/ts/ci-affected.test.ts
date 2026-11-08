@@ -207,6 +207,16 @@ describe( 'affected', () => {
 		} );
 	} );
 
+	it( 'runs the header for the campaign band in its announcement part', () => {
+		assert.deepEqual( jobsFor( 'inc/Campaign/CampaignBand.php' ), {
+			...NO_JOBS,
+			php: true,
+			integration: true,
+			specs: [ 'header' ],
+			shards: 1,
+		} );
+	} );
+
 	it( 'runs the shop and the searches for what an archive without products shows', () => {
 		assert.deepEqual( jobsFor( 'inc/Archive/ShownWhenEmpty.php' ), {
 			...NO_JOBS,

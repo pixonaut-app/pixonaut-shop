@@ -7,6 +7,10 @@
 	margin: 0;
 }
 
+.pixonaut-shop-announcement a {
+	color: inherit;
+}
+
 .pixonaut-shop-header {
 	border-block-end: 1px solid var( --wp--preset--color--border );
 }
