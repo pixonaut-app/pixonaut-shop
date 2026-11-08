@@ -35,6 +35,9 @@ store is Site Editor work:
   without a heading.
   The Site Editor's preview shows core's fallback menu in a block until a
   menu is picked for it there, while the live site shows the named menu.
+  Which header a store shows is the `pixonaut_shop_header` option, which
+  the tool that set up the store writes: `simple`, the one row, or `mega`.
+  Only the simple header exists so far, and a store set to `mega` shows it.
 - **The announcement part** (Patterns → Template parts → Announcement) —
   empty, so no bar shows. Insert the Announcement pattern into it and write
   the text; empty it again to remove the bar.
@@ -47,6 +50,11 @@ store is Site Editor work:
   no title, above the store's promises. Each section is locked to its
   content, so the text, pictures and links change but the layout stays;
   with **Your latest posts** as the homepage, the posts list shows instead.
+  A store whose hero was saved by the tool that set it up (the
+  `pixonaut_shop_hero` option) gets that hero in place of the placeholders:
+  its heading, sentence, one button and picture. Once the page is saved
+  from the editor, the hero is the page's own, and the option no longer
+  changes it.
 - **The Cart page** — WooCommerce's own Cart page works as it is: the theme
   styles its lines, totals and empty cart. For the designed empty cart, with
   WooCommerce's message in a panel and the popular products below it, open

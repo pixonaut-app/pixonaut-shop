@@ -259,8 +259,12 @@ final class TemplatesTest extends TestCase
     /** A colour written as a hex value, which belongs in theme.json or the site's Styles. */
     private const HEX_COLOUR = '/#[0-9a-f]{3,8}\b/i';
 
-    /** An image or address written into markup, which belongs in a store's own content. */
-    private const HARDCODED_ASSET = '/<img\b|https?:\/\//i';
+    /**
+     * An image or address written into markup, which belongs in a store's
+     * own content. An image whose source the markup prints from PHP shows
+     * the store's own picture (the hero's, from its option).
+     */
+    private const HARDCODED_ASSET = '/<img\b(?![^>]*\bsrc="<\?php)|https?:\/\//i';
 
     /**
      * @return iterable<string, array{string}>
@@ -630,14 +634,16 @@ final class TemplatesTest extends TestCase
         }
     }
 
-    /** The store chooses the hero's picture: the pattern leaves it empty. */
-    public function testTheHeroLeavesItsPictureEmpty(): void
+    /**
+     * The hero is a media-text on a band. Its placeholders leave the picture
+     * for the store to choose (`tests/Unit/FrontPage/HeroTest.php`).
+     */
+    public function testTheHeroIsAMediaTextOnABand(): void
     {
         $hero = $this->read('patterns/hero.php');
 
         self::assertStringContainsString('<!-- wp:media-text ', $hero);
         self::assertStringNotContainsString('"mediaUrl"', $hero);
-        self::assertStringNotContainsString('"mediaId"', $hero);
         self::assertStringContainsString('is-style-band-tint-1', $hero);
         self::assertStringContainsString('is-style-pill', $hero);
     }

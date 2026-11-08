@@ -204,6 +204,31 @@ each name up once per request, and again after a menu is saved or deleted. A
 block that already names a menu keeps it, and one whose menu is missing keeps
 core's fallback.
 
+## Options other tools write
+
+Two options are a contract with the tools that set up a store, which write
+them; the theme only reads them, and a store's own edits never write them.
+Their names and shapes stay as they are.
+
+| Option | Shape | Read by | Effect |
+| --- | --- | --- | --- |
+| `pixonaut_shop_hero` | An array: `heading`, `text`, `button_label` and `button_url`, each a string, and `image_id`, an int, an image attachment's ID. | `inc/FrontPage/Hero.php` | The `pixonaut-shop/hero` pattern shows that heading, sentence, one button and picture, with no pill, in place of its placeholders. |
+| `pixonaut_shop_header` | `simple` or `mega`; unset is `simple`. | `inc/Header/HeaderVariant.php` | Which header the store shows. Only `simple` is built, so `mega` shows the simple header until the mega menu's header exists. |
+
+The hero is read where the pattern is: `patterns/hero.php` prints the
+option's hero as the same blocks its placeholders are (a core/media-text on
+a Band (tint 1) group, locked to its content), so a page holding a reference
+to the pattern shows it on the site, and the editor inserts it as blocks the
+store edits like any other. A page the store has saved from the editor holds
+its own blocks, and a later change to the option leaves it as it is. The
+picture is printed as core/media-text saves it, with its `wp-image-<id>`
+class and the attachment's alt text, so the editor finds the block valid;
+WordPress adds its sizes, `srcset` and lazy loading as the page renders. The
+text is escaped for HTML and the button's address as a URL. An option that
+is not an array with all five keys of these types, or whose `image_id` is
+not an image in the media library, is not a hero: the pattern keeps its
+placeholders, as it does while the option is unset.
+
 ## The update checker
 
 `inc/Updates/` follows Pixonaut for WooCommerce's `src/Updates/`:

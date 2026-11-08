@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixonaut\Shop\Tests\Support;
 
+use Pixonaut\Shop\FrontPage\Hero;
 use RuntimeException;
 use WC_Customer;
 use WC_Order;
@@ -154,6 +155,24 @@ final class ShopFixtures
 
     /** The checkout pattern's Checkout block attributes that turn its step numbers on. */
     private const STEP_NUMBERS_ON = ' {"showFormStepNumbers":true}';
+
+    /** The hero `hero()` saves in the hero's option, but its picture. */
+    public const HERO_HEADING = 'Gifts with a name on them';
+
+    public const HERO_TEXT = 'Mugs, prints and tees made for one person.';
+
+    public const HERO_BUTTON_LABEL = 'See the gifts';
+
+    public const HERO_IMAGE_ALT = 'The store at a glance';
+
+    /** The hero's picture: the theme's own screenshot, copied to the uploads. */
+    private const HERO_IMAGE_SOURCE = 'screenshot.png';
+
+    private const HERO_IMAGE_SLUG = 'pixonaut-shop-hero';
+
+    private const HERO_IMAGE_NAME = self::HERO_IMAGE_SLUG . '.png';
+
+    private const HERO_IMAGE_TYPE = 'image/png';
 
     /** The transient that sends the first admin page view to WooCommerce's setup wizard. */
     private const ACTIVATION_REDIRECT = '_wc_activation_redirect';
@@ -328,6 +347,58 @@ final class ShopFixtures
         if ($page instanceof WP_Error) {
             throw new RuntimeException($page->get_error_message());
         }
+    }
+
+    /**
+     * The store's hero in its option, with a picture in the media library,
+     * as a tool that sets up a store saves it. Its button goes to the shop.
+     */
+    public static function hero(): void
+    {
+        update_option(Hero::OPTION, [
+            'heading'      => self::HERO_HEADING,
+            'text'         => self::HERO_TEXT,
+            'button_label' => self::HERO_BUTTON_LABEL,
+            'button_url'   => (string) get_post_type_archive_link('product'),
+            'image_id'     => self::hero_image(),
+        ]);
+    }
+
+    /** The hero's placeholders again, as a store without the option has them. */
+    public static function forget_hero(): void
+    {
+        delete_option(Hero::OPTION);
+    }
+
+    /** The hero's picture's attachment ID, uploaded the first time. */
+    private static function hero_image(): int
+    {
+        $existing = get_page_by_path(self::HERO_IMAGE_SLUG, OBJECT, 'attachment');
+
+        if (null !== $existing) {
+            return $existing->ID;
+        }
+
+        $upload = wp_upload_bits(self::HERO_IMAGE_NAME, null, (string) file_get_contents(get_theme_file_path(self::HERO_IMAGE_SOURCE)));
+
+        if (false !== $upload['error']) {
+            throw new RuntimeException((string) $upload['error']);
+        }
+
+        $image = wp_insert_attachment([
+            'post_mime_type' => self::HERO_IMAGE_TYPE,
+            'post_name'      => self::HERO_IMAGE_SLUG,
+            'post_title'     => self::HERO_IMAGE_NAME,
+            'post_status'    => 'inherit',
+        ], $upload['file'], 0, true);
+
+        if ($image instanceof WP_Error) {
+            throw new RuntimeException($image->get_error_message());
+        }
+
+        update_post_meta($image, '_wp_attachment_image_alt', self::HERO_IMAGE_ALT);
+
+        return $image;
     }
 
     /** A registered pattern's content, as the editor inserts it. */
