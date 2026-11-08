@@ -6,7 +6,7 @@ namespace Pixonaut\Shop\Blocks;
 
 /**
  * The category carousel block: an optional heading, then one scrolling row
- * of round category pictures with their names, the children of a chosen
+ * of soft-shaped category pictures with their names, the children of a chosen
  * category or, without one, the top-level categories, all with products.
  *
  * The row scrolls by itself, with scroll snapping. The previous and next

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-11-08T19:11:53+00:00\n"
+"POT-Creation-Date: 2026-11-08T19:25:35+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -187,20 +187,20 @@ msgstr "Installera WooCommerce"
 msgid "Do not show this again"
 msgstr "Visa inte det här igen"
 
-#: inc/Header/MegaMenu.php:275
+#: inc/Header/MegaMenu.php:365
 msgid "Menu"
 msgstr "Meny"
 
-#: inc/Header/MegaMenu.php:305
+#: inc/Header/MegaMenu.php:395
 msgid "Main menu"
 msgstr "Huvudmeny"
 
-#: inc/Header/MegaMenu.php:310
+#: inc/Header/MegaMenu.php:400
 msgid "Close menu"
 msgstr "Stäng menyn"
 
 #. translators: %s: a group of the header's menu, as the store named it.
-#: inc/Header/MegaMenu.php:333
+#: inc/Header/MegaMenu.php:423
 #, php-format
 msgid "All of %s"
 msgstr "Allt i %s"
@@ -514,7 +514,9 @@ msgstr "Kategorikarusell"
 msgid ""
 "Choose the category whose subcategories show in the row, or the top-level "
 "categories."
-msgstr "Välj kategorin vars underkategorier visas i raden, eller kategorierna på översta nivån."
+msgstr ""
+"Välj kategorin vars underkategorier visas i raden, eller kategorierna på "
+"översta nivån."
 
 #: build/blocks/free-shipping-note/index.js:1
 msgid "Free shipping note"
@@ -668,11 +670,12 @@ msgstr "Kategorikarusell"
 #: build/blocks/category-carousel/block.json
 msgctxt "block description"
 msgid ""
-"A scrolling row of round category pictures with their names: the "
+"A scrolling row of soft-shaped category pictures with their names: the "
 "subcategories of one product category, or the top-level categories."
 msgstr ""
-"En rullande rad med runda kategoribilder och deras namn: underkategorierna "
-"till en produktkategori, eller kategorierna på översta nivån."
+"En rullande rad med mjukt formade kategoribilder och deras namn: "
+"underkategorierna till en produktkategori, eller kategorierna på översta "
+"nivån."
 
 #: build/blocks/category-carousel/block.json
 #: build/blocks/group-tiles/block.json

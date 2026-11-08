@@ -5,7 +5,7 @@ import { TEST_SUPPORT, wpEval } from './support/wp-cli';
 
 /**
  * The category carousel (`inc/Blocks/CategoryCarousel.php`,
- * `src/blocks/category-carousel/view.ts`): a row of round category pictures that scrolls by
+ * `src/blocks/category-carousel/view.ts`): a row of soft-shaped category pictures that scrolls by
  * itself, and arrow buttons that show while it can scroll their way and scroll it when pressed,
  * by mouse or keyboard. The page and its categories are `ShopFixtures::category_rows()`: one
  * row with more categories than fit, one with two.

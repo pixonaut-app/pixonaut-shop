@@ -252,7 +252,7 @@ was saved with; the Site Editor's Reset brings the theme's back.
   subcategory has products. A slug the store does not have renders nothing
   on the site; the editor says so and offers the picker.
 - **A row of categories is the Category carousel block**
-  (`pixonaut-shop/category-carousel`): round pictures with names in one
+  (`pixonaut-shop/category-carousel`): soft-shaped pictures with names in one
   row that scrolls, with arrows on a computer. Without `parent` it shows
   the top-level categories; with one, that category's subcategories.
   `"heading"` adds a heading; without one the row has none.

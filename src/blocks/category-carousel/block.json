@@ -4,7 +4,7 @@
 	"name": "pixonaut-shop/category-carousel",
 	"title": "Category carousel",
 	"category": "woocommerce",
-	"description": "A scrolling row of round category pictures with their names: the subcategories of one product category, or the top-level categories.",
+	"description": "A scrolling row of soft-shaped category pictures with their names: the subcategories of one product category, or the top-level categories.",
 	"keywords": [ "categories", "slider", "scroll" ],
 	"textdomain": "pixonaut-shop",
 	"attributes": {

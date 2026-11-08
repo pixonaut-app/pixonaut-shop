@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * The category carousel block against categories made here: a scrolling
- * row of round category pictures, the children of the category chosen for
+ * row of soft-shaped category pictures, the children of the category chosen for
  * it or the top-level categories, with arrow buttons its script shows, and
  * nothing at all without a category that has products.
  */
