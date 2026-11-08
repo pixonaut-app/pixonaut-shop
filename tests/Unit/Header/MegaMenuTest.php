@@ -45,6 +45,9 @@ final class MegaMenuTest extends TestCase
     /** @var array<int, list<array<string, mixed>>> The parsed blocks each menu holds. */
     private array $menus = [];
 
+    /** @var ArrayObject<int, string> Each cache priming and lookup of a category, in order. */
+    private ArrayObject $lookups;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -55,10 +58,29 @@ final class MegaMenuTest extends TestCase
         Functions\when('get_post_status')->alias(fn (int $id): string|false => isset($this->menus[$id]) ? 'publish' : false);
         Functions\when('get_post_field')->alias(static fn (string $field, int $id): string => "menu:{$id}");
         Functions\when('parse_blocks')->alias(fn (string $content): array => $this->menus[(int) substr($content, \strlen('menu:'))] ?? []);
-        Functions\when('get_term_link')->alias(static fn (int $term, string $taxonomy): ?string => isset(self::PICTURES[$term]) && 'product_cat' === $taxonomy
-            ? self::SHOP_URL . "/product-category/{$term}/"
-            : null); // Core answers a WP_Error, which is not a string either.
+        /** @var ArrayObject<int, string> $lookups */
+        $lookups       = new ArrayObject();
+        $this->lookups = $lookups;
+        Functions\when('get_term_link')->alias(static function (int $term, string $taxonomy) use ($lookups): ?string {
+            $lookups->append("link {$term}");
+
+            return isset(self::PICTURES[$term]) && 'product_cat' === $taxonomy
+                ? self::SHOP_URL . "/product-category/{$term}/"
+                : null; // Core answers a WP_Error, which is not a string either.
+        });
         Functions\when('get_term_meta')->alias(static fn (int $term, string $key): string => 'thumbnail_id' === $key ? (string) (self::PICTURES[$term] ?? '') : '');
+        foreach (['_prime_term_caches', 'update_termmeta_cache', '_prime_post_caches'] as $primer) {
+            Functions\when($primer)->alias(static function (array $ids) use ($lookups, $primer): void {
+                $lookups->append($primer . ' ' . implode(',', $ids));
+            });
+        }
+        // Each ID once per prefix, as core counts them across the request.
+        $counter = new ArrayObject();
+        Functions\when('wp_unique_id')->alias(static function (string $prefix) use ($counter): string {
+            $counter[$prefix] = ($counter[$prefix] ?? 0) + 1;
+
+            return $prefix . $counter[$prefix];
+        });
         Functions\when('wp_get_attachment_image')->alias(static function (int $id, string $size, bool $icon, array $attributes): string {
             ksort($attributes);
 
@@ -91,21 +113,52 @@ final class MegaMenuTest extends TestCase
         self::assertSame('<p>Earlier</p>', self::render(self::header_block(), '<p>Earlier</p>'));
     }
 
-    public function testTheMegaHeaderShowsTheMenuButtonForAPanel(): void
+    public function testTheMegaHeaderIsANavigationLandmark(): void
+    {
+        $this->header(HeaderVariant::MEGA);
+
+        $html = (string) self::render(self::header_block());
+
+        self::assertStringStartsWith('<nav class="pixonaut-shop-mega" aria-label="Main menu">', $html);
+        self::assertStringEndsWith('</nav>', $html);
+    }
+
+    /** The browser opens and closes the panel, a popover, from the button, with no script. */
+    public function testTheMenuButtonOpensThePanelAsAPopover(): void
     {
         $this->header(HeaderVariant::MEGA);
 
         $html = (string) self::render(self::header_block());
 
         self::assertMatchesRegularExpression(
-            '/<button type="button" class="pixonaut-shop-mega__toggle" aria-expanded="false" aria-controls="pixonaut-shop-mega-panel" aria-label="Menu">/',
+            '/<button type="button" class="pixonaut-shop-mega__toggle" popovertarget="pixonaut-shop-mega-1" aria-controls="pixonaut-shop-mega-1" aria-label="Menu">/',
             $html
         );
-        self::assertMatchesRegularExpression('/<div id="pixonaut-shop-mega-panel" class="pixonaut-shop-mega__panel" role="dialog" aria-label="Menu" hidden>/', $html);
-        self::assertStringContainsString('aria-label="Close menu"', $html);
-        self::assertStringStartsWith('<div class="pixonaut-shop-mega"', $html);
+        self::assertStringContainsString('<div id="pixonaut-shop-mega-1" class="pixonaut-shop-mega__panel" popover>', $html);
+        self::assertMatchesRegularExpression(
+            '/<button type="button" class="pixonaut-shop-mega__close" popovertarget="pixonaut-shop-mega-1" popovertargetaction="hide" aria-label="Close menu">/',
+            $html
+        );
+        self::assertStringNotContainsString('role="dialog"', $html);
+        self::assertStringNotContainsString(' hidden', $html);
     }
 
+    public function testEachRenderHasItsOwnIds(): void
+    {
+        $this->header(HeaderVariant::MEGA);
+
+        $first  = (string) self::render(self::header_block());
+        $second = (string) self::render(self::header_block());
+
+        self::assertStringContainsString('id="pixonaut-shop-mega-1"', $first);
+        self::assertStringContainsString('id="pixonaut-shop-mega-2"', $second);
+        self::assertStringContainsString('aria-controls="pixonaut-shop-mega-2"', $second);
+    }
+
+    /**
+     * Every group's items show until the script picks one: without it, the
+     * panel lists them all.
+     */
     public function testEachGroupIsAButtonForItsChildren(): void
     {
         $this->header(HeaderVariant::MEGA);
@@ -114,12 +167,44 @@ final class MegaMenuTest extends TestCase
 
         self::assertSame(['Occasion', 'For whom', 'Customer service'], self::group_buttons($html));
         self::assertMatchesRegularExpression(
-            '/<button type="button" class="pixonaut-shop-mega__group" id="pixonaut-shop-mega-group-1" aria-expanded="true" aria-controls="pixonaut-shop-mega-children-1">/',
+            '/<button type="button" class="pixonaut-shop-mega__group" id="pixonaut-shop-mega-group-1" aria-expanded="true" aria-controls="pixonaut-shop-mega-items-1">/',
             $html
         );
-        self::assertMatchesRegularExpression('/<div class="pixonaut-shop-mega__children" id="pixonaut-shop-mega-children-1" role="group" aria-labelledby="pixonaut-shop-mega-group-1">/', $html);
-        self::assertMatchesRegularExpression('/id="pixonaut-shop-mega-group-2" aria-expanded="false"/', $html);
-        self::assertMatchesRegularExpression('/id="pixonaut-shop-mega-children-2" role="group" aria-labelledby="pixonaut-shop-mega-group-2" hidden>/', $html);
+        self::assertStringContainsString('<div class="pixonaut-shop-mega__children" id="pixonaut-shop-mega-items-1" role="group" aria-labelledby="pixonaut-shop-mega-group-1">', $html);
+        self::assertStringContainsString('<div class="pixonaut-shop-mega__children" id="pixonaut-shop-mega-items-2" role="group" aria-labelledby="pixonaut-shop-mega-group-2">', $html);
+        self::assertSame(3, substr_count($html, 'aria-expanded="true"'));
+    }
+
+    /**
+     * The categories' terms, their meta and their pictures are each loaded
+     * in one query, before any category is looked at.
+     */
+    public function testLoadsTheCategoriesAndTheirPicturesTogether(): void
+    {
+        $this->header(HeaderVariant::MEGA);
+
+        self::render(self::header_block());
+
+        $categories = self::BIRTHDAY . ',' . self::WEDDING . ',' . self::FOR_HER;
+        self::assertSame(
+            [
+                "_prime_term_caches {$categories}",
+                "update_termmeta_cache {$categories}",
+                '_prime_post_caches ' . self::PICTURES[self::BIRTHDAY] . ',' . self::PICTURES[self::FOR_HER],
+            ],
+            \array_slice($this->lookups->getArrayCopy(), 0, 3)
+        );
+        self::assertCount(6, $this->lookups, 'A category is primed more than once or looked up more than once.');
+    }
+
+    public function testAMenuWithoutCategoriesPrimesNothing(): void
+    {
+        $this->header(HeaderVariant::MEGA);
+        $this->menus[self::MENU_ID] = [self::submenu('Help', '', [self::link('Contact', '/contact/')])];
+
+        self::render(self::header_block());
+
+        self::assertCount(0, $this->lookups);
     }
 
     public function testATopItemWithoutChildrenIsALink(): void

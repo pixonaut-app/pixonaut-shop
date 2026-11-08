@@ -1,10 +1,12 @@
 /*
  * The mega header's menu (`inc/Header/MegaMenu.php`): the menu button at the
- * start of the header's row, and the panel it opens under the header, at the
- * row's width. The panel lists the menu's groups down its start on
- * `surface`; the open group's items fill the rest on `base`, as picture
- * tiles or a list of links. On a phone the panel is a drawer from the
- * screen's start edge, each group's items under its button.
+ * start of the header's row, and the panel it opens, a popover, under the
+ * header at the row's width. With its script (`.is-enhanced`), the panel
+ * lists the menu's groups down its start on `surface`, and the open group's
+ * items fill the rest on `base`, as picture tiles or a list of links.
+ * Without it, the panel lists every group with its items under it. On a
+ * phone the panel is a drawer from the screen's start edge, each group's
+ * items under its button.
  *
  * Sizes: the groups' column is 16rem, a tile at least 8.5rem wide, and the
  * drawer 22rem, or the screen where that is narrower. The panel is at most
@@ -21,6 +23,11 @@
 	--pixonaut-shop-mega-thumb: 3rem;
 	/* The open group's mark down its start edge. */
 	--pixonaut-shop-mega-mark: 3px;
+	/* Clear of the header's padding and its border, by a small step, as the search's field. */
+	--pixonaut-shop-mega-gap: calc(
+		var( --wp--preset--spacing--40 ) +
+		var( --wp--preset--spacing--20 )
+	);
 }
 
 /* The menu button starts the row; search, account and the cart end it. */
@@ -33,6 +40,11 @@
 	margin-inline-start: auto;
 }
 
+/* What the panel hangs from: the row, at the wide size. */
+.pixonaut-shop-header__row {
+	anchor-name: --pixonaut-shop-mega-row;
+}
+
 .pixonaut-shop-mega__toggle svg,
 .pixonaut-shop-mega__close svg {
 	width: 1.5rem;
@@ -40,13 +52,40 @@
 }
 
 /*
- * Over the page and the header alike, under the panel; the menu button stays
- * above it, so it still shows that the panel is open and closes it.
+ * The popover sits in the top layer, over the page and the header. Under
+ * the row where the browser anchors it there; elsewhere, at the top its
+ * script measures, under the header, across the window.
  */
-.pixonaut-shop-mega__backdrop {
+.pixonaut-shop-mega__panel {
 	position: fixed;
-	z-index: 100;
-	inset: 0;
+	inset: auto;
+	top: calc( var( --pixonaut-shop-mega-top, 0px ) + var( --wp--preset--spacing--20 ) );
+	right: var( --wp--preset--spacing--50 );
+	left: var( --wp--preset--spacing--50 );
+	width: auto;
+	/* As tall as its content, or the drawer between its top and bottom; not the popover's own fit-content. */
+	height: auto;
+	max-height: var( --pixonaut-shop-mega-height );
+	margin: 0;
+	padding: 0;
+	overflow-y: auto;
+	border: 0;
+	border-radius: var( --wp--custom--radius--large );
+	background: var( --wp--preset--color--base );
+	box-shadow: var( --wp--preset--shadow--card );
+	color: var( --wp--preset--color--contrast );
+}
+
+@supports ( anchor-name: --pixonaut-shop-mega ) {
+	.pixonaut-shop-mega__panel {
+		position-anchor: --pixonaut-shop-mega-row;
+		top: calc( anchor( bottom ) + var( --pixonaut-shop-mega-gap ) );
+		right: anchor( right );
+		left: anchor( left );
+	}
+}
+
+.pixonaut-shop-mega__panel::backdrop {
 	background-color: color-mix(
 		in srgb,
 		var( --wp--preset--color--strong ) var( --pixonaut-shop-scrim-strength ),
@@ -54,48 +93,12 @@
 	);
 }
 
-.pixonaut-shop-header .pixonaut-shop-mega__toggle {
-	z-index: 101;
-}
-
-.pixonaut-shop-mega__panel {
-	position: absolute;
-	z-index: 102;
-	/* Clear of the header's padding and its border, by a small step, as the search's field. */
-	top: calc( 100% + var( --wp--preset--spacing--40 ) + var( --wp--preset--spacing--20 ) );
-	inset-inline: 0;
-	max-height: var( --pixonaut-shop-mega-height );
-	overflow-y: auto;
-	border-radius: var( --wp--custom--radius--large );
-	background: var( --wp--preset--color--surface );
-	box-shadow: var( --wp--preset--shadow--card );
-	color: var( --wp--preset--color--contrast );
-}
-
-.pixonaut-shop-mega__panel[ hidden ],
-.pixonaut-shop-mega__backdrop[ hidden ] {
-	display: none;
-}
-
-/* The drawer's own title and close button; the panel closes from the menu button. */
+/* The drawer's own title and close button; the panel closes from Escape or a click outside. */
 .pixonaut-shop-mega__head {
 	display: none;
 }
 
-/*
- * The groups down the first column, one row each; the open group's items
- * beside them span every row and a last one that takes what is left, so
- * neither side stretches the other's rows.
- */
-.pixonaut-shop-mega__groups {
-	display: grid;
-	grid-template-columns: var( --pixonaut-shop-mega-column ) minmax( 0, 1fr );
-	grid-template-rows: repeat( var( --pixonaut-shop-mega-rows ), auto ) 1fr;
-	align-content: start;
-}
-
 .pixonaut-shop-mega__group {
-	grid-column: 1;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -114,17 +117,16 @@
 	cursor: pointer;
 }
 
+/* Inside the button, so the panel's scrolling edge never clips the ring. */
+.pixonaut-shop-mega__group:focus-visible {
+	outline-offset: -2px;
+}
+
 .pixonaut-shop-mega__group:first-child {
 	margin-block-start: var( --wp--preset--spacing--40 );
 }
 
 .pixonaut-shop-mega__group:hover {
-	color: var( --wp--preset--color--accent );
-}
-
-.pixonaut-shop-mega__group[ aria-expanded="true" ] {
-	border-inline-start-color: var( --wp--preset--color--accent );
-	background: var( --wp--preset--color--base );
 	color: var( --wp--preset--color--accent );
 }
 
@@ -135,15 +137,13 @@
 	color: var( --wp--preset--color--muted );
 }
 
-.pixonaut-shop-mega__group[ aria-expanded="true" ] svg {
-	color: inherit;
+/* Without the script every group is open, so a chevron would promise nothing. */
+.pixonaut-shop-mega:not( .is-enhanced ) .pixonaut-shop-mega__group svg {
+	display: none;
 }
 
 .pixonaut-shop-mega__children {
-	grid-column: 2;
-	grid-row: 1 / -1;
-	padding: var( --wp--preset--spacing--60 );
-	background: var( --wp--preset--color--base );
+	padding: 0 var( --wp--preset--spacing--50 ) var( --wp--preset--spacing--50 );
 }
 
 .pixonaut-shop-mega__children[ hidden ] {
@@ -156,10 +156,12 @@
 	align-items: baseline;
 	justify-content: space-between;
 	gap: var( --wp--preset--spacing--20 ) var( --wp--preset--spacing--40 );
-	margin-block-end: var( --wp--preset--spacing--50 );
+	margin-block-end: var( --wp--preset--spacing--30 );
 }
 
+/* The group's button above already names its items, but beside the groups. */
 .pixonaut-shop-mega__heading {
+	display: none;
 	margin: 0;
 	color: var( --wp--preset--color--accent );
 	font-family: var( --wp--preset--font-family--heading );
@@ -235,29 +237,78 @@
 	text-decoration: underline;
 }
 
-/* The page stays still under the open panel. */
-:root.pixonaut-shop-mega-is-open {
-	overflow: hidden;
+/*
+ * The panel with its script, from WordPress's 782px breakpoint: the groups
+ * down the first column, one row each; the open group's items beside them
+ * span every row and a last one that takes what is left, so neither side
+ * stretches the other's rows.
+ */
+@media ( min-width: 782px ) {
+	.pixonaut-shop-mega.is-enhanced .pixonaut-shop-mega__panel {
+		background: var( --wp--preset--color--surface );
+	}
+
+	.pixonaut-shop-mega.is-enhanced .pixonaut-shop-mega__groups {
+		display: grid;
+		grid-template-columns: var( --pixonaut-shop-mega-column ) minmax( 0, 1fr );
+		grid-template-rows: repeat( var( --pixonaut-shop-mega-rows ), auto ) 1fr;
+		align-content: start;
+	}
+
+	.pixonaut-shop-mega.is-enhanced .pixonaut-shop-mega__group {
+		grid-column: 1;
+	}
+
+	.pixonaut-shop-mega.is-enhanced .pixonaut-shop-mega__group[ aria-expanded="true" ] {
+		border-inline-start-color: var( --wp--preset--color--accent );
+		background: var( --wp--preset--color--base );
+		color: var( --wp--preset--color--accent );
+	}
+
+	.pixonaut-shop-mega.is-enhanced .pixonaut-shop-mega__group[ aria-expanded="true" ] svg {
+		color: inherit;
+	}
+
+	.pixonaut-shop-mega.is-enhanced .pixonaut-shop-mega__children {
+		grid-column: 2;
+		grid-row: 1 / -1;
+		padding: var( --wp--preset--spacing--60 );
+		background: var( --wp--preset--color--base );
+	}
+
+	.pixonaut-shop-mega.is-enhanced .pixonaut-shop-mega__children-head {
+		margin-block-end: var( --wp--preset--spacing--50 );
+	}
+
+	.pixonaut-shop-mega.is-enhanced .pixonaut-shop-mega__heading {
+		display: block;
+	}
 }
 
 /*
- * Phones, from WordPress's own 782px breakpoint: the drawer. The script reads
- * `--pixonaut-shop-mega-drawer` to tell the drawer from the panel, so this
- * is the one place the breakpoint is written for both.
+ * Phones, below WordPress's 782px breakpoint: the drawer. The script reads
+ * `--pixonaut-shop-mega-drawer` to tell the drawer from the panel, so these
+ * two queries are the one place the breakpoint is written for both.
  */
 @media ( max-width: 781px ) {
 	.pixonaut-shop-mega {
 		--pixonaut-shop-mega-drawer: 1;
 	}
 
+	/* After the anchored position above, which it replaces. */
 	.pixonaut-shop-mega__panel {
-		position: fixed;
-		inset-block: 0;
-		inset-inline: 0 auto;
+		top: 0;
+		right: auto;
+		bottom: 0;
+		left: 0;
 		width: min( 100%, var( --pixonaut-shop-mega-drawer-width ) );
 		max-height: none;
 		border-radius: 0;
-		background: var( --wp--preset--color--base );
+	}
+
+	/* The page stays still under the drawer. */
+	:root.pixonaut-shop-mega-is-open {
+		overflow: hidden;
 	}
 
 	.pixonaut-shop-mega__head {
@@ -284,10 +335,6 @@
 		cursor: pointer;
 	}
 
-	.pixonaut-shop-mega__groups {
-		display: block;
-	}
-
 	.pixonaut-shop-mega__group,
 	.pixonaut-shop-mega__group:first-child {
 		margin: 0;
@@ -297,7 +344,7 @@
 	}
 
 	.pixonaut-shop-mega__group[ aria-expanded="true" ] {
-		background: none;
+		color: var( --wp--preset--color--accent );
 	}
 
 	/* The chevron points down at a closed group's items, and up once they show. */
@@ -314,15 +361,6 @@
 			var( --wp--preset--spacing--40 );
 		border-block-end: 1px solid var( --wp--preset--color--border );
 		background: var( --wp--preset--color--surface );
-	}
-
-	.pixonaut-shop-mega__children-head {
-		margin-block-end: var( --wp--preset--spacing--30 );
-	}
-
-	/* The group's button above already names its items. */
-	.pixonaut-shop-mega__heading {
-		display: none;
 	}
 
 	.pixonaut-shop-mega__tiles {
@@ -344,12 +382,8 @@
 
 /* The panel and the drawer fade in, unless the visitor asks for less motion. */
 @media ( prefers-reduced-motion: no-preference ) {
-	.pixonaut-shop-mega__panel:not( [ hidden ] ) {
+	.pixonaut-shop-mega__panel:popover-open {
 		animation: pixonaut-shop-mega-in 0.15s ease-out;
-	}
-
-	.pixonaut-shop-mega__backdrop:not( [ hidden ] ) {
-		animation: pixonaut-shop-mega-fade 0.15s ease-out;
 	}
 }
 
@@ -357,11 +391,5 @@
 	from {
 		opacity: 0;
 		transform: translateY( calc( -1 * var( --wp--preset--spacing--20 ) ) );
-	}
-}
-
-@keyframes pixonaut-shop-mega-fade {
-	from {
-		opacity: 0;
 	}
 }

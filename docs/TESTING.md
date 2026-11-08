@@ -132,9 +132,11 @@ and among its cart line's details; it removes the product afterwards.
 `mega-menu.spec.ts` checks the mega header: the menu button opens the panel
 at its first group, a group shows its categories as tiles on hover and on
 focus, the arrow keys move between the groups, Tab stays in the open panel,
-Escape closes it and returns focus to the button, opening it moves nothing in
-the header's row, and on a phone the drawer opens a group under its button
-on a tap or Enter. Its menu is `ShopFixtures::mega_menu()`, saved under a
+Escape and a click outside close it and focus returns to the button,
+opening it moves nothing in the header's row, the menu is a navigation
+landmark, and on a phone the drawer opens a group under its button on a tap
+or Enter. With JavaScript off, the button still opens the panel, which lists
+every group's items, a link in it leads on, and Escape closes it. Its menu is `ShopFixtures::mega_menu()`, saved under a
 name of its own. The header variant and the header's menu are each one for
 the whole site, so `tests/e2e/mega-menu.php`, mapped into the tests site's
 mu-plugins, shows the mega header with that menu only to a visitor carrying

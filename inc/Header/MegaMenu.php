@@ -16,8 +16,12 @@ use Pixonaut\Shop\Assets\BuiltScript;
  * product category (its picture and name), or as a list of links when none
  * is. A top item with nothing under it is a plain link among the groups. On
  * phones the panel is a drawer, each group's items under it. Everything is
- * printed here, on the server; `src/header/mega-menu.ts` only opens and
- * closes the panel and switches the group shown.
+ * printed here, on the server, in a `<nav>`. The panel is a popover the
+ * button opens, so the browser opens and closes it (Escape, a click
+ * outside) with no script, and lists every group's items then.
+ * `src/header/mega-menu.ts` adds the rest: one group's items at a time,
+ * switched by hover, focus or the arrow keys, the drawer's groups opening
+ * under their buttons, and focus kept in the open panel.
  *
  * Only when `HeaderVariant` is `mega`, and only with a menu to show: the
  * one saved under the header's name, or picked for the block in the Site
@@ -28,12 +32,16 @@ final class MegaMenu
 {
     public const CLASS_NAME = 'pixonaut-shop-mega';
 
-    public const PANEL_ID = 'pixonaut-shop-mega-panel';
+    /**
+     * The start of the panel's, each group's button's and each group's
+     * items' IDs; `wp_unique_id()` numbers them, so they stay unique when the
+     * header renders more than once on a page.
+     */
+    private const PANEL_ID = 'pixonaut-shop-mega-';
 
-    /** The start of each group's button's and items' IDs; the group's number follows. */
     private const GROUP_ID = 'pixonaut-shop-mega-group-';
 
-    private const CHILDREN_ID = 'pixonaut-shop-mega-children-';
+    private const ITEMS_ID = 'pixonaut-shop-mega-items-';
 
     public const SCRIPT_HANDLE = 'pixonaut-shop-mega-menu';
 
@@ -143,15 +151,67 @@ final class MegaMenu
         $groups = [];
 
         foreach (self::items($blocks) as $item) {
-            $children = self::items($item['block']['innerBlocks'] ?? []);
-            $groups[] = [
-                'label' => $item['label'],
-                'url' => $item['url'],
-                'children' => array_map(static fn (array $child): array => self::child($child), $children),
-            ];
+            $groups[] = ['item' => $item, 'children' => self::items($item['block']['innerBlocks'] ?? [])];
         }
 
-        return $groups;
+        self::prime(array_merge(...array_map(
+            static fn (array $group): array => array_filter(array_map(self::category_id(...), $group['children'])),
+            $groups
+        )));
+
+        return array_map(static fn (array $group): array => [
+            'label' => $group['item']['label'],
+            'url' => $group['item']['url'],
+            'children' => array_map(self::child(...), $group['children']),
+        ], $groups);
+    }
+
+    /**
+     * Loads the categories, their meta and their pictures' attachments,
+     * each in one query, before the items look them up one by one.
+     *
+     * @param array<int> $categories
+     */
+    private static function prime(array $categories): void
+    {
+        $categories = array_values(array_unique($categories));
+
+        if ([] === $categories) {
+            return;
+        }
+
+        _prime_term_caches($categories);
+        update_termmeta_cache($categories);
+
+        $pictures = array_values(array_unique(array_filter(array_map(
+            static function (int $term): int {
+                $picture = get_term_meta($term, CategoryImage::THUMBNAIL_META, true);
+
+                return is_numeric($picture) ? (int) $picture : 0;
+            },
+            $categories
+        ))));
+
+        if ([] !== $pictures) {
+            _prime_post_caches($pictures, false, true);
+        }
+    }
+
+    /**
+     * The term ID of a product category the item was picked as, or 0.
+     *
+     * @param array{label: string, url: string, block: array<mixed>} $item
+     */
+    private static function category_id(array $item): int
+    {
+        $attributes = \is_array($item['block']['attrs'] ?? null) ? $item['block']['attrs'] : [];
+        $term       = $attributes['id'] ?? null;
+
+        return self::TAXONOMY_KIND === ($attributes['kind'] ?? null)
+            && self::CATEGORY_TAXONOMY === ($attributes['type'] ?? null)
+            && \is_int($term) && $term > 0
+            ? $term
+            : 0;
     }
 
     /**
@@ -194,13 +254,8 @@ final class MegaMenu
      */
     private static function child(array $item): array
     {
-        $attributes = \is_array($item['block']['attrs'] ?? null) ? $item['block']['attrs'] : [];
-        $term       = $attributes['id'] ?? null;
-        $link       = self::TAXONOMY_KIND === ($attributes['kind'] ?? null)
-            && self::CATEGORY_TAXONOMY === ($attributes['type'] ?? null)
-            && \is_int($term)
-            ? get_term_link($term, self::CATEGORY_TAXONOMY)
-            : null;
+        $term = self::category_id($item);
+        $link = 0 === $term ? null : get_term_link($term, self::CATEGORY_TAXONOMY);
 
         if (! \is_string($link)) {
             return ['label' => $item['label'], 'url' => $item['url'], 'category' => false, 'image' => ''];
@@ -210,7 +265,7 @@ final class MegaMenu
             'label' => $item['label'],
             'url' => $link,
             'category' => true,
-            'image' => CategoryImage::html((int) $term, [
+            'image' => CategoryImage::html($term, [
                 'loading' => 'lazy',
                 'decoding' => 'async',
                 'sizes' => self::TILE_IMAGE_SIZES,
@@ -230,41 +285,37 @@ final class MegaMenu
     private static function panel(array $groups): string
     {
         $menu  = __('Menu', 'pixonaut-shop');
+        $panel = wp_unique_id(self::PANEL_ID);
         $rows  = '';
         $count = 0;
-        $open  = null;
 
-        foreach ($groups as $index => $group) {
-            if ([] === $group['children']) {
-                $rows .= '' === $group['url'] ? '' : \sprintf(
+        foreach ($groups as $group) {
+            if ([] !== $group['children']) {
+                $rows .= self::group($group);
+                ++$count;
+            } elseif ('' !== $group['url']) {
+                $rows .= \sprintf(
                     '<a class="%s__group" href="%s">%s</a>',
                     self::CLASS_NAME,
                     esc_url($group['url']),
                     esc_html($group['label'])
                 );
-                $count += '' === $group['url'] ? 0 : 1;
-
-                continue;
+                ++$count;
             }
-
-            $number = $index + 1;
-            $open ??= $number;
-            $rows .= self::group($number, $group, $open === $number);
-            ++$count;
         }
 
         return \sprintf(
-            '<div class="%1$s">'
-            . '<button type="button" class="%1$s__toggle" aria-expanded="false" aria-controls="%2$s" aria-label="%3$s">%4$s</button>'
-            . '<div id="%2$s" class="%1$s__panel" role="dialog" aria-label="%3$s" hidden>'
-            . '<div class="%1$s__head"><span class="%1$s__title">%5$s</span>'
-            . '<button type="button" class="%1$s__close" aria-label="%6$s">%7$s</button></div>'
-            . '<div class="%1$s__groups" style="%8$s:%9$d">%10$s</div>'
+            '<nav class="%1$s" aria-label="%2$s">'
+            . '<button type="button" class="%1$s__toggle" popovertarget="%3$s" aria-controls="%3$s" aria-label="%4$s">%5$s</button>'
+            . '<div id="%3$s" class="%1$s__panel" popover>'
+            . '<div class="%1$s__head"><span class="%1$s__title">%6$s</span>'
+            . '<button type="button" class="%1$s__close" popovertarget="%3$s" popovertargetaction="hide" aria-label="%7$s">%8$s</button></div>'
+            . '<div class="%1$s__groups" style="%9$s:%10$d">%11$s</div>'
             . '</div>'
-            . '<div class="%1$s__backdrop" hidden></div>'
-            . '</div>',
+            . '</nav>',
             self::CLASS_NAME,
-            self::PANEL_ID,
+            esc_attr__('Main menu', 'pixonaut-shop'),
+            esc_attr($panel),
             esc_attr($menu),
             self::MENU_ICON,
             esc_html($menu),
@@ -277,11 +328,12 @@ final class MegaMenu
     }
 
     /**
-     * A group's button, and its items after it, shown while it is open.
+     * A group's button, and its items after it. Every group is open until
+     * the script picks one, so the panel lists them all without it.
      *
      * @param array{label: string, url: string, children: list<array{label: string, url: string, category: bool, image: string}>} $group
      */
-    private static function group(int $number, array $group, bool $open): string
+    private static function group(array $group): string
     {
         $label = esc_html($group['label']);
         $all   = '' === $group['url'] || self::NO_ADDRESS === $group['url'] ? '' : \sprintf(
@@ -296,18 +348,16 @@ final class MegaMenu
         );
 
         return \sprintf(
-            '<button type="button" class="%1$s__group" id="%2$s" aria-expanded="%3$s" aria-controls="%4$s">%5$s%6$s</button>'
-            . '<div class="%1$s__children" id="%4$s" role="group" aria-labelledby="%2$s"%7$s>'
-            . '<div class="%1$s__children-head"><p class="%1$s__heading" aria-hidden="true">%5$s</p>%8$s</div>'
-            . '%9$s'
+            '<button type="button" class="%1$s__group" id="%2$s" aria-expanded="true" aria-controls="%3$s">%4$s%5$s</button>'
+            . '<div class="%1$s__children" id="%3$s" role="group" aria-labelledby="%2$s">'
+            . '<div class="%1$s__children-head"><p class="%1$s__heading" aria-hidden="true">%4$s</p>%6$s</div>'
+            . '%7$s'
             . '</div>',
             self::CLASS_NAME,
-            self::GROUP_ID . $number,
-            $open ? 'true' : 'false',
-            self::CHILDREN_ID . $number,
+            esc_attr(wp_unique_id(self::GROUP_ID)),
+            esc_attr(wp_unique_id(self::ITEMS_ID)),
             $label,
             self::CHEVRON_ICON,
-            $open ? '' : ' hidden',
             $all,
             self::children($group['children'])
         );

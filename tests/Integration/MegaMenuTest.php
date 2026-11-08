@@ -25,6 +25,8 @@ final class MegaMenuTest extends TestCase
     /** The mega header's own markup, and the simple header's navigation block. */
     private const MEGA = 'class="pixonaut-shop-mega"';
 
+
+
     private const NAVIGATION = 'wp-block-navigation__container';
 
     /** @var list<int> */
@@ -73,10 +75,11 @@ final class MegaMenuTest extends TestCase
 
         $header = self::header();
 
-        self::assertStringContainsString(self::MEGA, $header);
+        self::assertStringContainsString('<nav ' . self::MEGA, $header);
         self::assertStringNotContainsString(self::NAVIGATION, $header);
-        self::assertMatchesRegularExpression('/<button type="button" class="pixonaut-shop-mega__toggle" aria-expanded="false" aria-controls="pixonaut-shop-mega-panel"/', $header);
-        self::assertMatchesRegularExpression('/<div id="pixonaut-shop-mega-panel" class="pixonaut-shop-mega__panel" role="dialog" aria-label="Menu" hidden>/', $header);
+        self::assertMatchesRegularExpression('/<nav class="pixonaut-shop-mega" aria-label="Main menu">/', $header);
+        self::assertSame(1, preg_match('/<button type="button" class="pixonaut-shop-mega__toggle" popovertarget="([^"]+)" aria-controls="\1"/', $header, $toggle));
+        self::assertStringContainsString('<div id="' . $toggle[1] . '" class="pixonaut-shop-mega__panel" popover>', $header);
         // Inside the header's row, where the menu was, with the search after it.
         self::assertMatchesRegularExpression('/pixonaut-shop-header__row.*' . preg_quote(self::MEGA, '/') . '.*wp-block-search/s', $header);
     }
@@ -100,6 +103,31 @@ final class MegaMenuTest extends TestCase
         self::assertMatchesRegularExpression('/<span class="pixonaut-shop-mega__picture is-empty"><\/span><span class="pixonaut-shop-mega__name">Wedding<\/span>/', $header);
         self::assertStringContainsString('<ul class="pixonaut-shop-mega__links"><li><a href="/contact/">Contact</a></li></ul>', $header);
         self::assertStringContainsString('<a class="pixonaut-shop-mega__group" href="/sale/">Sale</a>', $header);
+    }
+
+    /** The categories' pictures are loaded together, not one query each. */
+    public function testThePicturesAreLoadedTogether(): void
+    {
+        [, , $picture] = $this->menu();
+        update_option(HeaderVariant::OPTION, HeaderVariant::MEGA);
+        wp_cache_flush();
+        $queries = [];
+        $record  = static function (string $query) use (&$queries): string {
+            $queries[] = $query;
+
+            return $query;
+        };
+        add_filter('query', $record);
+
+        try {
+            self::header();
+        } finally {
+            remove_filter('query', $record);
+        }
+
+        $alone = array_filter($queries, static fn (string $query): bool => 1 === preg_match('/\bID = ' . $picture . ' LIMIT 1/', $query));
+        self::assertSame([], array_values($alone), 'The picture was loaded on its own.');
+        self::assertNotEmpty(array_filter($queries, static fn (string $query): bool => 1 === preg_match('/\bID IN \([^)]*\b' . $picture . '\b/', $query)));
     }
 
     public function testTheMegaHeaderWithoutANamedMenuKeepsCoresMenu(): void
@@ -128,11 +156,12 @@ final class MegaMenuTest extends TestCase
      * The menu saved under the header's name: a group of two categories,
      * one with a picture, a plain link, and a group of plain links.
      *
-     * @return array{int, int} The two categories.
+     * @return array{int, int, int} The two categories, and the first one's picture.
      */
     private function menu(): array
     {
-        $birthday = $this->category('Birthday', $this->image());
+        $picture  = $this->image();
+        $birthday = $this->category('Birthday', $picture);
         $wedding  = $this->category('Wedding', 0);
 
         $id = wp_insert_post([
@@ -153,7 +182,7 @@ final class MegaMenuTest extends TestCase
         $this->posts[] = $id;
         NamedMenus::forget();
 
-        return [$birthday, $wedding];
+        return [$birthday, $wedding, $picture];
     }
 
     private static function category_link(string $label, int $term): string

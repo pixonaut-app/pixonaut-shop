@@ -289,21 +289,38 @@ not `#` links to it as "All of …". Labels are printed as plain text. Without
 a menu, or with one holding no links, the block renders as core's navigation,
 as in the simple header.
 
+The panel's lookups are batched: the categories' terms and their meta are
+loaded together (`_prime_term_caches()`, `update_termmeta_cache()`), then
+their pictures' attachments (`_prime_post_caches()`), before any item reads
+them. Its IDs come from `wp_unique_id()`, so `aria-controls` and
+`popovertarget` stay right if the header renders twice on a page.
+
+The menu is a `<nav>` named "Main menu". The panel is a popover
+(`popover` on the panel, `popovertarget` on the button and on the drawer's
+close button), so the browser opens it, closes it on Escape or a click
+outside, and puts it in the top layer over a scrim (`::backdrop`), with no
+script. Without the script every group's items show under their group's
+button. CSS anchor positioning hangs the panel under the header's row
+(`anchor-name` on the row); a browser without it gets the top the script
+measures, or the window's top without the script.
+
 `src/header/mega-menu.ts` (built as `header-mega-menu`, loaded only with the
-panel) opens and closes it. The button carries `aria-expanded` and
-`aria-controls`; opening moves focus to the first group, Tab cycles through
-the panel and the button while it is open, Escape, a click on the scrim or the
-drawer's close button closes it and returns focus to the button. Each group
-is a button with `aria-expanded` over its items' `role="group"`. In the panel
-one group's items always show, switched on hover with a mouse, on focus and
-on click; the arrow keys, Home and End move between the groups. Below
-WordPress's 782px breakpoint the panel is a drawer from the start edge, where
-a tap or Enter opens a group's items under it and closes the others'. The
-stylesheet (`src/styles/_mega-menu.css`) tells the script which of the two
-the panel is through `--pixonaut-shop-mega-drawer`, so the breakpoint is
-written once. The panel fades in only without `prefers-reduced-motion`, and
-it opens over the page, so nothing in the header's row moves. The simple
-header prints none of this.
+panel) adds the rest and marks the menu `is-enhanced`. It keeps the button's
+`aria-expanded` in step with the popover's `toggle` event, moves focus to the
+first group on opening, keeps Tab within the open panel, and returns focus
+to the button when it closes. The menu is a disclosure, not a dialog: the
+panel has no dialog role and the page around it stays as it is. Each group
+is a button with `aria-expanded` over its items' `role="group"`. In the
+panel one group's items show at a time, switched on hover with a mouse, on
+focus and on click; the arrow keys, Home and End move between the groups.
+Below WordPress's 782px breakpoint the panel is a drawer from the start edge,
+where a tap or Enter opens a group's items under it and closes the others',
+and the page under it does not scroll; the desktop panel keeps the page's
+scrollbar, so the row never moves. The stylesheet (`src/styles/_mega-menu.css`)
+tells the script which of the two the panel is through
+`--pixonaut-shop-mega-drawer`, so the breakpoint is written in one file. The
+panel fades in only without `prefers-reduced-motion`. The simple header
+prints none of this.
 
 The Site Editor renders the header's navigation block in the browser, so it
 shows the menu as the simple header does in either variant.

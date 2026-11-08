@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-11-08T18:06:34+00:00\n"
+"POT-Creation-Date: 2026-11-08T18:26:32+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -175,16 +175,20 @@ msgstr "Installera WooCommerce"
 msgid "Do not show this again"
 msgstr "Visa inte det här igen"
 
-#: inc/Header/MegaMenu.php:232
+#: inc/Header/MegaMenu.php:283
 msgid "Menu"
 msgstr "Meny"
 
-#: inc/Header/MegaMenu.php:271
+#: inc/Header/MegaMenu.php:313
+msgid "Main menu"
+msgstr "Huvudmeny"
+
+#: inc/Header/MegaMenu.php:318
 msgid "Close menu"
 msgstr "Stäng menyn"
 
 #. translators: %s: a group of the header's menu, as the store named it.
-#: inc/Header/MegaMenu.php:293
+#: inc/Header/MegaMenu.php:341
 #, php-format
 msgid "All of %s"
 msgstr "Allt i %s"

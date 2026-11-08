@@ -24,7 +24,7 @@ const PHONE = { width: 390, height: 844 };
 
 const ROOT = '.pixonaut-shop-mega';
 const TOGGLE = '.pixonaut-shop-mega__toggle';
-const PANEL = '#pixonaut-shop-mega-panel';
+const PANEL = '.pixonaut-shop-mega__panel';
 const TILE_NAMES = '.pixonaut-shop-mega__children:not( [hidden] ) .pixonaut-shop-mega__name';
 const ROW_ITEMS = '.pixonaut-shop-header__row > *';
 
@@ -52,7 +52,9 @@ test( 'the menu button opens the panel at its first group, and Escape closes it'
 
 	const toggle = page.locator( TOGGLE );
 	await expect( toggle ).toHaveAttribute( 'aria-expanded', 'false' );
-	await expect( toggle ).toHaveAttribute( 'aria-controls', 'pixonaut-shop-mega-panel' );
+	const panelId = await page.locator( PANEL ).getAttribute( 'id' );
+	await expect( toggle ).toHaveAttribute( 'aria-controls', panelId ?? '' );
+	await expect( toggle ).toHaveAttribute( 'popovertarget', panelId ?? '' );
 	await expect( page.locator( PANEL ) ).toBeHidden();
 
 	await toggle.click();
@@ -109,26 +111,49 @@ test( 'the arrow keys move between the groups, which open as they take focus', a
 	await expect( page.locator( TILE_NAMES ) ).toHaveText( OCCASION_TILES );
 } );
 
-test( 'Tab stays in the open panel, round from its last link to the menu button', async ( {
+test( 'Tab stays in the open panel, round from its last link to its first group', async ( {
 	page,
 } ) => {
 	await page.setViewportSize( DESKTOP );
 	await page.goto( '/' );
 	await page.locator( TOGGLE ).click();
+	await expect( group( page, OCCASION ) ).toBeFocused();
 
 	// More presses than the panel has links and buttons, so focus has gone round.
 	const presses =
-		( await page.locator( `${ ROOT } a:visible, ${ ROOT } button:visible` ).count() ) + 2;
+		( await page.locator( `${ PANEL } a:visible, ${ PANEL } button:visible` ).count() ) + 2;
 
 	for ( let press = 0; press < presses; press++ ) {
 		await page.keyboard.press( 'Tab' );
-		expect( await focusIsInMegaMenu( page ) ).toBe( true );
+		expect( await focusIsInPanel( page ) ).toBe( true );
 	}
 
-	await page.locator( TOGGLE ).focus();
+	await group( page, OCCASION ).focus();
 	await page.keyboard.press( 'Shift+Tab' );
-	expect( await focusIsInMegaMenu( page ) ).toBe( true );
-	await expect( page.locator( TOGGLE ) ).not.toBeFocused();
+	expect( await focusIsInPanel( page ) ).toBe( true );
+	await expect( group( page, OCCASION ) ).not.toBeFocused();
+} );
+
+test( 'a click outside the panel closes it', async ( { page } ) => {
+	await page.setViewportSize( DESKTOP );
+	await page.goto( '/' );
+	await page.locator( TOGGLE ).click();
+	await expect( page.locator( PANEL ) ).toBeVisible();
+
+	await page.mouse.click( DESKTOP.width / 2, DESKTOP.height - 1 );
+
+	await expect( page.locator( PANEL ) ).toBeHidden();
+	await expect( page.locator( TOGGLE ) ).toHaveAttribute( 'aria-expanded', 'false' );
+} );
+
+test( 'the menu is a navigation landmark', async ( { page } ) => {
+	await page.goto( '/' );
+
+	await expect(
+		page
+			.getByRole( 'navigation', { name: 'Main menu' } )
+			.getByRole( 'button', { name: 'Menu', exact: true } ),
+	).toBeVisible();
 } );
 
 test( 'opening the panel moves nothing in the header', async ( { page } ) => {
@@ -140,6 +165,10 @@ test( 'opening the panel moves nothing in the header', async ( { page } ) => {
 	await expect( page.locator( PANEL ) ).toBeVisible();
 
 	expect( await rowItemBoxes( page ) ).toEqual( before );
+	// The page keeps its scrollbar, so a window with a classic one does not widen under the panel.
+	expect(
+		await page.evaluate( () => getComputedStyle( document.documentElement ).overflowY ),
+	).not.toBe( 'hidden' );
 } );
 
 test( 'on a phone the panel is a drawer whose groups open under their buttons', async ( {
@@ -195,6 +224,40 @@ test( 'without the mega header the header keeps its menu in the row', async ( {
 	await expect( page.locator( 'nav.pixonaut-shop-header__menu' ) ).toHaveCount( 1 );
 } );
 
+test.describe( 'without JavaScript', () => {
+	test.use( { javaScriptEnabled: false } );
+
+	test( 'the menu button opens the panel, which lists every group, and a group’s link leads on', async ( {
+		page,
+	} ) => {
+		await page.setViewportSize( DESKTOP );
+		await page.goto( '/' );
+
+		await page.locator( TOGGLE ).click();
+
+		await expect( page.locator( PANEL ) ).toBeVisible();
+		await expect( page.locator( TILE_NAMES ) ).toHaveText( [
+			...OCCASION_TILES,
+			...FOR_WHOM_TILES,
+		] );
+
+		await page.locator( PANEL ).getByRole( 'link', { name: 'For her' } ).click();
+
+		await expect( page ).toHaveURL( /\/product-category\/mega-for-her\/$/ );
+	} );
+
+	test( 'Escape closes the panel', async ( { page } ) => {
+		await page.setViewportSize( PHONE );
+		await page.goto( '/' );
+		await page.locator( TOGGLE ).click();
+		await expect( page.locator( PANEL ) ).toBeVisible();
+
+		await page.keyboard.press( 'Escape' );
+
+		await expect( page.locator( PANEL ) ).toBeHidden();
+	} );
+} );
+
 /** The header shows the fixture's menu as the mega header's, to this test's visitor. */
 async function showMegaMenu( context: BrowserContext, baseURL: string ): Promise< void > {
 	await context.addCookies( [ { name: MEGA_MENU_COOKIE, value: menuId, url: baseURL } ] );
@@ -204,8 +267,8 @@ function group( page: Page, name: string ) {
 	return page.locator( PANEL ).getByRole( 'button', { name, exact: true } );
 }
 
-function focusIsInMegaMenu( page: Page ): Promise< boolean > {
-	return page.evaluate( ( root ) => !! document.activeElement?.closest( root ), ROOT );
+function focusIsInPanel( page: Page ): Promise< boolean > {
+	return page.evaluate( ( panel ) => !! document.activeElement?.closest( panel ), PANEL );
 }
 
 /** Where each item of the header's row sits. */
