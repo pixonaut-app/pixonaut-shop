@@ -24,11 +24,15 @@ store is Site Editor work:
   one the same way.
 - **Site Identity / the Site Logo block** — the logo, site title, tagline
   and site icon.
-- **Navigation** — the header's and footer's menus. Pick a menu for each
-  of the footer's three navigation blocks: the two side by side are headed
-  by the menu's name as it is set under Navigation, and the third, after
-  the copyright line, holds the legal pages. Until a block names a menu,
-  core shows its fallback menu there, without a heading.
+- **Navigation** — the header's and footer's menus. A menu saved under the
+  name `pixonaut-shop-header` fills the header, one saved as
+  `pixonaut-shop-footer` the first of the footer's two menus side by side,
+  and one saved as `pixonaut-shop-legal` the legal links after the
+  copyright line. Pick a menu for a block in the Site Editor to show another
+  one there. The two footer menus side by side are headed by the menu's name
+  as it is set under Navigation. Until a block names a menu and no menu is
+  saved under its name, core shows its fallback menu there, without a
+  heading.
 - **The announcement part** (Patterns → Template parts → Announcement) —
   empty, so no bar shows. Insert the Announcement pattern into it and write
   the text; empty it again to remove the bar.
