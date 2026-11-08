@@ -11,8 +11,9 @@ namespace Pixonaut\Shop\FrontPage;
  *
  * The option is an array with the string keys `heading`, `text`,
  * `button_label` and `button_url`, and the int key `image_id`, an image
- * attachment's ID. Anything else is not a hero, and the pattern keeps its
- * placeholders.
+ * attachment's ID. The heading and the button's label hold more than
+ * spaces, and the button's address is one WordPress links to. Anything else
+ * is not a hero, and the pattern keeps its placeholders.
  */
 final class Hero
 {
@@ -24,6 +25,9 @@ final class Hero
 
     /** The keys of the option that hold text. */
     private const TEXT_KEYS = ['heading', 'text', 'button_label', 'button_url'];
+
+    /** The keys of the option without whose text the hero shows nothing worth showing. */
+    private const REQUIRED_TEXT_KEYS = ['heading', 'button_label'];
 
     private const IMAGE_ID_KEY = 'image_id';
 
@@ -54,6 +58,17 @@ final class Hero
             if (! \is_string($option[$key] ?? null)) {
                 return null;
             }
+        }
+
+        foreach (self::REQUIRED_TEXT_KEYS as $key) {
+            if (! \is_string($option[$key]) || '' === trim($option[$key])) {
+                return null;
+            }
+        }
+
+        // An address WordPress would not link to, a `javascript:` one among them, is none.
+        if ('' === esc_url_raw($option['button_url'])) {
+            return null;
         }
 
         $image_id = $option[self::IMAGE_ID_KEY] ?? null;

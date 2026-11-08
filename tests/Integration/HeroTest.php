@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixonaut\Shop\Tests\Integration;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Pixonaut\Shop\FrontPage\Hero;
 use WP_Block_Patterns_Registry;
@@ -108,14 +109,33 @@ final class HeroTest extends TestCase
             'heading'      => self::SCRIPT,
             'text'         => self::SCRIPT,
             'button_label' => self::SCRIPT,
-            'button_url'   => 'javascript:alert(1)',
         ]));
 
         $html = self::render();
 
         self::assertStringNotContainsString('<script', $html);
-        self::assertStringNotContainsString('javascript:', $html);
         self::assertStringContainsString('<h1 class="wp-block-heading">&lt;script&gt;', $html);
+    }
+
+    /**
+     * @return iterable<string, array{array<string, string>}>
+     */
+    public static function heroesThatAreNot(): iterable
+    {
+        yield 'a javascript: button' => [['button_url' => 'javascript:alert(1)']];
+        yield 'a button going nowhere' => [['button_url' => '']];
+        yield 'an empty heading' => [['heading' => '  ']];
+        yield 'an empty button label' => [['button_label' => '']];
+    }
+
+    /** @param array<string, string> $changes */
+    #[DataProvider('heroesThatAreNot')]
+    public function testAHeroWithNothingToShowRendersThePlaceholders(array $changes): void
+    {
+        $unchanged = self::content();
+        update_option(Hero::OPTION, self::hero($this->image(self::IMAGE_FILE, 'image/webp'), $changes));
+
+        self::assertSame($unchanged, self::content());
     }
 
     /** The pattern as a page that holds a reference to it renders it. */

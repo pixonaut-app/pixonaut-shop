@@ -100,12 +100,25 @@ final class HeroTest extends TestCase
         yield 'a button URL that is not a string' => [['button_url' => false] + self::HERO];
         yield 'an image ID as a string' => [['image_id' => (string) self::IMAGE_ID] + self::HERO];
         yield 'an image ID that is not an image' => [['image_id' => self::IMAGE_ID + 1] + self::HERO];
+        yield 'an empty heading' => [['heading' => ''] + self::HERO];
+        yield 'a heading of only spaces' => [['heading' => " \t\n"] + self::HERO];
+        yield 'an empty button label' => [['button_label' => ''] + self::HERO];
+        yield 'a button label of only spaces' => [['button_label' => '  '] + self::HERO];
     }
 
     #[DataProvider('notAHero')]
     public function testLeavesAnOptionThatIsNotAHeroAside(mixed $value): void
     {
         Functions\when('get_option')->justReturn($value);
+
+        self::assertNull(Hero::from_option());
+    }
+
+    /** An address WordPress would not link to, such as a `javascript:` one, or none at all. */
+    public function testLeavesAHeroWhoseButtonGoesNowhereAside(): void
+    {
+        Functions\when('get_option')->justReturn(self::HERO);
+        Functions\when('esc_url_raw')->justReturn('');
 
         self::assertNull(Hero::from_option());
     }

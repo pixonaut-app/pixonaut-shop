@@ -261,10 +261,10 @@ final class TemplatesTest extends TestCase
 
     /**
      * An image or address written into markup, which belongs in a store's
-     * own content. An image whose source the markup prints from PHP shows
-     * the store's own picture (the hero's, from its option).
+     * own content. An image whose source the markup prints through
+     * `esc_url()` shows the store's own picture (the hero's, from its option).
      */
-    private const HARDCODED_ASSET = '/<img\b(?![^>]*\bsrc="<\?php)|https?:\/\//i';
+    private const HARDCODED_ASSET = '/<img\b(?![^>]*\bsrc="<\?php echo esc_url\()|https?:\/\//i';
 
     /**
      * @return iterable<string, array{string}>
@@ -819,6 +819,15 @@ final class TemplatesTest extends TestCase
     public function testHardcodesNoImageOrAddress(string $path): void
     {
         self::assertDoesNotMatchRegularExpression(self::HARDCODED_ASSET, $this->read($path));
+    }
+
+    /** Only an image whose source the markup prints through `esc_url()` counts as the store's own. */
+    public function testAnImageCountsAsTheStoresOwnOnlyWhenItsSourceIsEscaped(): void
+    {
+        self::assertDoesNotMatchRegularExpression(self::HARDCODED_ASSET, '<img src="<?php echo esc_url( $url ); ?>" alt=""/>');
+        self::assertMatchesRegularExpression(self::HARDCODED_ASSET, '<img src="<?php echo $url; ?>" alt=""/>');
+        self::assertMatchesRegularExpression(self::HARDCODED_ASSET, '<img src="<?php echo esc_attr( $url ); ?>" alt=""/>');
+        self::assertMatchesRegularExpression(self::HARDCODED_ASSET, '<img src="logo.png" alt=""/>');
     }
 
     /**

@@ -225,8 +225,10 @@ picture is printed as core/media-text saves it, with its `wp-image-<id>`
 class and the attachment's alt text, so the editor finds the block valid;
 WordPress adds its sizes, `srcset` and lazy loading as the page renders. The
 text is escaped for HTML and the button's address as a URL. An option that
-is not an array with all five keys of these types, or whose `image_id` is
-not an image in the media library, is not a hero: the pattern keeps its
+is not an array with all five keys of these types, whose heading or button
+label is empty or only spaces, whose button address is one WordPress will
+not link to (empty, or `javascript:`), or whose `image_id` is not an image
+in the media library, is not a hero: the pattern keeps its
 placeholders, as it does while the option is unset.
 
 ## The update checker
