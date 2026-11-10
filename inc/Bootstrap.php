@@ -133,13 +133,16 @@ final class Bootstrap
      * The product page: the preview frame at the shape the store picks, and
      * in the add-to-cart form the price in the row with the quantity and the
      * button, and a variable product's attributes as chips where the store
-     * asks for them. Beside every reduced price, the lowest price of the 30
-     * days before the reduction, from the price history it keeps.
+     * asks for them. A variable product's price "from" its lowest, or its
+     * range, as the store picks in the Customizer. Beside every reduced
+     * price, the lowest price of the 30 days before the reduction, from the
+     * price history it keeps.
      */
     private function register_product(Product\LowestPrice $lowest_price): void
     {
         (new Product\PreviewFrame(new Blocks\AspectRatios()))->register();
         (new Product\PriceRow())->register();
+        (new Product\VariablePrice())->register();
         (new Product\VariationSwatches())->register();
         $lowest_price->register();
     }
