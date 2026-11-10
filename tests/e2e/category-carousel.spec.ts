@@ -36,6 +36,10 @@ const MANY = 12;
 const PREVIOUS_NAME = 'Previous categories';
 const NEXT_NAME = 'Next categories';
 
+// `category_rows()` makes its terms, product and page the first time: the file's cases run in
+// order, in one worker, so two workers never make the same term at once.
+test.describe.configure( { mode: 'default' } );
+
 let path = '';
 
 test.beforeAll( () => {
