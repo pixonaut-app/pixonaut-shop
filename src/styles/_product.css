@@ -689,13 +689,20 @@
 }
 
 /*
+ * The buttons that stand in for a menu, the theme's own (below) or Pixonaut
+ * for WooCommerce's, take the whole row under the label, as the menu does.
+ */
+.pixonaut-shop-product-info table.variations :is( .pixonaut-shop-swatches, .pixonaut-swatches ) {
+	grid-column: 1 / -1;
+}
+
+/*
  * The Use swatches style's chips (`Product\VariationSwatches`), as the
  * designer draws its option chips: a hairline ring, the chosen one ringed
  * in `accent` and heavier, one WooCommerce cannot sell faded.
  */
 .pixonaut-shop-swatches {
 	display: flex;
-	grid-column: 1 / -1;
 	flex-wrap: wrap;
 	gap: var( --wp--preset--spacing--20 );
 }
