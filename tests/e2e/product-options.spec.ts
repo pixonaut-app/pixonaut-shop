@@ -271,6 +271,77 @@ test( 'when WooCommerce narrows another attribute’s options, its chips follow,
 	await expect( page.getByRole( 'radio', { checked: true } ) ).toHaveCount( 0 );
 } );
 
+/**
+ * What Pixonaut for WooCommerce's attribute swatches put in place of a
+ * variation menu: the class its script hides the menu with, and the group of
+ * buttons it puts after the menu. Copied from the plugin's
+ * `assets/src/storefront/attribute-swatches.ts` and `.css`; when the plugin
+ * changes them, change this in the same change.
+ */
+const PLUGIN_REPLACED_CLASS = 'pixonaut-swatches__replaced';
+const PLUGIN_SWATCHES_CSS = `.${ PLUGIN_REPLACED_CLASS } { display: none !important; }`;
+const PLUGIN_SWATCHES = `${ ADD_TO_CART_FORM } .pixonaut-swatches`;
+
+/** Draws the plugin's buttons for the size menu in its place, as its script does. */
+async function drawPluginSwatches( page: Page ): Promise< void > {
+	await page.addStyleTag( { content: PLUGIN_SWATCHES_CSS } );
+	await page.locator( MENU ).evaluate(
+		( menu, [ replaced, sizes ] ) => {
+			const group = document.createElement( 'div' );
+
+			group.className = 'pixonaut-swatches';
+			group.setAttribute( 'role', 'radiogroup' );
+
+			for ( const size of sizes ) {
+				const swatch = document.createElement( 'span' );
+
+				swatch.className = 'pixonaut-swatches__swatch';
+				swatch.setAttribute( 'role', 'radio' );
+				swatch.textContent = size;
+				group.append( swatch );
+			}
+
+			menu.classList.add( replaced );
+			menu.after( group );
+		},
+		[ PLUGIN_REPLACED_CLASS, SIZES ] as const,
+	);
+}
+
+/** That the plugin's buttons take the whole row under the label. */
+async function expectPluginSwatchesUnderLabel( page: Page ): Promise< void > {
+	const row = await box( page.locator( `${ ADD_TO_CART_FORM } table.variations tr` ) );
+	const label = await box( page.locator( MENU_LABEL ) );
+	const swatches = await box( page.locator( PLUGIN_SWATCHES ) );
+
+	expect( swatches.y ).toBeGreaterThanOrEqual( label.y + label.height );
+	expect( Math.abs( swatches.x - row.x ) ).toBeLessThanOrEqual( LAYOUT_TOLERANCE_PX );
+	expect( Math.abs( swatches.width - row.width ) ).toBeLessThanOrEqual( LAYOUT_TOLERANCE_PX );
+}
+
+test( 'the plugin’s attribute buttons take the full row under their label', async ( { page } ) => {
+	await page.goto( VARIABLE_PRODUCT_PATH );
+	await drawPluginSwatches( page );
+
+	await expect( page.locator( CLEAR_LINK ) ).toBeHidden();
+	await expectPluginSwatchesUnderLabel( page );
+} );
+
+test( 'the plugin’s attribute buttons stay under their label beside Clear', async ( { page } ) => {
+	await page.goto( VARIABLE_PRODUCT_PATH );
+	await page.locator( MENU ).selectOption( 'M' );
+	await expect( page.locator( CLEAR_LINK ) ).toBeVisible();
+	await drawPluginSwatches( page );
+
+	const label = await box( page.locator( MENU_LABEL ) );
+	const clear = await box( page.locator( CLEAR_LINK ) );
+
+	// Clear stays on the label's row, at its end.
+	expect( clear.y + clear.height ).toBeGreaterThan( label.y );
+	expect( clear.x ).toBeGreaterThan( label.x + label.width );
+	await expectPluginSwatchesUnderLabel( page );
+} );
+
 /** The space between the approval box and the price row under it, in pixels. */
 async function approvalToBuyRow( page: Page ): Promise< number > {
 	const approval = await box( page.locator( APPROVAL ) );
