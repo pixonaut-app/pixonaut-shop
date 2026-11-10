@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-11-08T19:25:35+00:00\n"
+"POT-Creation-Date: 2026-11-10T14:58:05+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -187,20 +187,20 @@ msgstr "Installera WooCommerce"
 msgid "Do not show this again"
 msgstr "Visa inte det här igen"
 
-#: inc/Header/MegaMenu.php:365
+#: inc/Header/MegaMenu.php:366
 msgid "Menu"
 msgstr "Meny"
 
-#: inc/Header/MegaMenu.php:395
+#: inc/Header/MegaMenu.php:396
 msgid "Main menu"
 msgstr "Huvudmeny"
 
-#: inc/Header/MegaMenu.php:400
+#: inc/Header/MegaMenu.php:401
 msgid "Close menu"
 msgstr "Stäng menyn"
 
 #. translators: %s: a group of the header's menu, as the store named it.
-#: inc/Header/MegaMenu.php:423
+#: inc/Header/MegaMenu.php:424
 #, php-format
 msgid "All of %s"
 msgstr "Allt i %s"
@@ -216,6 +216,40 @@ msgstr "Order %s är mottagen"
 #, php-format
 msgid "Lowest price in the last %d days"
 msgstr "Lägsta pris senaste %d dagarna"
+
+#: inc/Product/VariablePrice.php:97
+msgid "Prices"
+msgstr "Priser"
+
+#: inc/Product/VariablePrice.php:113
+msgid "A variable product's price before a variation is chosen"
+msgstr "En variabel produkts pris innan en variant har valts"
+
+#: inc/Product/VariablePrice.php:115
+msgid "\"From\" the lowest price"
+msgstr "”Från” lägsta priset"
+
+#: inc/Product/VariablePrice.php:116
+msgid "\"Fr.\" the lowest price"
+msgstr "”Fr.” lägsta priset"
+
+#: inc/Product/VariablePrice.php:117
+msgid "The range from the lowest price to the highest"
+msgstr "Spannet från lägsta till högsta priset"
+
+#. translators: %s: a variable product's lowest price. The short form of "From %s".
+#: inc/Product/VariablePrice.php:132
+#, php-format
+msgctxt "variable product price, short"
+msgid "Fr. %s"
+msgstr "Fr. %s"
+
+#. translators: %s: a variable product's lowest price.
+#: inc/Product/VariablePrice.php:134
+#, php-format
+msgctxt "variable product price"
+msgid "From %s"
+msgstr "Från %s"
 
 #: patterns/announcement.php
 msgctxt "Pattern title"
