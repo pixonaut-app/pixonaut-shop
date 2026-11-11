@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.3.0...v1.4.0) (2026-11-11)
+
+
+### Features
+
+* show a variable product's price from its lowest price ([#14](https://github.com/pixonaut-app/pixonaut-shop/issues/14)) ([0ad8417](https://github.com/pixonaut-app/pixonaut-shop/commit/0ad84176a889c86f2b757db47b08e6dc41d8d486))
+
+
+### Bug Fixes
+
+* **product:** give the plugin's attribute buttons the full row under their label ([#13](https://github.com/pixonaut-app/pixonaut-shop/issues/13)) ([480a1e4](https://github.com/pixonaut-app/pixonaut-shop/commit/480a1e49f27acc42eb10f6648eee8d7bbd44a827))
+
 ## [1.3.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.2.0...v1.3.0) (2026-11-08)
 
 
