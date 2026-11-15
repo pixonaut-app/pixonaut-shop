@@ -169,8 +169,9 @@ export const E2E_OWNERS: Readonly< Record< string, SpecSelection > > = {
 	'inc/Pixonaut': PLUGIN_SPECS,
 	// The price row the product page's add-to-cart form prints, a variable
 	// product's options as swatches, and the lowest price beside a reduced
-	// price on the product page, its card and its cart line.
-	'inc/Product': [ 'buy-row', 'lowest-price', 'product-options', 'product-page' ],
+	// price on the product page, its card and its cart line. A card's second
+	// picture.
+	'inc/Product': [ 'buy-row', 'lowest-price', 'product-options', 'product-page', 'second-picture' ],
 	'inc/Support': 'all',
 	// The update checker makes no request without a token, which no site the
 	// suite visits has; the integration suite tests it against a fake GitHub.
@@ -196,7 +197,8 @@ export const SITE_WIDE_SPECS: readonly string[] = [
  * template opening in the Site Editor without invalid blocks, the front
  * page, the header's menu and the mega header's, the mini-cart drawer, the not-found page, the
  * order received page, the product page, the searches, the shop, the cart
- * and the checkout, and the lowest price beside a reduced price.
+ * and the checkout, the lowest price beside a reduced price, and a card's
+ * second picture.
  */
 export const PAGE_SPECS: readonly string[] = [
 	'buy-row',
@@ -212,6 +214,7 @@ export const PAGE_SPECS: readonly string[] = [
 	'product-options',
 	'product-page',
 	'search',
+	'second-picture',
 	'shop',
 	'site-editor',
 ];
@@ -237,6 +240,7 @@ export const LOOK_SPECS: readonly string[] = [
 	'product-options',
 	'product-page',
 	'search',
+	'second-picture',
 	'shop',
 	'styles',
 ];
@@ -244,8 +248,11 @@ export const LOOK_SPECS: readonly string[] = [
 /** What a change to an editor script can break: the Site Editor opening every template. */
 export const EDITOR_SPECS: readonly string[] = [ 'site-editor' ];
 
-/** What a change to the product page's script can break: a variable product's options as swatches. */
-export const PRODUCT_SCRIPT_SPECS: readonly string[] = [ 'product-options' ];
+/**
+ * What a change to a product's scripts can break: a variable product's options as swatches, and a
+ * card's second picture.
+ */
+export const PRODUCT_SCRIPT_SPECS: readonly string[] = [ 'product-options', 'second-picture' ];
 
 /**
  * The specs a pattern has of its own, run with `PAGE_SPECS` when it changes.
@@ -298,8 +305,9 @@ const RULES: readonly Rule[] = [
 	// The theme's own stylesheet and its partials, built into build/ and
 	// loaded on every page.
 	rule( /^src\/.+\.css$/, { js: true, e2e: LOOK_SPECS } ),
-	// The product page's script, built into build/ and loaded on a product
-	// page whose add-to-cart form has the swatches style.
+	// The product's scripts, built into build/: the product page's, loaded where
+	// its add-to-cart form has the swatches style, and the card's, loaded with
+	// a card that has a second picture.
 	rule( /^src\/product\/.+\.ts$/, { js: true, e2e: PRODUCT_SCRIPT_SPECS } ),
 	// The header search's script, built into build/ and loaded on a page
 	// whose search block is only its button.

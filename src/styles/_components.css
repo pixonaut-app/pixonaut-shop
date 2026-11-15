@@ -511,6 +511,8 @@ main:has(
 	background: var( --wp--preset--color--base );
 	box-shadow: var( --wp--preset--shadow--card );
 	--ps-card-inset: var( --wp--preset--spacing--40 );
+	/* How long a card's second picture takes to fade in over the first. */
+	--ps-picture-fade: 0.25s ease;
 }
 
 .wc-block-product-template .wc-block-product > * {
@@ -522,6 +524,44 @@ main:has(
 	position: relative;
 	margin-bottom: var( --wp--preset--spacing--20 );
 	padding-inline: 0;
+}
+
+/*
+ * The card's second picture (`Product\SecondPicture`), over the first one's
+ * box so it never moves the card. The first stays under it, so a second
+ * picture that is still loading, or never loads, leaves the first in view.
+ * A device without hover keeps the first picture alone and, as the second is
+ * not displayed, never loads it.
+ */
+.wc-block-product .wc-block-components-product-image .pixonaut-shop-second-picture {
+	display: none;
+}
+
+@media ( hover: hover ) {
+	.wc-block-product .wc-block-components-product-image .pixonaut-shop-second-picture {
+		position: absolute;
+		top: 0;
+		left: 0;
+		display: block;
+		/* The block's own Width, where the store set one, is printed on the picture. */
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		opacity: 0;
+	}
+
+	.wc-block-product:is( :hover, :focus-within )
+		.wc-block-components-product-image
+		.pixonaut-shop-second-picture {
+		opacity: 1;
+	}
+}
+
+/* The second fades in over the first; with reduced motion it is there at once. */
+@media ( hover: hover ) and ( prefers-reduced-motion: no-preference ) {
+	.wc-block-product .wc-block-components-product-image .pixonaut-shop-second-picture {
+		transition: opacity var( --ps-picture-fade );
+	}
 }
 
 /* WooCommerce's notices for the card's own add-to-cart, which the card has none of. */
