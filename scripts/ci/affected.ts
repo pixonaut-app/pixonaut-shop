@@ -169,8 +169,9 @@ export const E2E_OWNERS: Readonly< Record< string, SpecSelection > > = {
 	'inc/Pixonaut': PLUGIN_SPECS,
 	// The price row the product page's add-to-cart form prints, a variable
 	// product's options as swatches, and the lowest price beside a reduced
-	// price on the product page, its card and its cart line.
-	'inc/Product': [ 'buy-row', 'lowest-price', 'product-options', 'product-page' ],
+	// price on the product page, its card and its cart line. A card's second
+	// picture.
+	'inc/Product': [ 'buy-row', 'lowest-price', 'product-options', 'product-page', 'second-picture' ],
 	'inc/Support': 'all',
 	// The update checker makes no request without a token, which no site the
 	// suite visits has; the integration suite tests it against a fake GitHub.
@@ -196,7 +197,8 @@ export const SITE_WIDE_SPECS: readonly string[] = [
  * template opening in the Site Editor without invalid blocks, the front
  * page, the header's menu and the mega header's, the mini-cart drawer, the not-found page, the
  * order received page, the product page, the searches, the shop, the cart
- * and the checkout, and the lowest price beside a reduced price.
+ * and the checkout, the lowest price beside a reduced price, and a card's
+ * second picture.
  */
 export const PAGE_SPECS: readonly string[] = [
 	'buy-row',
@@ -212,6 +214,7 @@ export const PAGE_SPECS: readonly string[] = [
 	'product-options',
 	'product-page',
 	'search',
+	'second-picture',
 	'shop',
 	'site-editor',
 ];
@@ -237,6 +240,7 @@ export const LOOK_SPECS: readonly string[] = [
 	'product-options',
 	'product-page',
 	'search',
+	'second-picture',
 	'shop',
 	'styles',
 ];

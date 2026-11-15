@@ -133,6 +133,19 @@ WooCommerce's own `loop_shop_per_page`.
   whole picture with bands. WooCommerce shows Scale only once a Height is
   set there: set one, pick the scale, then clear the height again; the scale
   stays. Height and Width there set the picture's size.
+- **A card's second picture** — a card shows the product's next gallery
+  picture while it is hovered or holds the keyboard focus, faded in over
+  the first (swapped at once for a visitor who asks for reduced motion).
+  It is the first picture of the product's gallery, so the gallery's order
+  chooses it: drag the pictures under **Product gallery** on the product's
+  edit screen, or send them in that order as the product's `images` through
+  WooCommerce's REST API, where the first is the product image and the rest
+  its gallery. When the card's own picture is one of the gallery's, the
+  one after it is shown. A product without a gallery picture keeps its one
+  picture, and a touch screen shows the first only and never loads the
+  second. The second picture fills the first one's shape, by the same Scale.
+  Where Pixonaut for WooCommerce draws the product's pictures, its second
+  showcase set is the gallery's first picture.
 - **Cards elsewhere** — the popular products (in the Product Catalog and
   Product Search Results templates, and on the Cart page made from the Cart
   pattern), the related products (Single Product template) and the front

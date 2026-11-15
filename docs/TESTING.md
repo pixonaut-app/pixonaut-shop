@@ -129,6 +129,13 @@ a price history in which it cost less before the reduction
 days before it under the reduced price on the product page and on its card,
 and among its cart line's details; it removes the product afterwards.
 
+`second-picture.spec.ts` makes a product with a gallery picture and one
+without, in a category of their own (`ShopFixtures::pictured_products()`),
+and checks the card's second picture: shown over the first on hover and on
+focus without moving the card, swapped without a fade with reduced motion,
+and neither shown nor loaded on a touch device; it removes the products
+afterwards.
+
 `mega-menu.spec.ts` checks the mega header: the menu button opens the panel
 at its first group, a group shows its categories as tiles on hover and on
 focus, the arrow keys move between the groups, Tab stays in the open panel,

@@ -167,6 +167,26 @@ final class ShopFixtures
 
     public const HERO_IMAGE_ALT = 'The store at a glance';
 
+    /** The products `pictured_products()` makes, in a category of their own. */
+    public const PICTURED_CATEGORY_SLUG = 'pictured-products';
+
+    private const PICTURED_CATEGORY_NAME = 'Pictured products';
+
+    /** The product whose gallery holds a second picture. */
+    public const TWO_PICTURES_PRODUCT_SLUG = 'two-pictures-product';
+
+    /** The product with its one picture and no gallery. */
+    public const ONE_PICTURE_PRODUCT_SLUG = 'one-picture-product';
+
+    private const PICTURED_PRODUCTS = [
+        self::TWO_PICTURES_PRODUCT_SLUG => 'Poster in two pictures',
+        self::ONE_PICTURE_PRODUCT_SLUG  => 'Poster in one picture',
+    ];
+
+    private const CARD_IMAGE_SLUG = 'pixonaut-shop-card-picture';
+
+    private const CARD_SECOND_IMAGE_SLUG = 'pixonaut-shop-card-second-picture';
+
     /** The fixtures' pictures: the theme's own screenshot, copied to the uploads. */
     private const IMAGE_SOURCE = 'screenshot.png';
 
@@ -646,6 +666,41 @@ final class ShopFixtures
         }
 
         $term = get_term_by('slug', self::REDUCED_CATEGORY_SLUG, self::CATEGORY_TAXONOMY);
+
+        if ($term instanceof WP_Term) {
+            wp_delete_term($term->term_id, self::CATEGORY_TAXONOMY);
+        }
+    }
+
+    /**
+     * A product whose card has a second picture, its gallery's first, and
+     * one in the same category whose card has its one picture alone.
+     */
+    public static function pictured_products(): void
+    {
+        $category = self::category(self::PICTURED_CATEGORY_NAME, self::PICTURED_CATEGORY_SLUG);
+        $picture  = self::image(self::CARD_IMAGE_SLUG, true);
+
+        foreach (self::PICTURED_PRODUCTS as $slug => $name) {
+            $product = self::product($slug, $name, $category);
+            $product->set_image_id($picture);
+            $product->set_gallery_image_ids(self::TWO_PICTURES_PRODUCT_SLUG === $slug ? [self::image(self::CARD_SECOND_IMAGE_SLUG, true)] : []);
+            $product->save();
+        }
+    }
+
+    /** The pictured products and their category gone again, so no other spec's lists show them. */
+    public static function forget_pictured_products(): void
+    {
+        foreach (array_keys(self::PICTURED_PRODUCTS) as $slug) {
+            $existing = get_page_by_path($slug, OBJECT, 'product');
+
+            if (null !== $existing) {
+                wp_delete_post($existing->ID, true);
+            }
+        }
+
+        $term = get_term_by('slug', self::PICTURED_CATEGORY_SLUG, self::CATEGORY_TAXONOMY);
 
         if ($term instanceof WP_Term) {
             wp_delete_term($term->term_id, self::CATEGORY_TAXONOMY);
