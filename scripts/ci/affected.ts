@@ -248,8 +248,11 @@ export const LOOK_SPECS: readonly string[] = [
 /** What a change to an editor script can break: the Site Editor opening every template. */
 export const EDITOR_SPECS: readonly string[] = [ 'site-editor' ];
 
-/** What a change to the product page's script can break: a variable product's options as swatches. */
-export const PRODUCT_SCRIPT_SPECS: readonly string[] = [ 'product-options' ];
+/**
+ * What a change to a product's scripts can break: a variable product's options as swatches, and a
+ * card's second picture.
+ */
+export const PRODUCT_SCRIPT_SPECS: readonly string[] = [ 'product-options', 'second-picture' ];
 
 /**
  * The specs a pattern has of its own, run with `PAGE_SPECS` when it changes.
@@ -302,8 +305,9 @@ const RULES: readonly Rule[] = [
 	// The theme's own stylesheet and its partials, built into build/ and
 	// loaded on every page.
 	rule( /^src\/.+\.css$/, { js: true, e2e: LOOK_SPECS } ),
-	// The product page's script, built into build/ and loaded on a product
-	// page whose add-to-cart form has the swatches style.
+	// The product's scripts, built into build/: the product page's, loaded where
+	// its add-to-cart form has the swatches style, and the card's, loaded with
+	// a card that has a second picture.
 	rule( /^src\/product\/.+\.ts$/, { js: true, e2e: PRODUCT_SCRIPT_SPECS } ),
 	// The header search's script, built into build/ and loaded on a page
 	// whose search block is only its button.

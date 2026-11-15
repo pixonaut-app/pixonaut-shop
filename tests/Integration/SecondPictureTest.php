@@ -32,6 +32,7 @@ final class SecondPictureTest extends TestCase
     protected function tearDown(): void
     {
         remove_all_filters('woocommerce_product_get_image_id');
+        wp_dequeue_script(SecondPicture::SCRIPT_HANDLE);
 
         foreach ($this->product_ids as $id) {
             wp_delete_post($id, true);
@@ -68,6 +69,7 @@ final class SecondPictureTest extends TestCase
         self::assertStringContainsString('width="' . self::PICTURE_WIDTH . '"', $second);
         self::assertStringContainsString('height="' . self::PICTURE_HEIGHT . '"', $second);
         self::assertSame(1, substr_count($grid, SecondPicture::CLASS_NAME));
+        self::assertTrue(wp_script_is(SecondPicture::SCRIPT_HANDLE), 'The second picture\'s script is not loaded; run pnpm build.');
     }
 
     public function testLeavesACardWithOnePictureAsItIs(): void
@@ -75,6 +77,7 @@ final class SecondPictureTest extends TestCase
         $this->product('Poster', $this->picture('studio'), []);
 
         self::assertStringNotContainsString(SecondPicture::CLASS_NAME, $this->render());
+        self::assertFalse(wp_script_is(SecondPicture::SCRIPT_HANDLE));
     }
 
     public function testLeavesACardWithoutAPictureAsItIs(): void
@@ -91,14 +94,14 @@ final class SecondPictureTest extends TestCase
         self::assertStringNotContainsString(SecondPicture::CLASS_NAME, $this->render());
     }
 
-    public function testScalesTheSecondPictureAsTheStorePickedForTheCards(): void
+    public function testGivesTheSecondPictureTheWidthAndScaleTheStorePickedForTheCards(): void
     {
         $this->product('Poster', $this->picture('studio'), [$this->picture('design')]);
 
-        self::assertStringNotContainsString('object-fit', $this->second_picture($this->render()));
+        self::assertStringNotContainsString('style=', $this->second_picture($this->render()));
         self::assertStringContainsString(
-            'style="object-fit:contain;"',
-            $this->second_picture($this->render('{"showSaleBadge":false,"isDescendentOfQueryLoop":true,"scale":"contain"}'))
+            'style="width:120px;object-fit:contain;"',
+            $this->second_picture($this->render('{"showSaleBadge":false,"isDescendentOfQueryLoop":true,"width":"120px","scale":"contain"}'))
         );
     }
 

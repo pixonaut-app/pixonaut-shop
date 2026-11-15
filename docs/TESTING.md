@@ -132,8 +132,9 @@ and among its cart line's details; it removes the product afterwards.
 `second-picture.spec.ts` makes a product with a gallery picture and one
 without, in a category of their own (`ShopFixtures::pictured_products()`),
 and checks the card's second picture: shown over the first on hover and on
-focus without moving the card, swapped without a fade with reduced motion,
-and neither shown nor loaded on a touch device; it removes the products
+focus without moving the card, taken out when its file fails to load, shown
+without a fade with reduced motion, and neither shown nor loaded on a touch
+device; it removes the products
 afterwards.
 
 `mega-menu.spec.ts` checks the mega header: the menu button opens the panel

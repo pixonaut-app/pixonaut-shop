@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixonaut\Shop\Product;
 
+use Pixonaut\Shop\Assets\BuiltScript;
 use WC_Product;
 
 /**
@@ -20,7 +21,10 @@ use WC_Product;
  * The picture is printed after the first inside WooCommerce's Product Image
  * block, in a query loop only: lazy, with its size, an empty alt text beside
  * the first one's, and over the first picture's box, so it never moves the
- * card.
+ * card. The first stays under it, and the theme's script
+ * (`src/product/second-picture.ts`), loaded with the first card that has a
+ * second picture, takes out one that fails to load, so the first is left in
+ * view.
  */
 final class SecondPicture
 {
@@ -29,8 +33,16 @@ final class SecondPicture
     /** The second picture's class, which `src/styles/_components.css` lays over the first. */
     public const CLASS_NAME = 'pixonaut-shop-second-picture';
 
+    public const SCRIPT_HANDLE = 'pixonaut-shop-second-picture';
+
+    /** The built script's name in `build/`. */
+    private const SCRIPT = 'second-picture';
+
     /** The size WooCommerce's Product Image block prints its picture at. */
     private const IMAGE_SIZE = 'large';
+
+    /** The block's attributes the second picture follows, and the CSS property each sets. */
+    private const STYLE_ATTRIBUTES = ['width' => 'width', 'scale' => 'object-fit'];
 
     /** The block's first picture. */
     private const FIRST_PICTURE = '/<img\b[^>]*>/';
@@ -63,15 +75,18 @@ final class SecondPicture
             return $block_content;
         }
 
-        $attributes = \is_array($block['attrs'] ?? null) ? $block['attrs'] : [];
-        $scale      = $attributes['scale'] ?? null;
-        $image      = wp_get_attachment_image($picture, self::IMAGE_SIZE, false, [
+        $style = self::style(\is_array($block['attrs'] ?? null) ? $block['attrs'] : []);
+        $image = wp_get_attachment_image($picture, self::IMAGE_SIZE, false, [
             'class'   => self::CLASS_NAME,
             'alt'     => '',
             'loading' => 'lazy',
-            // The scale the store picked for the card's picture; the stylesheet's own without one.
-            'style'   => \is_string($scale) && '' !== $scale ? 'object-fit:' . $scale . ';' : '',
-        ]);
+        ] + ('' === $style ? [] : ['style' => $style]));
+
+        if ('' === $image) {
+            return $block_content;
+        }
+
+        BuiltScript::enqueue(self::SCRIPT_HANDLE, self::SCRIPT);
 
         return (string) preg_replace_callback(
             self::FIRST_PICTURE,
@@ -79,6 +94,29 @@ final class SecondPicture
             $block_content,
             1
         );
+    }
+
+    /**
+     * What the store set on the block for the card's picture and WooCommerce
+     * prints on the first: its width, so the second covers the first alone
+     * rather than the card's whole width, and its scale. The stylesheet's
+     * own without them.
+     *
+     * @param array<array-key, mixed> $attributes The block's attributes.
+     */
+    private static function style(array $attributes): string
+    {
+        $style = '';
+
+        foreach (self::STYLE_ATTRIBUTES as $attribute => $property) {
+            $value = $attributes[$attribute] ?? null;
+
+            if (\is_string($value) && '' !== $value) {
+                $style .= $property . ':' . $value . ';';
+            }
+        }
+
+        return $style;
     }
 
     /**
