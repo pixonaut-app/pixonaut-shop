@@ -137,6 +137,18 @@ without a fade with reduced motion, and neither shown nor loaded on a touch
 device; it removes the products
 afterwards.
 
+`header-search.spec.ts` checks the header's search: the icon opens the panel
+with the field focused; typing a product's name lists it with its picture
+and price; Enter on a suggestion opens the product and Enter in the field
+the results page; a query without a match says so; an empty search keeps
+the panel open; Escape, the close button and a click outside close it, and
+focus goes back to the icon; a `layout-shift` observer records nothing while
+it opens, suggests and closes at 1280px and 390px; and axe finds no WCAG A
+or AA violation in the open panel or the results page's content. Its
+products, with a picture each, are `ShopFixtures::searchable_products()`,
+removed again afterwards. `search.spec.ts` checks the results page itself,
+its filters included.
+
 `mega-menu.spec.ts` checks the mega header: the menu button opens the panel
 at its first group, a group shows its categories as tiles on hover and on
 focus, the arrow keys move between the groups, Tab stays in the open panel,

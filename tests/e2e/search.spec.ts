@@ -2,10 +2,10 @@ import { expect, test } from '@playwright/test';
 
 /**
  * The product search's template (`templates/product-search-results.html`):
- * the query again in its panel and what matched it, or, when nothing did, a
- * notice that names the query, the store's categories as buttons and the
- * popular products. Its own words are found here by their English source
- * strings.
+ * the query again in its panel and what matched it, beside the archive's
+ * filters, or, when nothing did, a notice that names the query, the store's
+ * categories as buttons and the popular products. Its own words are found
+ * here by their English source strings.
  */
 
 /** The products the global setup makes (`tests/Support/ShopFixtures.php`) are both tees. */
@@ -24,12 +24,15 @@ const SORTING = 'select.orderby';
 const SEARCH_FIELD = '.pixonaut-shop-search-panel input[type="search"]';
 const NO_RESULTS = '.pixonaut-shop-search-no-results';
 const POPULAR = '.pixonaut-shop-archive-popular';
+const FILTERS = '.pixonaut-shop-archive-filters';
 
 function productSearch( query: string ): string {
 	return `/?${ new URLSearchParams( { s: query, post_type: 'product' } ) }`;
 }
 
-test( 'a matching query lists its products, with their count and sorting', async ( { page } ) => {
+test( 'a matching query lists its products beside the filters, with their count and sorting', async ( {
+	page,
+} ) => {
 	await page.goto( productSearch( MATCHING_QUERY ) );
 
 	const main = page.locator( 'main' );
@@ -39,6 +42,7 @@ test( 'a matching query lists its products, with their count and sorting', async
 	await expect( main.locator( CARD ).first() ).toBeVisible();
 	await expect( main.locator( RESULTS_COUNT ) ).toBeVisible();
 	await expect( main.locator( SORTING ) ).toBeVisible();
+	await expect( main.locator( FILTERS ) ).toBeVisible();
 	await expect( main.locator( NO_RESULTS ) ).toHaveCount( 0 );
 	await expect( main.locator( POPULAR ) ).toHaveCount( 0 );
 } );
@@ -54,6 +58,8 @@ test( 'a query without a match names the query and offers the categories and the
 		noResults.getByRole( 'heading', { name: `No results for “${ UNMATCHED_QUERY }”` } ),
 	).toBeVisible();
 	await expect( noResults.getByRole( 'link', { name: CATEGORY } ) ).toBeVisible();
+	// Nothing to narrow, so no filters.
+	await expect( page.locator( `main ${ FILTERS }` ) ).toHaveCount( 0 );
 
 	const popular = page.locator( `main ${ POPULAR }` );
 

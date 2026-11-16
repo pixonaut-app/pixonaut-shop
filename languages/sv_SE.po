@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-11-16T00:12:38+00:00\n"
+"POT-Creation-Date: 2026-11-16T22:09:09+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -97,7 +97,7 @@ msgstr "Status"
 msgid "No results for “%s”"
 msgstr "Inga träffar för ”%s”"
 
-#: inc/Archive/ProductFilters.php:159
+#: inc/Archive/ProductFilters.php:128
 msgid "Show products"
 msgstr "Visa produkter"
 
@@ -168,7 +168,8 @@ msgid "Add %s more for free shipping"
 msgstr "Handla för %s till för fri frakt"
 
 #. translators: %s: the number of products in a category.
-#: inc/Blocks/ProductCategories.php:173
+#. translators: %s: how many products match the search.
+#: inc/Blocks/ProductCategories.php:173 build/header-search.js:3
 #, php-format
 msgid "%s product"
 msgid_plural "%s products"
@@ -190,6 +191,36 @@ msgstr "Installera WooCommerce"
 #: inc/Dependencies/WooCommerceNotice.php:72
 msgid "Do not show this again"
 msgstr "Visa inte det här igen"
+
+#: inc/Header/HeaderSearch.php:100
+msgid "Search products…"
+msgstr "Sök bland produkter…"
+
+#: inc/Header/HeaderSearch.php:101
+msgid "Search products"
+msgstr "Sök bland produkter"
+
+#: inc/Header/HeaderSearch.php:102
+msgid "Close search"
+msgstr "Stäng sökningen"
+
+#: inc/Header/HeaderSearch.php:144
+msgid "Search"
+msgstr "Sök"
+
+#: inc/Header/HeaderSearch.php:147
+msgid "Type two letters or more to see suggestions."
+msgstr "Skriv minst två bokstäver så visas förslag medan du skriver."
+
+#: inc/Header/HeaderSearch.php:148
+msgid "Suggestions"
+msgstr "Förslag"
+
+#: inc/Header/HeaderSearch.php:149
+msgid ""
+"Check the spelling or try a shorter word. Press Enter to search the whole "
+"store."
+msgstr "Kontrollera stavningen eller prova ett kortare ord. Tryck Enter för att söka i hela butiken."
 
 #: inc/Header/MegaMenu.php:366
 msgid "Menu"
@@ -721,6 +752,33 @@ msgstr "Antal produkter"
 #: build/blocks/product-categories/index.js:1
 msgid "Category order"
 msgstr "Kategoriordning"
+
+#. translators: %s: what the shopper searched for.
+#: build/header-search.js:2
+msgid "No products match “%s”"
+msgstr "Inga produkter matchar ”%s”"
+
+#. translators: %s: how many products match the search.
+#: build/header-search.js:4
+msgid "Show the %s result"
+msgid_plural "Show all %s results"
+msgstr[0] "Visa %s resultat"
+msgstr[1] "Visa alla %s resultat"
+
+#: build/header-search.js:4
+msgid "From"
+msgstr "Från"
+
+#: build/header-search.js:4
+msgid "Regular price:"
+msgstr "Ordinarie pris:"
+
+#. translators: %s: how many suggestions the search shows.
+#: build/header-search.js:5
+msgid "%s suggestion. Use the up and down arrows to pick it."
+msgid_plural "%s suggestions. Use the up and down arrows to pick one."
+msgstr[0] "%s förslag. Välj det med pil upp och pil ner."
+msgstr[1] "%s förslag. Välj ett med pil upp och pil ner."
 
 #: build/blocks/category-carousel/block.json
 msgctxt "block title"

@@ -1,0 +1,275 @@
+/*
+ * The header's search (`inc/Header/HeaderSearch.php`): the icon in the
+ * header's row and the panel it opens, a band under the header across the
+ * window, over the page, with a scrim behind it. In the band: the field, the
+ * search button and the close button, then one status row (the hint, the
+ * count and the link to every result, or "nothing found"), then the
+ * suggestions. The panel is a popover in the top layer, so opening it, typing
+ * and closing it move nothing on the page.
+ */
+
+.pixonaut-shop-header-search {
+	/* The suggestions' pictures, a fingertip's square and a little more. */
+	--pixonaut-shop-header-search-picture: 3.5rem;
+	/* The status row is one line of small text tall, empty or not, so the list under it never moves. */
+	--pixonaut-shop-header-search-status-height: 1.75rem;
+}
+
+.pixonaut-shop-header-search__toggle svg,
+.pixonaut-shop-header-search__close svg {
+	width: 1.5rem;
+	height: 1.5rem;
+}
+
+/*
+ * As the mega menu's panel (`_mega-menu.css`): fixed in the top layer where
+ * the browser has the Popover API, else hidden until the script opens it.
+ */
+@supports selector( :popover-open ) {
+	.pixonaut-shop-header-search__panel {
+		position: fixed;
+	}
+}
+
+@supports not selector( :popover-open ) {
+	.pixonaut-shop-header-search__panel:not( .is-open ) {
+		display: none;
+	}
+
+	.pixonaut-shop-header-search__panel.is-open {
+		position: fixed;
+		/* Above WordPress's admin bar (99999), as the top layer would be. */
+		z-index: 100000;
+	}
+}
+
+/* Under the header, across the window, where the script measured the header's bottom edge. */
+.pixonaut-shop-header-search__panel {
+	inset: auto;
+	top: var( --pixonaut-shop-header-search-top, 0px );
+	right: 0;
+	left: 0;
+	width: auto;
+	height: auto;
+	max-height: calc( 100dvh - var( --pixonaut-shop-header-search-top, 0px ) );
+	margin: 0;
+	padding: var( --wp--preset--spacing--50 ) var( --wp--preset--spacing--40 )
+		var( --wp--preset--spacing--60 );
+	overflow-y: auto;
+	border: 0;
+	border-block-end: 1px solid var( --wp--preset--color--border );
+	background: var( --wp--preset--color--base );
+	box-shadow: var( --wp--preset--shadow--card );
+	color: var( --wp--preset--color--contrast );
+}
+
+.pixonaut-shop-header-search__panel::backdrop {
+	/* The header stays clear of the scrim, as it is of the panel. */
+	top: var( --pixonaut-shop-header-search-top, 0px );
+	background-color: color-mix(
+		in srgb,
+		var( --wp--preset--color--strong ) var( --pixonaut-shop-scrim-strength ),
+		transparent
+	);
+}
+
+.pixonaut-shop-header-search__inner {
+	display: flex;
+	flex-direction: column;
+	gap: var( --wp--preset--spacing--30 );
+	max-width: var( --wp--style--global--content-size );
+	margin-inline: auto;
+}
+
+.pixonaut-shop-header-search__form {
+	display: flex;
+	align-items: center;
+	gap: var( --wp--preset--spacing--20 );
+	margin: 0;
+}
+
+.pixonaut-shop-header-search__field {
+	position: relative;
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+.pixonaut-shop-header-search__field svg {
+	position: absolute;
+	top: 50%;
+	inset-inline-start: var( --wp--preset--spacing--40 );
+	width: 1.25rem;
+	height: 1.25rem;
+	color: var( --wp--preset--color--muted );
+	transform: translateY( -50% );
+	pointer-events: none;
+}
+
+.pixonaut-shop-header-search__input {
+	box-sizing: border-box;
+	width: 100%;
+	min-height: var( --ps-control-height );
+	margin: 0;
+	/* The icon's inset, its width and a small step before the text. */
+	padding-block: 0;
+	padding-inline: calc(
+			var( --wp--preset--spacing--40 ) +
+			1.25rem +
+			var( --wp--preset--spacing--20 )
+		)
+		var( --wp--preset--spacing--40 );
+	border: 1px solid var( --wp--preset--color--border-strong );
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--base );
+	color: var( --wp--preset--color--contrast );
+	font: inherit;
+}
+
+.pixonaut-shop-header-search__input::-webkit-search-cancel-button {
+	/* The panel's own close button is beside it; Escape closes the panel rather than emptying the field. */
+	appearance: none;
+}
+
+.pixonaut-shop-header-search__input::placeholder {
+	color: var( --wp--preset--color--muted );
+	opacity: 1;
+}
+
+.pixonaut-shop-header-search__input:focus-visible {
+	outline: 2px solid var( --wp--preset--color--accent );
+	outline-offset: 2px;
+}
+
+.pixonaut-shop-header-search__submit {
+	flex: none;
+	min-height: var( --ps-control-height );
+}
+
+.pixonaut-shop-header-search__close {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 2.75rem;
+	height: 2.75rem;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: none;
+	color: var( --wp--preset--color--contrast );
+	cursor: pointer;
+}
+
+.pixonaut-shop-header-search__close:hover {
+	background: var( --wp--preset--color--surface );
+}
+
+.pixonaut-shop-header-search__status {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var( --wp--preset--spacing--30 );
+	min-height: var( --pixonaut-shop-header-search-status-height );
+	font-size: var( --wp--preset--font-size--small );
+}
+
+.pixonaut-shop-header-search__status p,
+.pixonaut-shop-header-search__help {
+	margin: 0;
+}
+
+.pixonaut-shop-header-search__hint,
+.pixonaut-shop-header-search__help {
+	color: var( --wp--preset--color--muted );
+}
+
+.pixonaut-shop-header-search__count,
+.pixonaut-shop-header-search__none {
+	font-weight: 600;
+}
+
+.pixonaut-shop-header-search__all {
+	color: var( --wp--preset--color--accent );
+	font-weight: 700;
+}
+
+.pixonaut-shop-header-search__list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pixonaut-shop-header-search__option {
+	display: flex;
+	align-items: center;
+	gap: var( --wp--preset--spacing--40 );
+	min-height: var( --pixonaut-shop-header-search-picture );
+	padding: var( --wp--preset--spacing--20 ) var( --wp--preset--spacing--30 );
+	border-radius: var( --wp--custom--radius--small );
+	color: var( --wp--preset--color--contrast );
+	cursor: pointer;
+}
+
+.pixonaut-shop-header-search__option:hover,
+.pixonaut-shop-header-search__option.is-active {
+	background: var( --wp--preset--color--surface );
+}
+
+.pixonaut-shop-header-search__option.is-active {
+	box-shadow: inset 0 0 0 2px var( --wp--preset--color--accent );
+}
+
+.pixonaut-shop-header-search__picture {
+	flex: none;
+	width: var( --pixonaut-shop-header-search-picture );
+	height: var( --pixonaut-shop-header-search-picture );
+	overflow: hidden;
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--surface );
+}
+
+.pixonaut-shop-header-search__picture img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.pixonaut-shop-header-search__name {
+	flex: 1 1 0;
+	min-width: 0;
+	overflow: hidden;
+	font-weight: 600;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.pixonaut-shop-header-search__price {
+	flex: none;
+	font-family: var( --wp--preset--font-family--heading );
+	font-variant-numeric: tabular-nums;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.pixonaut-shop-header-search__price del,
+.pixonaut-shop-header-search__from {
+	color: var( --wp--preset--color--muted );
+	font-weight: 400;
+}
+
+/* Phones, from WordPress's own 782px breakpoint: the keyboard's search key submits, so the button gives way. */
+@media ( max-width: 781px ) {
+	.pixonaut-shop-header-search__panel {
+		padding: var( --wp--preset--spacing--40 ) var( --wp--preset--spacing--40 )
+			var( --wp--preset--spacing--50 );
+	}
+
+	.pixonaut-shop-header-search__submit {
+		display: none;
+	}
+}

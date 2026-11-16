@@ -58,6 +58,7 @@
     "test": "pnpm test:unit && pnpm test:integration"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@biomejs/biome": "^2.5.12",
     "@playwright/test": "^1.63.0",
     "@types/node": "^26.6.0",

@@ -128,7 +128,7 @@ export const PLUGIN_SPECS: readonly string[] = [
 ];
 
 /** What a change to the header's scripts can break: its search and the mega header's menu. */
-export const HEADER_SCRIPT_SPECS: readonly string[] = [ 'header', 'mega-menu' ];
+export const HEADER_SCRIPT_SPECS: readonly string[] = [ 'header', 'header-search', 'mega-menu' ];
 
 /**
  * The specs each `inc/` entry can break. `'all'` wherever they cannot be
@@ -207,6 +207,7 @@ export const PAGE_SPECS: readonly string[] = [
 	'checkout',
 	'front-page',
 	'header',
+	'header-search',
 	'lowest-price',
 	'mega-menu',
 	'mini-cart',
@@ -234,6 +235,7 @@ export const LOOK_SPECS: readonly string[] = [
 	'checkout',
 	'front-page',
 	'header',
+	'header-search',
 	'lowest-price',
 	'mega-menu',
 	'mini-cart',

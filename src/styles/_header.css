@@ -58,7 +58,7 @@
 
 /* The mega menu's button, search, account and the mini-cart: icons on a square the size of a fingertip. */
 .pixonaut-shop-header .pixonaut-shop-mega__toggle,
-.pixonaut-shop-header .wp-block-search__button,
+.pixonaut-shop-header .pixonaut-shop-header-search__toggle,
 .pixonaut-shop-header .wp-block-woocommerce-customer-account a,
 .pixonaut-shop-header .wc-block-mini-cart__button {
 	position: relative;
@@ -77,60 +77,17 @@
 
 .pixonaut-shop-header .pixonaut-shop-mega__toggle:hover,
 .pixonaut-shop-header .pixonaut-shop-mega__toggle[ aria-expanded="true" ],
-.pixonaut-shop-header .wp-block-search__button:hover,
+.pixonaut-shop-header .pixonaut-shop-header-search__toggle:hover,
+.pixonaut-shop-header .pixonaut-shop-header-search__toggle[ aria-expanded="true" ],
 .pixonaut-shop-header .wp-block-woocommerce-customer-account a:hover,
 .pixonaut-shop-header .wc-block-mini-cart__button:hover {
 	background: var( --wp--preset--color--surface );
 	color: var( --wp--preset--color--contrast );
 }
 
-/*
- * The search's field opens under the header, across from the row's end, over
- * the page rather than in the row, so nothing in the row moves to make room.
- * Core collapses the field to nothing when it closes, at once rather than
- * shrinking it into a frame; it fades in on opening.
- */
-.pixonaut-shop-header__row {
-	position: relative;
-}
-
-/*
- * Core clips the closed search, which would let it shrink below its button
- * beside a long title, and grow back when it opens.
- */
+/* The search icon keeps its place in the row beside a long title; its panel opens over the page (`_header-search.css`). */
 .pixonaut-shop-header__row > .wp-block-search {
 	flex-shrink: 0;
-}
-
-.pixonaut-shop-header .wp-block-search__button-only .wp-block-search__input {
-	position: absolute;
-	z-index: 1;
-	/* Clear of the header's padding and its border, by a small step. */
-	top: calc( 100% + var( --wp--preset--spacing--40 ) + var( --wp--preset--spacing--20 ) );
-	inset-inline-end: 0;
-	width: min( var( --ps-search-width ), 100% );
-	min-height: var( --ps-control-height );
-	padding: 0 var( --wp--preset--spacing--40 );
-	border: 1px solid var( --wp--preset--color--border-strong );
-	border-radius: var( --wp--custom--radius--small );
-	background: var( --wp--preset--color--base );
-	box-shadow: var( --wp--preset--shadow--card );
-	color: var( --wp--preset--color--contrast );
-	font: inherit;
-	opacity: 1;
-	transition: opacity 0.15s ease;
-}
-
-.pixonaut-shop-header .wp-block-search__button-only .wp-block-search__input:focus {
-	border-color: var( --wp--preset--color--accent );
-	outline: 1px solid var( --wp--preset--color--accent );
-}
-
-/* Still focusable while hidden: core focuses it before it shows it. */
-.pixonaut-shop-header .wp-block-search__searchfield-hidden .wp-block-search__input {
-	opacity: 0;
-	pointer-events: none;
-	transition: none;
 }
 
 /*
