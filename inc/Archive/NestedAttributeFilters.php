@@ -8,12 +8,13 @@ use WP_Block;
 
 /**
  * Nests an attribute that applies only under some values of another
- * (`AttributeDependencies`) under each of those values in the filters beside
- * an archive's grid, folded until the customer opens it: a frame's colour
- * under "Frame" in the framing's group, rather than as a group of its own
- * beside "No frame". Its values, their counts and their chips are
- * WooCommerce's own filter for the attribute, so ticking one narrows the
- * grid like any other value.
+ * (`AttributeDependencies`) under the chosen one of those values in the
+ * filters beside an archive's grid: a frame's colour under "Frame" once
+ * "Frame" is ticked, rather than as a group of its own beside "No frame". It
+ * shows once, under its name, however many of the values it applies under
+ * are chosen, and not at all while none is (`placed_after()`). Its values, their counts and their chips are
+ * WooCommerce's own filter for the attribute, so ticking one narrows the grid
+ * like any other value.
  *
  * WooCommerce draws a list's values again from its script once the page has
  * started, which would drop anything added inside them. A list with values
@@ -24,7 +25,7 @@ use WP_Block;
  */
 final class NestedAttributeFilters
 {
-    /** The folding group a nested attribute's values sit in. */
+    /** The group a nested attribute's name and values sit in. */
     public const NESTED_CLASS = 'pixonaut-shop-filter-nested';
 
     private const LIST_CLASS = 'wc-block-product-filter-checkbox-list';
@@ -130,13 +131,15 @@ final class NestedAttributeFilters
     }
 
     /**
-     * The filter's own markup with each value's dependent attributes after
-     * the value's label, and its values left as the server rendered them.
+     * The filter's own markup with each dependent attribute after the label
+     * of the value it shows under, and its values left as the server
+     * rendered them.
      *
      * @param array<array-key, list<string>> $under
      */
     private function with_nested(string $block_content, string $taxonomy, array $under, WP_Block $instance): string
     {
+        $after   = $this->placed_after($this->listed_values($block_content), $under, $instance, $taxonomy);
         $markup  = new FilterListMarkup($block_content);
         $pending = null;
 
@@ -159,10 +162,7 @@ final class NestedAttributeFilters
                 $markup->remove_attribute(self::EACH_KEY);
             } elseif ('INPUT' === $tag && $markup->has_class(self::INPUT_CLASS)) {
                 $value   = $markup->get_attribute('value');
-                $pending = \is_string($value) && isset($under[$value])
-                    ? $this->folds($under[$value], $instance, $taxonomy . '-' . $value, null !== $markup->get_attribute('checked'))
-                    : null;
-                $pending = '' === $pending ? null : $pending;
+                $pending = \is_string($value) ? ($after[$value] ?? null) : null;
             }
         }
 
@@ -170,42 +170,101 @@ final class NestedAttributeFilters
     }
 
     /**
-     * A folding group for each dependent attribute with values to show, open
-     * while its parent value or one of its own is chosen.
+     * The list's values in its order, each with whether it is chosen.
      *
-     * @param list<string> $dependents
+     * @return list<array{string, bool}>
      */
-    private function folds(array $dependents, WP_Block $instance, string $place, bool $parent_chosen): string
+    private function listed_values(string $block_content): array
     {
-        $folds = '';
+        $markup = new FilterListMarkup($block_content);
+        $values = [];
 
-        foreach ($dependents as $dependent) {
-            $attribute = AttributeFilterBlock::attribute_of($dependent);
-            $block     = null === $attribute ? null : AttributeFilterBlock::values($attribute);
+        while ($markup->next_tag(['tag_name' => 'INPUT', 'class_name' => self::INPUT_CLASS])) {
+            $value = $markup->get_attribute('value');
 
-            if (null === $attribute || null === $block) {
-                continue;
+            if (\is_string($value) && '' !== $value) {
+                $values[] = [$value, null !== $markup->get_attribute('checked')];
             }
-
-            $values = (new WP_Block($block, $instance->context))->render();
-
-            if ($this->shows_nothing($values)) {
-                continue;
-            }
-
-            $values = $this->in_place($values, sanitize_title($place));
-            $open   = $parent_chosen || $this->has_a_chosen_value($values);
-
-            $folds .= \sprintf(
-                '<details class="%1$s"%2$s><summary class="%1$s__toggle">%3$s</summary><div class="%1$s__values">%4$s</div></details>',
-                esc_attr(self::NESTED_CLASS),
-                $open ? ' open' : '',
-                esc_html(AttributeFilterBlock::label_of($attribute)),
-                $values
-            );
         }
 
-        return $folds;
+        return $values;
+    }
+
+    /**
+     * Each dependent attribute's values, by the value they show after. A
+     * dependent shows once, however many of the values it applies under: after
+     * the chosen one, or after the last chosen when several are. With none of
+     * them chosen it does not show, unless one of its own values is chosen
+     * (from the address), which then shows after the last value it applies
+     * under so it can be cleared.
+     *
+     * @param list<array{string, bool}>      $values
+     * @param array<array-key, list<string>> $under
+     *
+     * @return array<string, string>
+     */
+    private function placed_after(array $values, array $under, WP_Block $instance, string $taxonomy): array
+    {
+        $after = [];
+
+        foreach (array_values(array_unique(array_merge(...array_values($under)))) as $dependent) {
+            $parents = [];
+            $chosen  = [];
+
+            foreach ($values as [$value, $is_chosen]) {
+                if (\in_array($dependent, $under[$value] ?? [], true)) {
+                    $parents[] = $value;
+
+                    if ($is_chosen) {
+                        $chosen[] = $value;
+                    }
+                }
+            }
+
+            if ([] === $parents) {
+                continue;
+            }
+
+            $nested = $this->nested($dependent, $instance, $taxonomy);
+
+            if (null === $nested || ([] === $chosen && ! $this->has_a_chosen_value($nested))) {
+                continue;
+            }
+
+            $anchors        = [] === $chosen ? $parents : $chosen;
+            $anchor         = $anchors[array_key_last($anchors)];
+            $after[$anchor] = ($after[$anchor] ?? '') . $nested;
+        }
+
+        return $after;
+    }
+
+    /**
+     * The dependent attribute's values under its name, or null when it has
+     * none to show.
+     */
+    private function nested(string $dependent, WP_Block $instance, string $taxonomy): ?string
+    {
+        $attribute = AttributeFilterBlock::attribute_of($dependent);
+        $block     = null === $attribute ? null : AttributeFilterBlock::values($attribute);
+
+        if (null === $attribute || null === $block) {
+            return null;
+        }
+
+        $values = (new WP_Block($block, $instance->context))->render();
+
+        if ($this->shows_nothing($values)) {
+            return null;
+        }
+
+        // WooCommerce's list names itself to a screen reader already.
+        return \sprintf(
+            '<div class="%1$s"><p class="%1$s__label" aria-hidden="true">%2$s</p>%3$s</div>',
+            esc_attr(self::NESTED_CLASS),
+            esc_html(AttributeFilterBlock::label_of($attribute)),
+            $this->in_place($values, sanitize_title($taxonomy))
+        );
     }
 
     /**
@@ -232,9 +291,9 @@ final class NestedAttributeFilters
     }
 
     /**
-     * The values with ids of their own: an attribute nested under two values
-     * shows twice, and a label must tick the checkbox beside it, not its twin
-     * elsewhere.
+     * The values with ids of their own: an attribute that applies under two
+     * attributes shows under each, and a label must tick the checkbox beside
+     * it, not its twin elsewhere.
      */
     private function in_place(string $values, string $place): string
     {
