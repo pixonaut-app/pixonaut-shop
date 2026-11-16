@@ -35,10 +35,10 @@ final class ProductFiltersTest extends TestCase
     /** A chosen filter's chip, which WooCommerce's own template for one is not. */
     private const RENDERED_CHIP = '/' . self::CHIP . '"\s+data-wp-each-child/';
 
-    /** A nested group, folded or open. */
-    private const FOLDED = '<details class="' . NestedAttributeFilters::NESTED_CLASS . '"(?: open)?>';
+    /** A dependent attribute nested under a value, with its name. */
+    private const NESTED_GROUP = '<div class="' . NestedAttributeFilters::NESTED_CLASS . '"><p class="' . NestedAttributeFilters::NESTED_CLASS . '__label"[^>]*>';
 
-    private const NESTED = '/' . self::FOLDED . '/';
+    private const NESTED = '/' . self::NESTED_GROUP . '/';
 
     /** WooCommerce's attribute filter, as a store places it in the Site Editor. */
     private const ATTRIBUTE_BLOCK = 'woocommerce/product-filter-attribute';
@@ -104,24 +104,49 @@ final class ProductFiltersTest extends TestCase
         self::assertStringNotContainsString(NestedAttributeFilters::NESTED_CLASS, $archive, 'Without dependent attributes nothing nests.');
     }
 
-    public function testADependentAttributeShowsFoldedUnderTheValueItAppliesUnderOnly(): void
+    public function testADependentAttributeShowsNothingWhileNoValueItAppliesUnderIsChosen(): void
     {
-        $this->frame_colour_depends_on_a_frame();
+        $this->frame_colour_depends_on_a_frame_or_a_hanger();
         $archive = $this->render(FilterFixtures::category());
 
         self::assertSame([FilterFixtures::FRAMING, 'Price'], $this->group_headings($archive), 'The frame colour has no group of its own.');
-        self::assertSame(1, preg_match_all(self::NESTED, $archive), 'One nested group, under one value.');
+        self::assertDoesNotMatchRegularExpression(self::NESTED, $archive);
+        self::assertStringNotContainsString('value="' . sanitize_title(FilterFixtures::OAK) . '"', $archive);
+        self::assertSame(1, $this->count_of($archive, FilterFixtures::HANGER));
+        self::assertSame(2, $this->count_of($archive, FilterFixtures::NO_FRAME));
+        self::assertSame(1, $this->count_of($archive, FilterFixtures::FRAME));
+    }
+
+    public function testADependentAttributeShowsUnderTheChosenValueItAppliesUnder(): void
+    {
+        $this->frame_colour_depends_on_a_frame_or_a_hanger();
+        $archive = $this->render(FilterFixtures::category(), ['filter_' . FilterFixtures::FRAMING_SLUG => FilterFixtures::FRAME_SLUG]);
+
+        self::assertSame(1, preg_match_all(self::NESTED, $archive), 'One nested group, under the chosen value.');
         self::assertMatchesRegularExpression(
-            '/value="' . FilterFixtures::FRAME_SLUG . '".*?<\/label>\s*' . self::FOLDED . '\s*<summary[^>]*>' . FilterFixtures::FRAME_COLOUR . '<\/summary>.*?' . FilterFixtures::OAK . '.*?' . FilterFixtures::BLACK . '/s',
+            '/value="' . FilterFixtures::FRAME_SLUG . '"[^>]*checked.*?<\/label>\s*' . self::NESTED_GROUP . FilterFixtures::FRAME_COLOUR . '<\/p>.*?' . FilterFixtures::OAK . '.*?' . FilterFixtures::BLACK . '/s',
             $archive,
-            'The frame colour is folded right after "Frame", with its values.'
+            'The frame colour shows right after "Frame", under its name, with its values.'
         );
         self::assertDoesNotMatchRegularExpression(
-            '/value="' . sanitize_title(FilterFixtures::NO_FRAME) . '"(?:(?!__item").)*?' . NestedAttributeFilters::NESTED_CLASS . '/s',
+            '/value="' . FilterFixtures::HANGER_SLUG . '"(?:(?!__item").)*?' . NestedAttributeFilters::NESTED_CLASS . '/s',
             $archive,
-            '"No frame" offers no frame colour.'
+            'The hanger, not chosen, offers no frame colour.'
         );
-        self::assertSame(1, $this->count_of($archive, FilterFixtures::OAK));
+        self::assertSame(1, preg_match_all('/value="' . sanitize_title(FilterFixtures::BLACK) . '"/', $archive), 'Each colour shows once.');
+    }
+
+    public function testADependentOfSeveralChosenValuesShowsOnceAfterTheLast(): void
+    {
+        $this->frame_colour_depends_on_a_frame_or_a_hanger();
+        $archive = $this->render(FilterFixtures::category(), ['filter_' . FilterFixtures::FRAMING_SLUG => FilterFixtures::HANGER_SLUG . ',' . FilterFixtures::FRAME_SLUG]);
+
+        self::assertSame(1, preg_match_all(self::NESTED, $archive), 'The frame colour shows once.');
+        self::assertMatchesRegularExpression(
+            '/value="' . FilterFixtures::FRAME_SLUG . '"[^>]*checked.*?<\/label>\s*' . self::NESTED_GROUP . FilterFixtures::FRAME_COLOUR . '<\/p>/s',
+            $archive
+        );
+        self::assertSame(1, preg_match_all('/value="' . sanitize_title(FilterFixtures::BLACK) . '"/', $archive));
     }
 
     public function testAttributesThatDependOnEachOtherShowOnceTheFirstListedAsAGroup(): void
@@ -134,36 +159,37 @@ final class ProductFiltersTest extends TestCase
                 $taxonomy(FilterFixtures::FRAMING) => [$taxonomy(FilterFixtures::FRAME_COLOUR) => [sanitize_title(FilterFixtures::OAK)]],
             ]
         );
-        $archive = $this->render(FilterFixtures::category());
+        $archive = $this->render(FilterFixtures::category(), ['filter_' . sanitize_title(FilterFixtures::FRAME_COLOUR) => sanitize_title(FilterFixtures::OAK)]);
 
         // WooCommerce lists attributes by slug, so the frame colour is the first.
         self::assertSame([FilterFixtures::FRAME_COLOUR, 'Price'], $this->group_headings($archive));
         self::assertSame(1, preg_match_all(self::NESTED, $archive), 'The colour does not nest again under the framing nested in it.');
     }
 
-    public function testANestedValueTicksLikeAnyOtherAndShowsOpen(): void
+    public function testAChosenNestedValueShowsWithoutItsParentAndTicksLikeAnyOther(): void
     {
-        $this->frame_colour_depends_on_a_frame();
+        $this->frame_colour_depends_on_a_frame_or_a_hanger();
         $archive = $this->render(FilterFixtures::category(), ['filter_' . sanitize_title(FilterFixtures::FRAME_COLOUR) => sanitize_title(FilterFixtures::OAK)]);
 
         self::assertStringContainsString(FilterFixtures::FRAMED_PRODUCT, $archive);
         self::assertStringNotContainsString(FilterFixtures::UNFRAMED_PRODUCT, $archive);
         self::assertMatchesRegularExpression('/' . self::CHIP . '.*?' . FilterFixtures::FRAME_COLOUR . ': ' . FilterFixtures::OAK . '/s', $archive);
-        self::assertMatchesRegularExpression('/<details class="' . NestedAttributeFilters::NESTED_CLASS . '" open>/', $archive);
+        self::assertSame(1, preg_match_all(self::NESTED, $archive), 'Shown once, so it can be cleared.');
         self::assertMatchesRegularExpression(
-            '/<input[^>]*id="([^"]+)"[^>]*value="' . sanitize_title(FilterFixtures::OAK) . '"[^>]*checked/s',
-            $archive
+            '/value="' . FilterFixtures::FRAME_SLUG . '".*?<\/label>\s*' . self::NESTED_GROUP . '.*?<input[^>]*value="' . sanitize_title(FilterFixtures::OAK) . '"[^>]*checked/s',
+            $archive,
+            'After the last value it applies under.'
         );
     }
 
     public function testANestedValueHasAnIdOfItsOwnAndItsParentsListStaysAsRendered(): void
     {
-        $this->frame_colour_depends_on_a_frame();
-        $archive = $this->render(FilterFixtures::category());
+        $this->frame_colour_depends_on_a_frame_or_a_hanger();
+        $archive = $this->render(FilterFixtures::category(), ['filter_' . FilterFixtures::FRAMING_SLUG => FilterFixtures::FRAME_SLUG]);
 
         preg_match('/<input[^>]*id="([^"]+)"[^>]*value="' . sanitize_title(FilterFixtures::OAK) . '"/s', $archive, $oak);
         self::assertNotEmpty($oak);
-        self::assertStringStartsWith('pa_' . FilterFixtures::FRAMING_SLUG . '-' . FilterFixtures::FRAME_SLUG . '-', $oak[1]);
+        self::assertStringStartsWith('pa_' . FilterFixtures::FRAMING_SLUG . '-', $oak[1]);
         self::assertMatchesRegularExpression('/<label[^>]*for="' . preg_quote($oak[1], '/') . '"/', $archive);
         self::assertStringContainsString('&quot;id&quot;:&quot;' . str_replace('/', '\\/', $oak[1]) . '&quot;', $archive, 'Its context carries the same id.');
         self::assertDoesNotMatchRegularExpression(
@@ -252,14 +278,14 @@ final class ProductFiltersTest extends TestCase
         self::assertSame($block, (new ProductFilters())->add_attributes($block));
     }
 
-    /** What Pixonaut for WooCommerce reads from the fixture's variations: a frame's colour applies with a frame only. */
-    private function frame_colour_depends_on_a_frame(): void
+    /** What Pixonaut for WooCommerce reads from the fixture's variations: a frame's colour applies with a frame or a hanger only. */
+    private function frame_colour_depends_on_a_frame_or_a_hanger(): void
     {
         $taxonomy = static fn (string $label): string => wc_attribute_taxonomy_name(wc_sanitize_taxonomy_name($label));
 
         add_filter(
             AttributeDependencies::FILTER,
-            static fn (): array => [$taxonomy(FilterFixtures::FRAME_COLOUR) => [$taxonomy(FilterFixtures::FRAMING) => [FilterFixtures::FRAME_SLUG]]]
+            static fn (): array => [$taxonomy(FilterFixtures::FRAME_COLOUR) => [$taxonomy(FilterFixtures::FRAMING) => [FilterFixtures::HANGER_SLUG, FilterFixtures::FRAME_SLUG]]]
         );
     }
 

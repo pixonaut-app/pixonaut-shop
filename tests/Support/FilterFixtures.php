@@ -38,6 +38,10 @@ final class FilterFixtures
 
     public const NO_FRAME = 'No frame';
 
+    public const HANGER = 'Hanger';
+
+    public const HANGER_SLUG = 'hanger';
+
     public const FRAME = 'Frame';
 
     public const FRAME_SLUG = 'frame';
@@ -62,20 +66,21 @@ final class FilterFixtures
 
     /** Each attribute's values, in the order the store gave them. */
     private const ATTRIBUTES = [
-        self::FRAMING => [self::NO_FRAME, self::FRAME],
+        self::FRAMING => [self::HANGER, self::NO_FRAME, self::FRAME],
         self::FRAME_COLOUR => [self::OAK, self::BLACK],
         self::UNUSED_ATTRIBUTE => [self::UNUSED_VALUE],
     ];
 
     /**
      * Each product's variations: the framing, the frame's colour (none
-     * without a frame) and the price.
+     * without a frame or a hanger) and the price.
      */
     private const PRODUCTS = [
         self::FRAMED_PRODUCT => [
             [self::NO_FRAME, '', self::UNFRAMED_PRICE],
             [self::FRAME, self::OAK, self::FRAMED_PRICE],
             [self::FRAME, self::BLACK, self::FRAMED_PRICE],
+            [self::HANGER, self::BLACK, self::FRAMED_PRICE],
         ],
         self::UNFRAMED_PRODUCT => [
             [self::NO_FRAME, '', self::UNFRAMED_PRICE],

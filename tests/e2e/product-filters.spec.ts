@@ -17,6 +17,8 @@ const CHIP = '.wc-block-product-filter-removable-chips__item';
 const OPEN_BUTTON = '.wc-block-product-filters__open-overlay';
 const DIALOG = '.wc-block-product-filters__overlay-dialog';
 const NESTED = '.pixonaut-shop-filter-nested';
+/** One of a list's values, with what is nested under it. */
+const ITEM = '.wc-block-product-filter-checkbox-list__item';
 /** The fake plugin's cookie that names the attribute dependencies (`fake-pixonaut.php`). */
 const DEPENDENCIES_COOKIE = 'fake_attribute_dependencies';
 
@@ -35,9 +37,13 @@ let fixture: {
 	frameColour: string;
 	noFrame: string;
 	oak: string;
-	/** What the plugin reads from the fixture's variations: a frame's colour applies with a frame only. */
+	black: string;
+	hanger: string;
+	/** What the plugin reads from the fixture's variations: a frame's colour applies with a hanger or a frame only. */
 	dependencies: Record< string, Record< string, string[] > >;
 	oakFilter: string;
+	blackFilter: string;
+	hangerAndFrameFilter: string;
 };
 
 test.beforeAll( () => {
@@ -53,6 +59,9 @@ test.beforeAll( () => {
 		frameColour,
 		noFrame,
 		oak,
+		black,
+		hanger,
+		hangerSlug,
 	] = wpEval(
 		`${ TEST_SUPPORT }FilterFixtures::prepare(); ` +
 			[
@@ -67,6 +76,9 @@ test.beforeAll( () => {
 				'FRAME_COLOUR',
 				'NO_FRAME',
 				'OAK',
+				'BLACK',
+				'HANGER',
+				'HANGER_SLUG',
 			]
 				.map( ( name ) => `echo ${ TEST_SUPPORT }FilterFixtures::${ name }, "\\n";` )
 				.join( ' ' ),
@@ -82,10 +94,16 @@ test.beforeAll( () => {
 		frameColour,
 		noFrame,
 		oak,
+		black,
+		hanger,
 		dependencies: {
-			[ `pa_${ slugOf( frameColour ) }` ]: { [ `pa_${ framingSlug }` ]: [ frameSlug ] },
+			[ `pa_${ slugOf( frameColour ) }` ]: {
+				[ `pa_${ framingSlug }` ]: [ hangerSlug, frameSlug ],
+			},
 		},
 		oakFilter: `filter_${ slugOf( frameColour ) }=${ slugOf( oak ) }`,
+		blackFilter: `filter_${ slugOf( frameColour ) }=${ slugOf( black ) }`,
+		hangerAndFrameFilter: `filter_${ framingSlug }=${ hangerSlug },${ frameSlug }`,
 	};
 } );
 
@@ -94,7 +112,7 @@ function slugOf( name: string ): string {
 	return name.toLowerCase().replace( / /g, '-' );
 }
 
-/** Has the fake plugin tell this visitor's pages that the frame's colour depends on a frame. */
+/** Has the fake plugin tell this visitor's pages that the frame's colour depends on a hanger or a frame. */
 async function withDependencies( page: Page ): Promise< void > {
 	await page.context().addCookies( [
 		{
@@ -165,7 +183,16 @@ test( 'the keyboard reaches a value and ticks it', async ( { page } ) => {
 test.describe( 'with an attribute that applies under a value of another', () => {
 	test.beforeEach( async ( { page } ) => withDependencies( page ) );
 
-	test( 'it shows folded under that value only, and the keyboard opens it and ticks a value', async ( {
+	/** The framing's value, with what is nested under it. */
+	function item( page: Page, scope: string, value: string ) {
+		return page
+			.locator( scope )
+			.getByRole( 'group', { name: fixture.framing } )
+			.locator( ITEM )
+			.filter( { has: page.getByRole( 'checkbox', { name: value, exact: true } ) } );
+	}
+
+	test( 'it shows only under a chosen value it applies under, once, and its values tick like any other', async ( {
 		page,
 	} ) => {
 		await page.goto( fixture.path );
@@ -176,64 +203,90 @@ test.describe( 'with an attribute that applies under a value of another', () => 
 				hasText: fixture.frameColour,
 			} ),
 		).toHaveCount( 0 );
-
 		const framing = panel.getByRole( 'group', { name: fixture.framing } );
-		const noFrame = framing
-			.locator( '.wc-block-product-filter-checkbox-list__item' )
-			.filter( { has: page.getByRole( 'checkbox', { name: fixture.noFrame, exact: true } ) } );
-		await expect( noFrame.locator( NESTED ) ).toHaveCount( 0 );
+		await expect( framing.getByRole( 'checkbox' ) ).toHaveCount( 3 );
+		await expect( panel.locator( NESTED ) ).toHaveCount( 0 );
 
-		const nested = framing.locator( NESTED );
+		await framing.getByRole( 'checkbox', { name: fixture.frame, exact: true } ).check();
+		await expect( page ).toHaveURL( new RegExp( fixture.filter ) );
+
+		const nested = item( page, PANEL, fixture.frame ).locator( NESTED );
 		await expect( nested ).toHaveCount( 1 );
-		const oak = nested.getByRole( 'checkbox', { name: fixture.oak, exact: true } );
-		await expect( oak ).toBeHidden();
+		await expect( nested.getByRole( 'group', { name: fixture.frameColour } ) ).toBeVisible();
+		await expect( nested ).toContainText( fixture.frameColour );
+		await expect( item( page, PANEL, fixture.hanger ).locator( NESTED ) ).toHaveCount( 0 );
 
-		const toggle = nested.locator( 'summary', { hasText: fixture.frameColour } );
-		await toggle.focus();
-		await page.keyboard.press( 'Enter' );
-		await expect( oak ).toBeVisible();
-
-		await page.keyboard.press( 'Tab' );
-		await expect( oak ).toBeFocused();
-		await page.keyboard.press( 'Space' );
-
-		await expect( page ).toHaveURL( new RegExp( fixture.oakFilter ) );
+		await nested.getByRole( 'checkbox', { name: fixture.black, exact: true } ).check();
+		await expect( page ).toHaveURL( new RegExp( fixture.blackFilter ) );
 		await expect( cards( page ) ).toHaveCount( 1 );
 		await expect( cards( page ) ).toContainText( fixture.framed );
-		await expect( page.locator( `${ CHOSEN } ${ CHIP }` ) ).toHaveText(
-			new RegExp( `${ fixture.frameColour }: ${ fixture.oak }` ),
-		);
-		// The page opens with the chosen value in view.
+
+		const black = page
+			.locator( PANEL )
+			.getByRole( 'checkbox', { name: fixture.black, exact: true } );
+		await expect( black ).toHaveCount( 1 );
+		await expect( black ).toBeChecked();
+		await expect( item( page, PANEL, fixture.hanger ).locator( NESTED ) ).toHaveCount( 0 );
 		await expect(
-			page.locator( PANEL ).getByRole( 'checkbox', { name: fixture.oak, exact: true } ),
-		).toBeChecked();
-		await expect(
-			page.locator( PANEL ).getByRole( 'checkbox', { name: fixture.oak, exact: true } ),
+			page.locator( `${ CHOSEN } ${ CHIP }`, {
+				hasText: new RegExp( `${ fixture.frameColour }: ${ fixture.black }` ),
+			} ),
 		).toBeVisible();
 
 		await page.locator( CHOSEN ).getByRole( 'button', { name: 'Clear all' } ).click();
-		await expect( page ).not.toHaveURL( new RegExp( fixture.oakFilter ) );
+		await expect( page ).not.toHaveURL( new RegExp( fixture.blackFilter ) );
 		await expect( cards( page ) ).toHaveCount( 2 );
+		await expect( page.locator( PANEL ).locator( NESTED ) ).toHaveCount( 0 );
+	} );
+
+	test( 'it shows once under several chosen values it applies under', async ( { page } ) => {
+		await page.goto( `${ fixture.path }?${ fixture.hangerAndFrameFilter }` );
+
+		await expect( page.locator( PANEL ).locator( NESTED ) ).toHaveCount( 1 );
+		await expect( item( page, PANEL, fixture.frame ).locator( NESTED ) ).toHaveCount( 1 );
+		await expect(
+			page.locator( PANEL ).getByRole( 'checkbox', { name: fixture.oak, exact: true } ),
+		).toHaveCount( 1 );
+	} );
+
+	test( 'a chosen value of it shows without a chosen parent, so it can be cleared', async ( {
+		page,
+	} ) => {
+		await page.goto( `${ fixture.path }?${ fixture.oakFilter }` );
+
+		const oak = page.locator( PANEL ).getByRole( 'checkbox', { name: fixture.oak, exact: true } );
+		await expect( oak ).toBeChecked();
+		await oak.uncheck();
+		await expect( page ).not.toHaveURL( new RegExp( fixture.oakFilter ) );
+		await expect( page.locator( PANEL ).locator( NESTED ) ).toHaveCount( 0 );
 	} );
 
 	test.describe( 'on a phone', () => {
 		test.use( { viewport: devices[ 'iPhone 13' ].viewport } );
 
-		test( 'the dialog shows it nested too, and a nested value ticks', async ( { page } ) => {
+		test( 'the dialog shows it under the chosen value too, and its value ticks', async ( {
+			page,
+		} ) => {
 			await page.goto( fixture.path );
 			await page.locator( `${ PANEL } ${ OPEN_BUTTON }` ).click();
 
-			const dialog = page.locator( `${ PANEL } ${ DIALOG }` );
-			const nested = dialog.locator( NESTED );
-			await nested.locator( 'summary', { hasText: fixture.frameColour } ).click();
-			await nested.getByRole( 'checkbox', { name: fixture.oak, exact: true } ).check();
+			const dialog = `${ PANEL } ${ DIALOG }`;
+			await expect( page.locator( dialog ).locator( NESTED ) ).toHaveCount( 0 );
+			await page
+				.locator( dialog )
+				.getByRole( 'checkbox', { name: fixture.frame, exact: true } )
+				.check();
+			await expect( page ).toHaveURL( new RegExp( fixture.filter ) );
 
-			await expect( page ).toHaveURL( new RegExp( fixture.oakFilter ) );
-			await expect( page.locator( `${ PANEL } ${ DIALOG }` ) ).toBeVisible();
+			const nested = item( page, dialog, fixture.frame ).locator( NESTED );
+			await nested.getByRole( 'checkbox', { name: fixture.black, exact: true } ).check();
+
+			await expect( page ).toHaveURL( new RegExp( fixture.blackFilter ) );
+			await expect( page.locator( dialog ) ).toBeVisible();
 			await expect(
-				page
-					.locator( `${ PANEL } ${ DIALOG } ${ NESTED }` )
-					.getByRole( 'checkbox', { name: fixture.oak, exact: true } ),
+				item( page, dialog, fixture.frame )
+					.locator( NESTED )
+					.getByRole( 'checkbox', { name: fixture.black, exact: true } ),
 			).toBeChecked();
 		} );
 	} );
