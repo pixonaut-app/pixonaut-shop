@@ -533,7 +533,7 @@
 	display: inline-flex;
 	align-items: center;
 	min-height: var( --ps-field-height );
-	padding: 0 var( --wp--preset--spacing--20 );
+	padding: 0;
 	border: 0;
 	background: none;
 	color: var( --wp--preset--color--contrast );
