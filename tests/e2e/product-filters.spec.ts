@@ -28,10 +28,11 @@ let fixture: {
 	framing: string;
 	frame: string;
 	filter: string;
+	priceBetween: string;
 };
 
 test.beforeAll( () => {
-	const [ slug, framed, unframed, framing, frame, framingSlug, frameSlug ] = wpEval(
+	const [ slug, framed, unframed, framing, frame, framingSlug, frameSlug, priceBetween ] = wpEval(
 		`${ TEST_SUPPORT }FilterFixtures::prepare(); ` +
 			[
 				'CATEGORY_SLUG',
@@ -41,6 +42,7 @@ test.beforeAll( () => {
 				'FRAME',
 				'FRAMING_SLUG',
 				'FRAME_SLUG',
+				'PRICE_BETWEEN',
 			]
 				.map( ( name ) => `echo ${ TEST_SUPPORT }FilterFixtures::${ name }, "\\n";` )
 				.join( ' ' ),
@@ -52,6 +54,7 @@ test.beforeAll( () => {
 		framing,
 		frame,
 		filter: `filter_${ framingSlug }=${ frameSlug }`,
+		priceBetween,
 	};
 } );
 
@@ -114,6 +117,23 @@ test( 'the keyboard reaches a value and ticks it', async ( { page } ) => {
 
 test.describe( 'on a phone', () => {
 	test.use( { viewport: devices[ 'iPhone 13' ].viewport } );
+
+	test( 'the dialog stays open over a price typed into its field', async ( { page } ) => {
+		await page.goto( fixture.path );
+		await page.locator( `${ PANEL } ${ OPEN_BUTTON }` ).click();
+
+		const lowest = page.locator( `${ PANEL } ${ DIALOG } input[type="text"].min` );
+		await lowest.fill( fixture.priceBetween );
+
+		// WooCommerce loads the filtered page a moment after the last key.
+		await expect( page ).toHaveURL( new RegExp( `min_price=${ fixture.priceBetween }` ) );
+		await expect( page.locator( `${ PANEL } ${ DIALOG }` ) ).toBeVisible();
+		await page
+			.locator( `${ PANEL } ${ DIALOG }` )
+			.getByRole( 'button', { name: 'Show products' } )
+			.click();
+		await expect( cards( page ) ).toHaveCount( 1 );
+	} );
 
 	test( 'a button opens the filters in a dialog, which stays open over a choice and its button and Escape close', async ( {
 		page,

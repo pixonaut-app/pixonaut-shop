@@ -109,7 +109,7 @@ final class ProductFilters
         $inner_blocks = \is_array($parsed_block['innerBlocks'] ?? null) ? array_values($parsed_block['innerBlocks']) : [];
         $names        = array_column($inner_blocks, 'blockName');
 
-        if (\in_array(self::ATTRIBUTE_BLOCK, $names, true)) {
+        if ($this->has_an_attribute_filter($inner_blocks)) {
             return $parsed_block;
         }
 
@@ -167,6 +167,31 @@ final class ProductFilters
         }
 
         return $block_content;
+    }
+
+    /**
+     * Whether the blocks hold an attribute filter, at any depth: a store may
+     * have placed its own inside a group or a column.
+     *
+     * @param array<array-key, mixed> $blocks
+     */
+    private function has_an_attribute_filter(array $blocks): bool
+    {
+        foreach ($blocks as $block) {
+            if (! \is_array($block)) {
+                continue;
+            }
+
+            if (self::ATTRIBUTE_BLOCK === ($block['blockName'] ?? null)) {
+                return true;
+            }
+
+            if (\is_array($block['innerBlocks'] ?? null) && $this->has_an_attribute_filter($block['innerBlocks'])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

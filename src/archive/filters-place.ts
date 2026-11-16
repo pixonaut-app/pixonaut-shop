@@ -7,6 +7,8 @@
  * scroll, and the dialog open where it was scrolled to.
  */
 
+import { archivePath } from './archive-path';
+
 const PANEL = '.pixonaut-shop-archive-filters';
 const CHOSEN = '.pixonaut-shop-archive-chosen';
 const OPEN_BUTTON = '.wc-block-product-filters__open-overlay';
@@ -24,6 +26,7 @@ const OPEN_RETRY_MS = 100;
 const OPEN_ATTEMPTS = 50;
 
 interface Place {
+	/** The archive's path, without the page it was on. */
 	path: string;
 	at: number;
 	scroll: number;
@@ -35,7 +38,7 @@ function notePlace(): void {
 	const panel = document.querySelector( PANEL );
 	const opened = panel?.classList.contains( OPENED_CLASS ) ?? false;
 	const place: Place = {
-		path: window.location.pathname,
+		path: archivePath( window.location.pathname ),
 		at: Date.now(),
 		scroll: window.scrollY,
 		dialogScroll: opened ? ( panel?.querySelector( DIALOG_CONTENT )?.scrollTop ?? 0 ) : null,
@@ -55,7 +58,7 @@ function notedPlace(): Place | null {
 		const place = stored === null ? null : ( JSON.parse( stored ) as Place );
 
 		return place !== null &&
-			place.path === window.location.pathname &&
+			place.path === archivePath( window.location.pathname ) &&
 			Date.now() - place.at < PLACE_LIFETIME_MS
 			? place
 			: null;
@@ -134,7 +137,11 @@ function isAFilter( target: EventTarget | null ): boolean {
 }
 
 // In the capture phase, before WooCommerce's own handler loads the next page.
-document.addEventListener( 'change', ( event ) => isAFilter( event.target ) && notePlace(), true );
+// A price typed into its field loads it a moment after the last key, with no
+// `change` while the field keeps the focus, so every key notes the place.
+for ( const type of [ 'change', 'input' ] ) {
+	document.addEventListener( type, ( event ) => isAFilter( event.target ) && notePlace(), true );
+}
 document.addEventListener(
 	'click',
 	( event ) =>

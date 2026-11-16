@@ -166,8 +166,9 @@
 
 /*
  * WooCommerce's Product Filters block shows the filters in place above 782px
- * and behind a button, in a dialog, from there down; the queries here are its
- * own, so the two never disagree at the edge.
+ * and behind a button, in a dialog, from there down, unless theme.json sets a
+ * viewport of its own, which this theme does not. The queries here are
+ * WooCommerce's, so the two agree at the edge too.
  */
 :root {
 	--ps-filters-width: 17rem;

@@ -147,6 +147,21 @@ final class ProductFiltersTest extends TestCase
         self::assertSame($panel, (new ProductFilters())->add_attributes($panel));
     }
 
+    public function testAPanelWithTheStoresOwnAttributeFilterInsideAGroupKeepsExactlyThat(): void
+    {
+        $own   = ['blockName' => self::ATTRIBUTE_BLOCK, 'attrs' => ['attributeId' => 1], 'innerBlocks' => [], 'innerHTML' => '', 'innerContent' => []];
+        $group = ['blockName' => 'core/group', 'attrs' => [], 'innerBlocks' => [$own], 'innerHTML' => '<div></div>', 'innerContent' => ['<div>', null, '</div>']];
+        $panel = [
+            'blockName' => self::FILTERS_BLOCK,
+            'attrs' => ['className' => ProductFilters::PANEL_CLASS],
+            'innerBlocks' => [$group],
+            'innerHTML' => '<div></div>',
+            'innerContent' => ['<div>', null, '</div>'],
+        ];
+
+        self::assertSame($panel, (new ProductFilters())->add_attributes($panel));
+    }
+
     public function testAnotherProductFiltersBlockGetsNoGroups(): void
     {
         $block = ['blockName' => self::FILTERS_BLOCK, 'attrs' => [], 'innerBlocks' => [], 'innerHTML' => '<div></div>', 'innerContent' => ['<div></div>']];
