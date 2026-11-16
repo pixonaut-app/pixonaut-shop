@@ -51,6 +51,7 @@ final class TemplatesTest extends TestCase
         'pixonaut-shop/cart-title'          => 'cart-title',
         'pixonaut-shop/checkout'            => 'checkout',
         'pixonaut-shop/checkout-title'      => 'checkout-title',
+        'pixonaut-shop/chosen-filters'      => 'chosen-filters',
         'pixonaut-shop/continue-shopping'   => 'continue-shopping',
         'pixonaut-shop/footer'              => 'footer',
         'pixonaut-shop/free-shipping-note'  => 'free-shipping-note',
@@ -62,6 +63,7 @@ final class TemplatesTest extends TestCase
         'pixonaut-shop/order-help'          => 'order-help',
         'pixonaut-shop/order-next-steps'    => 'order-next-steps',
         'pixonaut-shop/popular-products'    => 'popular-products',
+        'pixonaut-shop/product-filters'     => 'product-filters',
         'pixonaut-shop/product-grid'        => 'product-grid',
         'pixonaut-shop/product-description' => 'product-description',
         'pixonaut-shop/related-products'    => 'related-products',
@@ -89,6 +91,9 @@ final class TemplatesTest extends TestCase
      */
     public const SHOP_BLOCKS = [
         'woocommerce/breadcrumbs',
+        'woocommerce/product-filters',
+        'woocommerce/product-filter-price',
+        'woocommerce/product-filter-active',
         'woocommerce/product-results-count',
         'woocommerce/catalog-sorting',
         'woocommerce/product-collection',

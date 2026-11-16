@@ -107,6 +107,7 @@ final class Bootstrap
         (new Archive\ProductGridDefaults())->register();
         (new Archive\ShownWhenEmpty())->register();
         (new Archive\NoResultsTitle())->register();
+        (new Archive\ProductFilters())->register();
     }
 
     private function register_front_page(): void

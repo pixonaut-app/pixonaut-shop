@@ -218,12 +218,12 @@ describe( 'affected', () => {
 		} );
 	} );
 
-	it( 'runs the shop, the searches and the mega menu for a change to the archive area', () => {
+	it( 'runs the shop, its filters, the searches and the mega menu for a change to the archive area', () => {
 		assert.deepEqual( jobsFor( 'inc/Archive/ShownWhenEmpty.php' ), {
 			...NO_JOBS,
 			php: true,
 			integration: true,
-			specs: [ 'mega-menu', 'search', 'shop' ],
+			specs: [ 'mega-menu', 'product-filters', 'search', 'shop' ],
 			shards: 1,
 		} );
 	} );

@@ -143,7 +143,8 @@ export const E2E_OWNERS: Readonly< Record< string, SpecSelection > > = {
 	// products a page shows, and what an archive or a search without any
 	// shows instead.
 	// The category picture the mega header's menu shares with the categories block.
-	'inc/Archive': [ 'mega-menu', 'search', 'shop' ],
+	// The filters beside an archive's grid.
+	'inc/Archive': [ 'mega-menu', 'product-filters', 'search', 'shop' ],
 	'inc/Assets': 'all',
 	// The block styles, which reach every page's global stylesheet, the
 	// menu heading, on every page's footer, and the theme's own blocks.
@@ -196,7 +197,7 @@ export const SITE_WIDE_SPECS: readonly string[] = [
  * What a change to a template, part, pattern or translation can break: every
  * template opening in the Site Editor without invalid blocks, the front
  * page, the header's menu and the mega header's, the mini-cart drawer, the not-found page, the
- * order received page, the product page, the searches, the shop, the cart
+ * order received page, the product page, the searches, the shop and its filters, the cart
  * and the checkout, the lowest price beside a reduced price, and a card's
  * second picture.
  */
@@ -211,6 +212,7 @@ export const PAGE_SPECS: readonly string[] = [
 	'mini-cart',
 	'not-found',
 	'order-received',
+	'product-filters',
 	'product-options',
 	'product-page',
 	'search',
@@ -221,7 +223,7 @@ export const PAGE_SPECS: readonly string[] = [
 
 /**
  * What a change to the styles can break: the pages the specs look at, the
- * header's menu collapsing at its breakpoint, the mega header's panel and
+ * header's menu collapsing at its breakpoint, an archive's filters in their dialog on a phone, the mega header's panel and
  * drawer, the mini-cart drawer, and the
  * typeface and custom properties every page carries.
  */
@@ -237,6 +239,7 @@ export const LOOK_SPECS: readonly string[] = [
 	'mini-cart',
 	'not-found',
 	'order-received',
+	'product-filters',
 	'product-options',
 	'product-page',
 	'search',
@@ -253,6 +256,9 @@ export const EDITOR_SPECS: readonly string[] = [ 'site-editor' ];
  * card's second picture.
  */
 export const PRODUCT_SCRIPT_SPECS: readonly string[] = [ 'product-options', 'second-picture' ];
+
+/** What a change to an archive's script can break: a customer's place while they filter. */
+export const ARCHIVE_SCRIPT_SPECS: readonly string[] = [ 'product-filters' ];
 
 /**
  * The specs a pattern has of its own, run with `PAGE_SPECS` when it changes.
@@ -312,6 +318,9 @@ const RULES: readonly Rule[] = [
 	// The header search's script, built into build/ and loaded on a page
 	// whose search block is only its button.
 	rule( /^src\/header\/.+\.ts$/, { js: true, e2e: HEADER_SCRIPT_SPECS } ),
+	// The archive's script, built into build/ and loaded with the filters
+	// beside an archive's grid.
+	rule( /^src\/archive\/.+\.ts$/, { js: true, e2e: ARCHIVE_SCRIPT_SPECS } ),
 	// The theme's editor scripts, built into build/ and loaded in the Site
 	// Editor only.
 	rule( /^src\/.+\.js$/, { js: true, e2e: EDITOR_SPECS } ),
