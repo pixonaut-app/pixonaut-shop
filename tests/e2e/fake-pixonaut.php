@@ -30,6 +30,10 @@
  * - On order lines: the design's field rows and the line's state row through
  *   `woocommerce_order_item_get_formatted_meta_data`, filtered through
  *   `pixonaut_wc_fulfilment_line_display`.
+ * - For a visitor whose cookie names them: which product attribute applies
+ *   only under which values of another, through
+ *   `pixonaut_wc_storefront_attribute_dependencies`. The plugin reads them
+ *   from the store's variations; a suite names the ones its fixture has.
  *
  * Each only for the two products the suites create for it, and the cart and
  * order lines it marks as personalised when one is added to the cart and
@@ -468,4 +472,22 @@ add_filter(
     },
     10,
     2
+);
+
+/** The cookie a suite names the attribute dependencies in, as the filter's JSON. */
+const PIXONAUT_SHOP_FAKE_DEPENDENCIES_COOKIE = 'fake_attribute_dependencies';
+
+add_filter(
+    'pixonaut_wc_storefront_attribute_dependencies',
+    static function (mixed $dependencies): mixed {
+        $named = $_COOKIE[PIXONAUT_SHOP_FAKE_DEPENDENCIES_COOKIE] ?? null;
+
+        if (! is_string($named) || ! pixonaut_shop_fake_is_standing_in()) {
+            return $dependencies;
+        }
+
+        $decoded = json_decode(wp_unslash($named), true);
+
+        return is_array($decoded) ? $decoded : $dependencies;
+    }
 );
