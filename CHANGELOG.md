@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.5.0...v1.6.0) (2026-11-16)
+
+
+### Features
+
+* **archive:** nest a dependent attribute under the values it applies to ([#27](https://github.com/pixonaut-app/pixonaut-shop/issues/27)) ([f3ba017](https://github.com/pixonaut-app/pixonaut-shop/commit/f3ba0171c8b4fdb2250c7a05cef7d9ece1ae9263))
+
 ## [1.5.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.4.0...v1.5.0) (2026-11-16)
 
 
