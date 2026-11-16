@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-11-10T14:58:05+00:00\n"
+"POT-Creation-Date: 2026-11-16T00:12:38+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -96,6 +96,10 @@ msgstr "Status"
 #, php-format
 msgid "No results for “%s”"
 msgstr "Inga träffar för ”%s”"
+
+#: inc/Archive/ProductFilters.php:159
+msgid "Show products"
+msgstr "Visa produkter"
 
 #: inc/Blocks/AspectRatios.php:108
 msgid "Square - 1:1"
@@ -292,6 +296,15 @@ msgstr "Kassa"
 msgid "Secure payment"
 msgstr "Säker betalning"
 
+#: patterns/chosen-filters.php
+msgctxt "Pattern title"
+msgid "Chosen product filters"
+msgstr "Valda produktfilter"
+
+#: patterns/chosen-filters.php:31
+msgid "Clear all"
+msgstr "Rensa alla"
+
 #: patterns/continue-shopping.php
 msgctxt "Pattern title"
 msgid "Continue shopping"
@@ -457,6 +470,19 @@ msgstr "Beskrivning av produkten"
 #: patterns/product-description.php:21
 msgid "Product description"
 msgstr "Beskrivning av produkten"
+
+#: patterns/product-filters.php
+msgctxt "Pattern title"
+msgid "Product filters"
+msgstr "Produktfilter"
+
+#: patterns/product-filters.php:22
+msgid "Filter"
+msgstr "Filtrera"
+
+#: patterns/product-filters.php:28
+msgid "Price"
+msgstr "Pris"
 
 #: patterns/product-grid.php
 msgctxt "Pattern title"

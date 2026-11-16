@@ -218,6 +218,19 @@ was saved with; the Site Editor's Reset brings the theme's back.
   `<!-- wp:pattern {"slug":"pixonaut-shop/product-grid"} /-->`. Without a
   product to show it shows `pixonaut-shop/no-products`: a panel with the
   product search and a button back to the shop.
+- **The shop's filters are two patterns beside the grid.**
+  `pixonaut-shop/product-filters` is WooCommerce's Product Filters block with
+  the price in it; as it renders, the theme adds a group of checkboxes above
+  the price for every product attribute the store has (Products →
+  Attributes), with how many products each value has. A value no listed
+  product has is left out, and so is a group without any. The filters are a
+  panel beside the grid, and on a phone a button that opens them in a dialog.
+  `pixonaut-shop/chosen-filters` shows the chosen ones as chips above the
+  grid, with a link that clears them. A store that would rather pick its
+  attributes places WooCommerce's Attribute filter blocks in the panel
+  itself; the theme then adds none. Filters are part of the page's address
+  (`?filter_<attribute>=<value>`, `min_price`, `max_price`), so a filtered
+  archive can be linked to. An archive without any product shows no filters.
 - **The popular products are the `pixonaut-shop/popular-products` pattern**:
   a heading, a "View all" link to the shop and the four best sellers in
   stock, with

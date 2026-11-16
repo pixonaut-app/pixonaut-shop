@@ -161,3 +161,385 @@
 .pixonaut-shop-archive-promises {
 	margin-top: var( --wp--preset--spacing--70 );
 }
+
+/* ---------- Filters beside the grid (patterns/product-filters.php) ---------- */
+
+/*
+ * WooCommerce's Product Filters block shows the filters in place above 782px
+ * and behind a button, in a dialog, from there down; the queries here are its
+ * own, so the two never disagree at the edge.
+ */
+:root {
+	--ps-filters-width: 17rem;
+	--ps-filter-swatch-size: 1rem;
+	--ps-slider-thumb-size: 1.25rem;
+	--ps-slider-track-height: 4px;
+	--ps-chip-radius: 999px;
+	--ps-filter-icon-size: 1.25rem;
+}
+
+.pixonaut-shop-archive-body {
+	display: grid;
+	grid-template-columns: minmax( 0, 1fr );
+	gap: var( --wp--preset--spacing--40 ) var( --wp--preset--spacing--60 );
+	align-items: start;
+}
+
+.pixonaut-shop-archive-body > div {
+	min-width: 0;
+	margin-block: 0;
+}
+
+.pixonaut-shop-archive-results > :first-child {
+	margin-block-start: 0;
+}
+
+.pixonaut-shop-archive-filters .wc-block-product-filters__overlay-content {
+	gap: 0;
+}
+
+.pixonaut-shop-archive-filters .wc-block-product-filters__overlay-content > h2 {
+	margin: 0 0 var( --wp--preset--spacing--40 );
+	font-size: var( --wp--preset--font-size--large );
+}
+
+/* A group: an attribute's values, or the price. */
+.pixonaut-shop-archive-filters .wc-block-product-filters__overlay-content > div {
+	padding-block: var( --wp--preset--spacing--40 );
+	border-top: 1px solid var( --wp--preset--color--border );
+}
+
+.pixonaut-shop-archive-filters .wc-block-product-filters__overlay-content > div:last-child {
+	padding-block-end: 0;
+}
+
+.pixonaut-shop-archive-filters .wc-block-product-filters__overlay-content h3 {
+	margin: 0 0 var( --wp--preset--spacing--30 );
+	font-size: var( --wp--preset--font-size--medium );
+}
+
+.pixonaut-shop-archive-filters .wc-block-product-filter-checkbox-list__items {
+	display: flex;
+	flex-direction: column;
+	gap: var( --wp--preset--spacing--20 );
+}
+
+.pixonaut-shop-archive-filters .wc-block-product-filter-checkbox-list__label {
+	display: flex;
+	gap: var( --wp--preset--spacing--30 );
+	min-height: var( --ps-checkbox-size );
+	cursor: pointer;
+}
+
+.pixonaut-shop-archive-filters .wc-block-product-filter-checkbox-list__input-wrapper {
+	flex: none;
+	width: var( --ps-checkbox-size );
+	height: var( --ps-checkbox-size );
+}
+
+/* WooCommerce's own tint behind the box. */
+.pixonaut-shop-archive-filters .wc-block-product-filter-checkbox-list__input-wrapper::before {
+	content: none;
+}
+
+.pixonaut-shop-archive-filters
+	input[ type="checkbox" ].wc-block-product-filter-checkbox-list__input {
+	width: var( --ps-checkbox-size );
+	height: var( --ps-checkbox-size );
+	border: 1px solid var( --wp--preset--color--border-strong );
+	border-radius: calc( var( --wp--custom--radius--small ) / 2 );
+	background-color: var( --wp--preset--color--base );
+}
+
+.pixonaut-shop-archive-filters
+	input[ type="checkbox" ].wc-block-product-filter-checkbox-list__input:checked {
+	border-color: var( --wp--preset--color--accent );
+	background-color: var( --wp--preset--color--accent );
+}
+
+.pixonaut-shop-archive-filters
+	input[ type="checkbox" ].wc-block-product-filter-checkbox-list__input:focus-visible {
+	outline: 2px solid var( --wp--preset--color--accent );
+	outline-offset: 2px;
+}
+
+.pixonaut-shop-archive-filters svg.wc-block-product-filter-checkbox-list__mark {
+	width: var( --ps-checkbox-size );
+	height: var( --ps-checkbox-size );
+	padding: calc( var( --ps-checkbox-size ) / 4 );
+	color: var( --wp--preset--color--accent-contrast );
+}
+
+.pixonaut-shop-archive-filters .wc-block-product-filter-checkbox-list__text-wrapper {
+	gap: var( --wp--preset--spacing--20 );
+	font-size: var( --wp--preset--font-size--medium );
+}
+
+.pixonaut-shop-archive-filters .wc-block-product-filter-checkbox-list__count {
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+}
+
+.pixonaut-shop-archive-filters .wc-block-product-filter-checkbox-list__color-swatch {
+	width: var( --ps-filter-swatch-size );
+	height: var( --ps-filter-swatch-size );
+	margin-right: 0;
+	border-color: var( --wp--preset--color--border-strong );
+}
+
+.pixonaut-shop-archive-filters .wc-block-product-filter-checkbox-list__show-more {
+	margin-block-start: var( --wp--preset--spacing--20 );
+}
+
+.pixonaut-shop-archive-filters .wc-block-product-filter-checkbox-list__show-more-button {
+	min-height: var( --ps-checkbox-size );
+	color: var( --wp--preset--color--contrast );
+	font-size: var( --wp--preset--font-size--small );
+}
+
+/* The price: a slider over the lowest and the highest price as fields. */
+.pixonaut-shop-archive-filters .wc-block-product-filter-price-slider {
+	--wc-product-filter-price-slider: var( --wp--preset--color--accent );
+	--wc-product-filter-price-slider-handle: var( --wp--preset--color--base );
+	--wc-product-filter-price-slider-handle-border: var( --wp--preset--color--accent );
+}
+
+.pixonaut-shop-archive-filters .wc-block-product-filter-price-slider__content {
+	grid-template-columns: minmax( 0, 1fr ) 0 minmax( 0, 1fr );
+	gap: var( --wp--preset--spacing--40 ) var( --wp--preset--spacing--20 );
+}
+
+.pixonaut-shop-archive-filters .wc-block-product-filter-price-slider__range {
+	margin-block: calc( var( --ps-slider-thumb-size ) / 2 ) 0;
+	margin-inline: 0;
+}
+
+.pixonaut-shop-archive-filters .wc-block-product-filter-price-slider__range .range-bar {
+	height: var( --ps-slider-track-height );
+}
+
+.pixonaut-shop-archive-filters
+	.wc-block-product-filter-price-slider__range
+	input[ type="range" ]::-webkit-slider-thumb {
+	box-sizing: border-box;
+	width: var( --ps-slider-thumb-size );
+	height: var( --ps-slider-thumb-size );
+	margin-top: calc( ( var( --ps-slider-track-height ) - var( --ps-slider-thumb-size ) ) / 2 );
+}
+
+.pixonaut-shop-archive-filters
+	.wc-block-product-filter-price-slider__range
+	input[ type="range" ]::-moz-range-thumb {
+	box-sizing: border-box;
+	width: var( --ps-slider-thumb-size );
+	height: var( --ps-slider-thumb-size );
+}
+
+.pixonaut-shop-archive-filters
+	.wc-block-product-filter-price-slider__range
+	input[ type="range" ]:is( :hover, :focus )::-webkit-slider-thumb {
+	border-color: var( --wp--preset--color--accent );
+	background: var( --wp--preset--color--accent );
+}
+
+.pixonaut-shop-archive-filters
+	.wc-block-product-filter-price-slider__range
+	input[ type="range" ]:is( :hover, :focus )::-moz-range-thumb {
+	border-color: var( --wp--preset--color--accent );
+	background: var( --wp--preset--color--accent );
+}
+
+.pixonaut-shop-archive-filters
+	.wc-block-product-filter-price-slider__range
+	input[ type="range" ]:focus-visible::-webkit-slider-thumb {
+	outline: 2px solid var( --wp--preset--color--accent );
+	outline-offset: 2px;
+}
+
+.pixonaut-shop-archive-filters
+	.wc-block-product-filter-price-slider__range
+	input[ type="range" ]:focus-visible::-moz-range-thumb {
+	outline: 2px solid var( --wp--preset--color--accent );
+	outline-offset: 2px;
+}
+
+.pixonaut-shop-archive-filters .wc-block-product-filter-price-slider .text input[ type="text" ] {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: none;
+	min-height: var( --ps-field-height );
+	padding: 0 var( --wp--preset--spacing--30 );
+	border: 1px solid var( --wp--preset--color--border-strong );
+	border-radius: var( --wp--custom--radius--small );
+	background-color: var( --wp--preset--color--base );
+	color: var( --wp--preset--color--contrast );
+	font: inherit;
+}
+
+@media ( width > 782px ) {
+	.pixonaut-shop-archive-body:has( > .pixonaut-shop-archive-filters ) {
+		grid-template-columns: var( --ps-filters-width ) minmax( 0, 1fr );
+	}
+
+	/* A panel, as `is-style-panel` draws one. */
+	.pixonaut-shop-archive-filters {
+		padding: var( --wp--preset--spacing--50 );
+		border: 1px solid var( --wp--preset--color--border );
+		border-radius: var( --wp--custom--radius--large );
+		background-color: var( --wp--preset--color--base );
+		box-shadow: var( --wp--preset--shadow--card );
+	}
+
+	/* The panel takes a column from the grid, so the cards keep their width. */
+	.pixonaut-shop-archive-body:has( > .pixonaut-shop-archive-filters )
+	.wc-block-product-template.is-flex-container {
+		--ps-columns: 3;
+	}
+}
+
+/* Between a phone and a full-width page, the panel leaves room for two cards. */
+@media ( width > 782px ) and ( width < 1024px ) {
+	.pixonaut-shop-archive-body:has( > .pixonaut-shop-archive-filters )
+		.wc-block-product-template.is-flex-container {
+		--ps-columns: 2;
+	}
+}
+
+@media ( width <= 782px ) {
+	.pixonaut-shop-archive-filters {
+		display: block;
+	}
+
+	/* The button that opens the dialog: an outline button across the page. */
+	.pixonaut-shop-archive-filters .wc-block-product-filters__open-overlay {
+		justify-content: center;
+		gap: var( --wp--preset--spacing--20 );
+		width: 100%;
+		min-height: var( --ps-control-height );
+		border: 2px solid var( --wp--preset--color--accent );
+		border-radius: var( --wp--custom--radius--small );
+		background-color: var( --wp--preset--color--base );
+		color: var( --wp--preset--color--accent );
+		font-family: var( --wp--preset--font-family--heading );
+		font-weight: 700;
+		cursor: pointer;
+	}
+
+	.pixonaut-shop-archive-filters .wc-block-product-filters__open-overlay svg {
+		width: var( --ps-filter-icon-size );
+		height: var( --ps-filter-icon-size );
+	}
+
+	.pixonaut-shop-archive-filters .wc-block-product-filters__open-overlay span {
+		padding: 0;
+	}
+
+	.pixonaut-shop-archive-filters .wc-block-product-filters__overlay-dialog {
+		width: 100%;
+		background-color: var( --wp--preset--color--base );
+		color: var( --wp--preset--color--contrast );
+	}
+
+	/* `src/archive/filters-place.ts` opens the dialog again on the next page, where it was. */
+	.is-restoring-filters-place
+		.pixonaut-shop-archive-filters
+		:is( .wc-block-product-filters__overlay, .wc-block-product-filters__overlay-dialog ) {
+		transition: none;
+	}
+
+	.pixonaut-shop-archive-filters .wc-block-product-filters__overlay-header {
+		padding: var( --wp--preset--spacing--20 ) var( --wp--preset--spacing--30 ) 0;
+	}
+
+	.pixonaut-shop-archive-filters .wc-block-product-filters__close-overlay {
+		justify-content: center;
+		width: var( --ps-tile-size );
+		height: var( --ps-tile-size );
+		cursor: pointer;
+	}
+
+	.pixonaut-shop-archive-filters .wc-block-product-filters__overlay-content {
+		padding: 0 var( --wp--preset--spacing--50 ) var( --wp--preset--spacing--50 );
+		overflow-y: auto;
+	}
+
+	.pixonaut-shop-archive-filters .wc-block-product-filters__overlay-footer {
+		padding: var( --wp--preset--spacing--40 ) var( --wp--preset--spacing--50 );
+		border-top: 1px solid var( --wp--preset--color--border );
+		box-shadow: none;
+	}
+
+	.pixonaut-shop-archive-filters .wc-block-product-filters__apply {
+		min-height: var( --ps-control-height );
+	}
+}
+
+/* ---------- Chosen filters (patterns/chosen-filters.php) ---------- */
+
+/* WooCommerce keeps the block's wrapper when no filter is chosen. */
+.pixonaut-shop-archive-chosen:not( :has( .wc-block-product-filter-removable-chips__item ) ) {
+	display: none;
+}
+
+.pixonaut-shop-archive-chosen + .pixonaut-shop-archive-toolbar {
+	margin-block-start: var( --wp--preset--spacing--40 );
+}
+
+.pixonaut-shop-archive-chosen .wp-block-woocommerce-product-filter-active {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var( --wp--preset--spacing--20 );
+	align-items: center;
+}
+
+/* The chips and the link wrap as one row. */
+.pixonaut-shop-archive-chosen
+:is( .wc-block-product-filter-removable-chips, .wc-block-product-filter-removable-chips__items ) {
+	display: contents;
+}
+
+.pixonaut-shop-archive-chosen
+	.wc-block-product-filter-removable-chips__items
+	.wc-block-product-filter-removable-chips__item {
+	gap: 0;
+	min-height: var( --ps-field-height );
+	padding: 0 0 0 var( --wp--preset--spacing--40 );
+	border: 1px solid var( --wp--preset--color--border-strong );
+	border-radius: var( --ps-chip-radius );
+	background-color: var( --wp--preset--color--base );
+	color: var( --wp--preset--color--contrast );
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 600;
+}
+
+/* The cross is the chip's whole end, so a finger finds it. */
+.pixonaut-shop-archive-chosen
+	.wc-block-product-filter-removable-chips__items
+	.wc-block-product-filter-removable-chips__item
+	.wc-block-product-filter-removable-chips__remove {
+	justify-content: center;
+	width: var( --ps-field-height );
+	height: var( --ps-field-height );
+	border-radius: var( --ps-chip-radius );
+}
+
+.pixonaut-shop-archive-chosen .wc-block-product-filter-removable-chips__remove-icon {
+	width: var( --ps-filter-icon-size );
+	height: var( --ps-filter-icon-size );
+}
+
+/* "Clear all" is a link in the row, not another button. */
+.pixonaut-shop-archive-chosen .wc-block-product-filter-clear-button .wp-block-button__link {
+	display: inline-flex;
+	align-items: center;
+	min-height: var( --ps-field-height );
+	padding: 0 var( --wp--preset--spacing--20 );
+	border: 0;
+	background: none;
+	color: var( --wp--preset--color--contrast );
+	font-family: inherit;
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 400;
+	text-decoration: underline;
+	cursor: pointer;
+}
