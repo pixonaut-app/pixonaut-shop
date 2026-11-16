@@ -44,7 +44,9 @@ const UPDATER_CLASS = `${ UPDATER_SOURCES }/GitHubUpdater.php`;
 
 /**
  * The theme's own blocks: their sources and build, and the PHP that
- * registers and renders them. Only the GitHub flavor ships them.
+ * registers and renders them. Only the GitHub flavor ships them. The icon
+ * shapes (`inc/Blocks/Icons.php`) register nothing and the header draws
+ * with them, so every flavor ships those.
  */
 const THEME_BLOCK_PATHS = [
 	'src/blocks/',
@@ -56,8 +58,23 @@ const THEME_BLOCK_PATHS = [
 	'inc/Blocks/CategoryCarousel.php',
 	'inc/Blocks/CategoryLinks.php',
 	'inc/Blocks/CategoryList.php',
-	'inc/Blocks/Icons.php',
 ];
+
+/** The namespace of the classes under `inc/Blocks/`. */
+const BLOCKS_NAMESPACE = 'Pixonaut\\Shop\\Blocks\\';
+
+/**
+ * Text that names a class the wordpress.org flavor leaves out, so a file
+ * that ships would fatal on it: `Pixonaut\Shop\Blocks\<Class>` for each
+ * PHP file of the theme's own blocks.
+ */
+const LEFT_OUT_CLASS = new RegExp(
+	`${ BLOCKS_NAMESPACE.replaceAll( '\\', '\\\\' ) }(${ THEME_BLOCK_PATHS.filter( ( path ) =>
+		path.endsWith( '.php' ),
+	)
+		.map( ( path ) => basename( path, '.php' ) )
+		.join( '|' ) })\\b`,
+);
 
 /** Text in any file of the wordpress.org flavor that means a block is registered. */
 const BLOCK_REGISTRATION = /register_block_type/;
@@ -311,6 +328,11 @@ export function stagedThemeProblems( theme: string, flavor: Flavor ): string[] {
 			BLOCK_REGISTRATION.test( readFileSync( join( theme, path ), 'utf8' ) )
 		) {
 			problems.push( `${ path }: registers a block in the ${ flavor } flavor` );
+		} else if (
+			path.endsWith( '.php' ) &&
+			LEFT_OUT_CLASS.test( readFileSync( join( theme, path ), 'utf8' ) )
+		) {
+			problems.push( `${ path }: names a class the ${ flavor } flavor leaves out` );
 		} else if (
 			TEXT_FILE.test( path ) &&
 			UPDATER_REMNANT.test( readFileSync( join( theme, path ), 'utf8' ) )

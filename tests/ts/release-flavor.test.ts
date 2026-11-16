@@ -91,7 +91,6 @@ const THEME_BLOCK_FILES = [
 	'inc/Blocks/CategoryCarousel.php',
 	'inc/Blocks/CategoryLinks.php',
 	'inc/Blocks/CategoryList.php',
-	'inc/Blocks/Icons.php',
 ];
 
 const UPDATER_ENTRY = 'vendor/yahnis-elsts/plugin-update-checker/plugin-update-checker.php';
@@ -224,6 +223,8 @@ describe( 'assemble', () => {
 
 		assert.ok( files.has( 'inc/Blocks/BlockStyles.php' ) );
 		assert.ok( files.has( 'inc/Blocks/ThemeBlocks.php' ) );
+		// The icon shapes register nothing and the header draws with them.
+		assert.ok( files.has( 'inc/Blocks/Icons.php' ) );
 		assert.deepEqual( stagedThemeProblems( theme, 'wporg' ), [] );
 	} );
 
@@ -294,6 +295,16 @@ describe( 'stagedThemeProblems', () => {
 		[ 'a block registered by the theme', 'inc/Other.php', '<?php register_block_type( __DIR__ );' ],
 		[ "a block's build", 'build/blocks/icon/block.json', '{}' ],
 		[ "a block's sources", 'src/blocks/icon/block.json', '{}' ],
+		[
+			'a class the flavor leaves out, named by a file it ships',
+			'inc/Header/Other.php',
+			'<?php use Pixonaut\\Shop\\Blocks\\CategoryCarousel;',
+		],
+		[
+			'a class the flavor leaves out, named in full',
+			'inc/Other.php',
+			'<?php \\Pixonaut\\Shop\\Blocks\\FreeShippingNote::render();',
+		],
 	] as const ) {
 		it( `fails the wordpress.org flavor on ${ remnant }`, () => {
 			put( path, content );
