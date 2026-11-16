@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixonaut\Shop\Tests\Support;
 
+use Automattic\WooCommerce\Internal\ProductFilters\CacheController;
 use RuntimeException;
 use WC_Product_Attribute;
 use WC_Product_Variable;
@@ -97,6 +98,8 @@ final class FilterFixtures
         foreach (self::PRODUCTS as $name => $variations) {
             self::product($name, $category, $variations, $taxonomies);
         }
+
+        self::forget_filter_counts();
     }
 
     public static function forget(): void
@@ -128,6 +131,22 @@ final class FilterFixtures
         if ($term instanceof WP_Term) {
             wp_delete_term($term->term_id, self::CATEGORY_TAXONOMY);
         }
+
+        self::forget_filter_counts();
+    }
+
+    /**
+     * Drops the filters' cached counts, as saving a product does on a real
+     * store. WooCommerce keeps them by the query, not by the products, and
+     * hooks their invalidation to a product's save only when a request
+     * starts with a cache already there. The integration suite is one
+     * request that starts on an empty one, so without this a test reads the
+     * counts of an earlier test's terms, which `forget()` has deleted, and
+     * the attribute shows no values.
+     */
+    private static function forget_filter_counts(): void
+    {
+        wc_get_container()->get(CacheController::class)->invalidate_filter_data_cache();
     }
 
     /** The ID of the category's term. */
