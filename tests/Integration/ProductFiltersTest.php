@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Pixonaut\Shop\Tests\Integration;
 
+use Automattic\WooCommerce\Internal\ProductFilters\Params;
 use PHPUnit\Framework\TestCase;
 use Pixonaut\Shop\Archive\ProductFilters;
 use Pixonaut\Shop\Tests\Support\FilterFixtures;
+use ReflectionProperty;
 use WC_Query;
 use WP_Query;
 use WP_Term;
@@ -35,6 +37,9 @@ final class ProductFiltersTest extends TestCase
     private const ATTRIBUTE_BLOCK = 'woocommerce/product-filter-attribute';
 
     private const FILTERS_BLOCK = 'woocommerce/product-filters';
+
+    /** Where WooCommerce keeps the query arguments that are a filter's. */
+    private const KEPT_ARGUMENTS = 'params';
 
     /** @var list<int> */
     private array $term_ids = [];
@@ -230,8 +235,19 @@ final class ProductFiltersTest extends TestCase
         return do_blocks($template->content);
     }
 
+    /**
+     * WooCommerce reads two things once and keeps them for the rest of the
+     * request: the attributes the request chose, and which query arguments
+     * are a filter's, one for each product attribute the store had then. A
+     * test is a request of its own with attributes of its own, so both are
+     * read again.
+     */
     private function forget_chosen_filters(): void
     {
         WC_Query::reset_chosen_attributes();
+
+        if (property_exists(Params::class, self::KEPT_ARGUMENTS)) {
+            (new ReflectionProperty(Params::class, self::KEPT_ARGUMENTS))->setValue(null, []);
+        }
     }
 }
