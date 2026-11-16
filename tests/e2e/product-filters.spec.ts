@@ -16,6 +16,9 @@ const CHOSEN = '.pixonaut-shop-archive-chosen';
 const CHIP = '.wc-block-product-filter-removable-chips__item';
 const OPEN_BUTTON = '.wc-block-product-filters__open-overlay';
 const DIALOG = '.wc-block-product-filters__overlay-dialog';
+const NESTED = '.pixonaut-shop-filter-nested';
+/** The fake plugin's cookie that names the attribute dependencies (`fake-pixonaut.php`). */
+const DEPENDENCIES_COOKIE = 'fake_attribute_dependencies';
 
 // One worker makes the fixture and removes it once, in order, rather than a
 // worker removing it under another one's tests.
@@ -29,10 +32,28 @@ let fixture: {
 	frame: string;
 	filter: string;
 	priceBetween: string;
+	frameColour: string;
+	noFrame: string;
+	oak: string;
+	/** What the plugin reads from the fixture's variations: a frame's colour applies with a frame only. */
+	dependencies: Record< string, Record< string, string[] > >;
+	oakFilter: string;
 };
 
 test.beforeAll( () => {
-	const [ slug, framed, unframed, framing, frame, framingSlug, frameSlug, priceBetween ] = wpEval(
+	const [
+		slug,
+		framed,
+		unframed,
+		framing,
+		frame,
+		framingSlug,
+		frameSlug,
+		priceBetween,
+		frameColour,
+		noFrame,
+		oak,
+	] = wpEval(
 		`${ TEST_SUPPORT }FilterFixtures::prepare(); ` +
 			[
 				'CATEGORY_SLUG',
@@ -43,6 +64,9 @@ test.beforeAll( () => {
 				'FRAMING_SLUG',
 				'FRAME_SLUG',
 				'PRICE_BETWEEN',
+				'FRAME_COLOUR',
+				'NO_FRAME',
+				'OAK',
 			]
 				.map( ( name ) => `echo ${ TEST_SUPPORT }FilterFixtures::${ name }, "\\n";` )
 				.join( ' ' ),
@@ -55,8 +79,31 @@ test.beforeAll( () => {
 		frame,
 		filter: `filter_${ framingSlug }=${ frameSlug }`,
 		priceBetween,
+		frameColour,
+		noFrame,
+		oak,
+		dependencies: {
+			[ `pa_${ slugOf( frameColour ) }` ]: { [ `pa_${ framingSlug }` ]: [ frameSlug ] },
+		},
+		oakFilter: `filter_${ slugOf( frameColour ) }=${ slugOf( oak ) }`,
 	};
 } );
+
+/** A name as WordPress makes a slug of it, for the fixture's plain names. */
+function slugOf( name: string ): string {
+	return name.toLowerCase().replace( / /g, '-' );
+}
+
+/** Has the fake plugin tell this visitor's pages that the frame's colour depends on a frame. */
+async function withDependencies( page: Page ): Promise< void > {
+	await page.context().addCookies( [
+		{
+			name: DEPENDENCIES_COOKIE,
+			value: encodeURIComponent( JSON.stringify( fixture.dependencies ) ),
+			url: process.env.WP_BASE_URL,
+		},
+	] );
+}
 
 test.afterAll( () => {
 	wpEval( `${ TEST_SUPPORT }FilterFixtures::forget();` );
@@ -113,6 +160,83 @@ test( 'the keyboard reaches a value and ticks it', async ( { page } ) => {
 
 	await expect( page ).toHaveURL( new RegExp( fixture.filter ) );
 	await expect( cards( page ) ).toHaveCount( 1 );
+} );
+
+test.describe( 'with an attribute that applies under a value of another', () => {
+	test.beforeEach( async ( { page } ) => withDependencies( page ) );
+
+	test( 'it shows folded under that value only, and the keyboard opens it and ticks a value', async ( {
+		page,
+	} ) => {
+		await page.goto( fixture.path );
+
+		const panel = page.locator( PANEL );
+		await expect(
+			panel.locator( '.wp-block-woocommerce-product-filter-attribute h3', {
+				hasText: fixture.frameColour,
+			} ),
+		).toHaveCount( 0 );
+
+		const framing = panel.getByRole( 'group', { name: fixture.framing } );
+		const noFrame = framing
+			.locator( '.wc-block-product-filter-checkbox-list__item' )
+			.filter( { has: page.getByRole( 'checkbox', { name: fixture.noFrame, exact: true } ) } );
+		await expect( noFrame.locator( NESTED ) ).toHaveCount( 0 );
+
+		const nested = framing.locator( NESTED );
+		await expect( nested ).toHaveCount( 1 );
+		const oak = nested.getByRole( 'checkbox', { name: fixture.oak, exact: true } );
+		await expect( oak ).toBeHidden();
+
+		const toggle = nested.locator( 'summary', { hasText: fixture.frameColour } );
+		await toggle.focus();
+		await page.keyboard.press( 'Enter' );
+		await expect( oak ).toBeVisible();
+
+		await page.keyboard.press( 'Tab' );
+		await expect( oak ).toBeFocused();
+		await page.keyboard.press( 'Space' );
+
+		await expect( page ).toHaveURL( new RegExp( fixture.oakFilter ) );
+		await expect( cards( page ) ).toHaveCount( 1 );
+		await expect( cards( page ) ).toContainText( fixture.framed );
+		await expect( page.locator( `${ CHOSEN } ${ CHIP }` ) ).toHaveText(
+			new RegExp( `${ fixture.frameColour }: ${ fixture.oak }` ),
+		);
+		// The page opens with the chosen value in view.
+		await expect(
+			page.locator( PANEL ).getByRole( 'checkbox', { name: fixture.oak, exact: true } ),
+		).toBeChecked();
+		await expect(
+			page.locator( PANEL ).getByRole( 'checkbox', { name: fixture.oak, exact: true } ),
+		).toBeVisible();
+
+		await page.locator( CHOSEN ).getByRole( 'button', { name: 'Clear all' } ).click();
+		await expect( page ).not.toHaveURL( new RegExp( fixture.oakFilter ) );
+		await expect( cards( page ) ).toHaveCount( 2 );
+	} );
+
+	test.describe( 'on a phone', () => {
+		test.use( { viewport: devices[ 'iPhone 13' ].viewport } );
+
+		test( 'the dialog shows it nested too, and a nested value ticks', async ( { page } ) => {
+			await page.goto( fixture.path );
+			await page.locator( `${ PANEL } ${ OPEN_BUTTON }` ).click();
+
+			const dialog = page.locator( `${ PANEL } ${ DIALOG }` );
+			const nested = dialog.locator( NESTED );
+			await nested.locator( 'summary', { hasText: fixture.frameColour } ).click();
+			await nested.getByRole( 'checkbox', { name: fixture.oak, exact: true } ).check();
+
+			await expect( page ).toHaveURL( new RegExp( fixture.oakFilter ) );
+			await expect( page.locator( `${ PANEL } ${ DIALOG }` ) ).toBeVisible();
+			await expect(
+				page
+					.locator( `${ PANEL } ${ DIALOG } ${ NESTED }` )
+					.getByRole( 'checkbox', { name: fixture.oak, exact: true } ),
+			).toBeChecked();
+		} );
+	} );
 } );
 
 test.describe( 'on a phone', () => {

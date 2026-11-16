@@ -18,7 +18,8 @@ use WP_Query;
  * Editor. The panel therefore gets one of them for each attribute as it
  * renders; WooCommerce then leaves out a value no listed product has, and a
  * group without any value. A store that places attribute filters in the panel
- * itself keeps exactly those.
+ * itself keeps exactly those. An attribute that applies only under some
+ * values of another shows nested under them (`NestedAttributeFilters`).
  */
 final class ProductFilters
 {
@@ -27,8 +28,6 @@ final class ProductFilters
 
     private const FILTERS_BLOCK = 'woocommerce/product-filters';
 
-    private const ATTRIBUTE_BLOCK = 'woocommerce/product-filter-attribute';
-
     private const PRICE_BLOCK = 'woocommerce/product-filter-price';
 
     /** The button that closes WooCommerce's filter dialog on a phone. */
@@ -36,36 +35,6 @@ final class ProductFilters
 
     /** The query arguments WooCommerce's price filter narrows a listing with. */
     private const PRICE_ARGUMENTS = ['min_price', 'max_price'];
-
-    /**
-     * An attribute's group as WooCommerce's editor saves it: the attribute's
-     * name as a heading over a list of checkboxes, with how many products
-     * each value has.
-     */
-    private const ATTRIBUTE_MARKUP = <<<'HTML'
-        <!-- wp:woocommerce/product-filter-attribute {"attributeId":%1$d,"showCounts":true,"sortOrder":"%2$s"} -->
-        <div class="wp-block-woocommerce-product-filter-attribute"><!-- wp:heading {"level":3} -->
-        <h3 class="wp-block-heading">%3$s</h3>
-        <!-- /wp:heading -->
-
-        <!-- wp:woocommerce/product-filter-checkbox-list -->
-        <div class="wp-block-woocommerce-product-filter-checkbox-list wc-block-product-filter-checkbox-list"></div>
-        <!-- /wp:woocommerce/product-filter-checkbox-list --></div>
-        <!-- /wp:woocommerce/product-filter-attribute -->
-        HTML;
-
-    /**
-     * How WooCommerce's attribute filter sorts values, by the order the store
-     * gave the attribute: its own order, by name, or by name as a number.
-     */
-    private const SORT_ORDERS = [
-        'menu_order' => 'menu_order-asc',
-        'name' => 'name-asc',
-        'name_num' => 'name_num-asc',
-        'id' => 'id-asc',
-    ];
-
-    private const DEFAULT_SORT_ORDER = 'name-asc';
 
     private const SCRIPT_HANDLE = 'pixonaut-shop-filters-place';
 
@@ -182,7 +151,7 @@ final class ProductFilters
                 continue;
             }
 
-            if (self::ATTRIBUTE_BLOCK === ($block['blockName'] ?? null)) {
+            if (AttributeFilterBlock::NAME === ($block['blockName'] ?? null)) {
                 return true;
             }
 
@@ -195,31 +164,26 @@ final class ProductFilters
     }
 
     /**
-     * One attribute filter for each of the store's product attributes.
+     * One attribute filter for each of the store's product attributes, but
+     * for those that show nested under a value of another
+     * (`NestedAttributeFilters`).
      *
      * @return list<array<array-key, mixed>>
      */
     private function attribute_groups(): array
     {
-        $groups = [];
+        $attributes = array_values(array_filter(
+            wc_get_attribute_taxonomies(),
+            static fn (mixed $attribute): bool => \is_object($attribute) && isset($attribute->attribute_id, $attribute->attribute_label)
+        ));
+        $nested     = (new AttributeDependencies())->nested(array_map(AttributeFilterBlock::taxonomy_of(...), $attributes));
+        $groups     = [];
 
-        foreach (wc_get_attribute_taxonomies() as $attribute) {
-            if (! \is_object($attribute) || ! isset($attribute->attribute_id, $attribute->attribute_label)) {
-                continue;
-            }
+        foreach ($attributes as $attribute) {
+            $group = \in_array(AttributeFilterBlock::taxonomy_of($attribute), $nested, true) ? null : AttributeFilterBlock::group($attribute);
 
-            $order  = $attribute->attribute_orderby ?? null;
-            $markup = \sprintf(
-                self::ATTRIBUTE_MARKUP,
-                is_numeric($attribute->attribute_id) ? (int) $attribute->attribute_id : 0,
-                \is_string($order) && isset(self::SORT_ORDERS[$order]) ? self::SORT_ORDERS[$order] : self::DEFAULT_SORT_ORDER,
-                esc_html(\is_string($attribute->attribute_label) ? $attribute->attribute_label : '')
-            );
-
-            foreach (parse_blocks($markup) as $block) {
-                if (self::ATTRIBUTE_BLOCK === $block['blockName']) {
-                    $groups[] = $block;
-                }
+            if (null !== $group) {
+                $groups[] = $group;
             }
         }
 
