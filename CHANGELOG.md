@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.5.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.4.0...v1.5.0) (2026-11-16)
+
+
+### Features
+
+* **archive:** filter the shop and its categories by product attribute and price ([#20](https://github.com/pixonaut-app/pixonaut-shop/issues/20)) ([ec28e1b](https://github.com/pixonaut-app/pixonaut-shop/commit/ec28e1b879c389fab10b44146f3a2578e39cbaa5))
+* **product:** keep the preview in view beside a long form, in a frame the shape of its picture ([#21](https://github.com/pixonaut-app/pixonaut-shop/issues/21)) ([4f0d023](https://github.com/pixonaut-app/pixonaut-shop/commit/4f0d0235039dd02020dfafbf6f7f0ce495b5f955))
+* show a product card's second picture on hover ([#19](https://github.com/pixonaut-app/pixonaut-shop/issues/19)) ([c451adb](https://github.com/pixonaut-app/pixonaut-shop/commit/c451adb1e07827825cff39fe4df7eb7a6ae47a51))
+
+
+### Bug Fixes
+
+* **ci:** a release's new theme version no longer reads as a stale catalogue ([#22](https://github.com/pixonaut-app/pixonaut-shop/issues/22)) ([cb0cd52](https://github.com/pixonaut-app/pixonaut-shop/commit/cb0cd5238229429b28ee183fca1d55ce87647562))
+
 ## [1.4.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.3.0...v1.4.0) (2026-11-11)
 
 
