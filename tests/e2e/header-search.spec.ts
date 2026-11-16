@@ -39,16 +39,16 @@ const WCAG = [ 'wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa' ];
 // One worker makes the fixture's products and removes them once.
 test.describe.configure( { mode: 'default' } );
 
-let product: { slug: string; name: string };
+let product: { slug: string; name: string; hidden: string };
 
 test.beforeAll( () => {
-	const [ slug, name ] = wpEval(
+	const [ slug, name, hidden ] = wpEval(
 		`${ TEST_SUPPORT }ShopFixtures::searchable_products(); ` +
-			[ 'SEARCHABLE_PRODUCT_SLUG', 'SEARCHABLE_PRODUCT_NAME' ]
+			[ 'SEARCHABLE_PRODUCT_SLUG', 'SEARCHABLE_PRODUCT_NAME', 'HIDDEN_PRODUCT_NAME' ]
 				.map( ( constant ) => `echo ${ TEST_SUPPORT }ShopFixtures::${ constant }, "\\n";` )
 				.join( ' ' ),
 	).split( '\n' );
-	product = { slug, name };
+	product = { slug, name, hidden };
 } );
 
 test.afterAll( () => {
@@ -84,6 +84,38 @@ test( 'typing a product’s name lists it with its picture and price', async ( {
 	await expect( option.locator( '.pixonaut-shop-header-search__price' ) ).toContainText( /\d/ );
 	await expect( page.locator( FIELD ) ).toHaveAttribute( 'aria-expanded', 'true' );
 	await expect( page.locator( ALL ) ).toHaveAttribute( 'href', /[?&]post_type=product(&|$)/ );
+} );
+
+test( 'a product hidden from the search is never suggested, nor counted', async ( { page } ) => {
+	await open( page );
+	await suggest( page, SHARED_WORD );
+
+	await expect( page.locator( OPTION ) ).toHaveCount( 2 );
+	await expect( page.getByRole( 'option', { name: new RegExp( product.hidden ) } ) ).toHaveCount(
+		0,
+	);
+	await expect( page.locator( '.pixonaut-shop-header-search__count' ) ).toHaveText( '2 products' );
+} );
+
+test( 'Enter after the query changed searches the new query, not the suggestion picked before', async ( {
+	page,
+} ) => {
+	await open( page );
+	await suggest( page, product.name );
+	const field = page.locator( FIELD );
+	await field.press( 'ArrowDown' );
+
+	// The new query's suggestions never arrive, so only what was listed before is in view.
+	await page.route( '**/wc/store/v1/products?*', () => {} );
+	// A query nothing matches, so WooCommerce shows its results page rather than one product's.
+	const query = `${ product.name } ${ UNMATCHED }`;
+	await field.pressSequentially( query.slice( product.name.length ) );
+	await expect( field ).not.toHaveAttribute( 'aria-activedescendant', /.+/ );
+	const allHref = ( await page.locator( ALL ).getAttribute( 'href' ) ) ?? '';
+	expect( new URL( allHref ).searchParams.get( 's' ) ).toBe( query );
+	await field.press( 'Enter' );
+
+	await expect.poll( () => new URL( page.url() ).searchParams.get( 's' ) ).toBe( query );
 } );
 
 test( 'Enter on a suggestion opens its product', async ( { page } ) => {

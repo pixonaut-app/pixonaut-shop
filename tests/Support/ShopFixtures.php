@@ -193,10 +193,19 @@ final class ShopFixtures
 
     public const SEARCHABLE_PRODUCT_NAME = 'Lantern mug';
 
+    /** A product hidden from the catalogue and its search, which no suggestion may show. */
+    public const HIDDEN_PRODUCT_NAME = 'Lantern kept hidden';
+
+    private const HIDDEN_PRODUCT_SLUG = 'searchable-lantern-hidden';
+
     private const SEARCHABLE_PRODUCTS = [
         self::SEARCHABLE_PRODUCT_SLUG => self::SEARCHABLE_PRODUCT_NAME,
         'searchable-lantern-poster'   => 'Lantern poster',
+        self::HIDDEN_PRODUCT_SLUG     => self::HIDDEN_PRODUCT_NAME,
     ];
+
+    /** WooCommerce's catalogue visibility for a product neither the shop nor its search lists. */
+    private const HIDDEN_VISIBILITY = 'hidden';
 
     private const CARD_IMAGE_SLUG = 'pixonaut-shop-card-picture';
 
@@ -722,7 +731,7 @@ final class ShopFixtures
         }
     }
 
-    /** Products with a picture, which the header's search suggests by name. */
+    /** Products with a picture, which the header's search suggests by name, and one it may not. */
     public static function searchable_products(): void
     {
         $category = self::category(self::SEARCHABLE_CATEGORY_NAME, self::SEARCHABLE_CATEGORY_SLUG);
@@ -731,6 +740,11 @@ final class ShopFixtures
         foreach (self::SEARCHABLE_PRODUCTS as $slug => $name) {
             $product = self::product($slug, $name, $category);
             $product->set_image_id($picture);
+
+            if (self::HIDDEN_PRODUCT_SLUG === $slug) {
+                $product->set_catalog_visibility(self::HIDDEN_VISIBILITY);
+            }
+
             $product->save();
         }
     }

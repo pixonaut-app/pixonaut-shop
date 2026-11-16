@@ -62,6 +62,13 @@ final class HeaderSearchTest extends TestCase
         self::assertSame(self::CORE_OUTPUT, $search->render(self::CORE_OUTPUT, ['attrs' => []]));
     }
 
+    public function testLeavesAnIconOnlySearchOfOtherContentAsCorePrintsIt(): void
+    {
+        $posts = ['blockName' => 'core/search', 'attrs' => ['buttonPosition' => 'button-only']];
+
+        self::assertSame(self::CORE_OUTPUT, (new HeaderSearch())->render(self::CORE_OUTPUT, $posts));
+    }
+
     public function testPrintsTheIconAndThePanelItOpens(): void
     {
         $html = (new HeaderSearch())->render(self::CORE_OUTPUT, self::block('button-only'));
@@ -172,7 +179,7 @@ final class HeaderSearchTest extends TestCase
      */
     private static function block(string $button_position): array
     {
-        return ['blockName' => 'core/search', 'attrs' => ['buttonPosition' => $button_position]];
+        return ['blockName' => 'core/search', 'attrs' => ['buttonPosition' => $button_position, 'query' => ['post_type' => 'product']]];
     }
 
     /**

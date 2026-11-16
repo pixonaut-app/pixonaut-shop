@@ -21,8 +21,10 @@ use Pixonaut\Shop\I18n\TextDomain;
  * the count and a link to every result, and the panel closing when focus
  * leaves it.
  *
- * Only the block in its button-only form: a search that shows its field,
- * such as the one on the results page, renders as core prints it.
+ * Only the block in its button-only form that searches the products, as the
+ * header holds it: a search that shows its field, such as the one on the
+ * results page, or one that searches other content, renders as core prints
+ * it.
  */
 final class HeaderSearch
 {
@@ -62,7 +64,8 @@ final class HeaderSearch
 
     /**
      * The header's search in place of the block's output when the block is
-     * only its button; any other search block as it is.
+     * only its button and searches the products; any other search block as
+     * it is.
      *
      * @param array{attrs?: array<string, mixed>} $block
      */
@@ -70,7 +73,9 @@ final class HeaderSearch
     {
         $attributes = $block['attrs'] ?? [];
 
-        if (self::BUTTON_ONLY !== ($attributes['buttonPosition'] ?? null)) {
+        $query = \is_array($attributes['query'] ?? null) ? $attributes['query'] : [];
+
+        if (self::BUTTON_ONLY !== ($attributes['buttonPosition'] ?? null) || self::PRODUCT !== ($query['post_type'] ?? null)) {
             return $content;
         }
 

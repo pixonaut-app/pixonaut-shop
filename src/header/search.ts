@@ -47,6 +47,9 @@ const MIN_LETTERS = 2;
 /** How long typing pauses before the suggestions are fetched, in milliseconds. */
 const TYPING_PAUSE_MS = 200;
 
+/** The Store API's catalogue visibility that a product search lists. */
+const SEARCH_VISIBILITY = 'search';
+
 /** The header the Store API sends a listing's total in. */
 const TOTAL_HEADER = 'X-WP-Total';
 
@@ -265,6 +268,8 @@ function setUp( root: HTMLElement ): void {
 		const url = new URL( products );
 		url.searchParams.set( 'search', query );
 		url.searchParams.set( 'per_page', String( SUGGESTIONS ) );
+		// Only what the store's own search shows: no product hidden, or shown in the shop alone.
+		url.searchParams.set( 'catalog_visibility', SEARCH_VISIBILITY );
 
 		try {
 			const response = await fetch( url, {
@@ -272,7 +277,7 @@ function setUp( root: HTMLElement ): void {
 				credentials: 'same-origin',
 			} );
 			if ( ! response.ok ) {
-				return;
+				throw new Error( `The Store API answered ${ response.status }.` );
 			}
 			const items = ( await response.json() ) as StoreApiProduct[];
 			const result = {
@@ -287,13 +292,22 @@ function setUp( root: HTMLElement ): void {
 				show( query, result );
 			}
 		} catch {
-			// An aborted or failed request leaves the panel as it was; Enter still searches.
+			// A newer query aborted this one, or the request failed: without suggestions for
+			// what is in the field, the panel shows the hint again, and Enter still searches.
+			if ( pending === controller && ! controller.signal.aborted ) {
+				showState( 'hint' );
+			}
 		}
 	};
 
 	field.addEventListener( 'input', () => {
 		clearTimeout( timer );
 		const query = field.value.trim();
+		// What is listed belongs to the query before this one: it stays in view until the new
+		// suggestions replace it, but none can be picked, and "show all" searches the new query.
+		shown = [];
+		setActive( NO_OPTION );
+		all.href = resultsUrl( query );
 		if ( query.length < MIN_LETTERS ) {
 			pending?.abort();
 			showState( 'hint' );
@@ -371,6 +385,7 @@ function setUp( root: HTMLElement ): void {
 		},
 		popover,
 		changed,
+		document,
 	);
 
 	toggle.setAttribute( 'aria-expanded', 'false' );
