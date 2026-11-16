@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.1](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.7.0...v1.7.1) (2026-11-16)
+
+
+### Bug Fixes
+
+* **release:** ship the icon shapes in the wordpress.org zip, which the header search draws with ([#36](https://github.com/pixonaut-app/pixonaut-shop/issues/36)) ([ab0df18](https://github.com/pixonaut-app/pixonaut-shop/commit/ab0df18214c194f715082ba3db3aa82d77bb8f4d)), closes [#35](https://github.com/pixonaut-app/pixonaut-shop/issues/35)
+
 ## [1.7.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.6.0...v1.7.0) (2026-11-16)
 
 
