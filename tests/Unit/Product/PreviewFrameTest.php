@@ -95,20 +95,18 @@ final class PreviewFrameTest extends TestCase
     }
 
     /**
-     * The plugin prints each side's opening shape on that side's frame; the
-     * first side's holds every side, so switching side never resizes it.
+     * The plugin prints each side's opening shape on that side's frame, and
+     * the shape of the picture its designer shows once it has drawn; the
+     * stylesheet holds each frame at its own, so nothing is printed around.
      */
-    public function testHoldsEverySideAtTheFirstSidesOpeningShapeWithoutAFrameStyle(): void
+    public function testLeavesEverySideToItsOwnPictureWithoutAFrameStyle(): void
     {
         $two_sides = '<div class="pixonaut-preview">'
             . '<div class="pixonaut-preview__frame" style="--pixonaut-preview-ratio: 3 / 2; --pixonaut-preview-aspect: 1.5"></div>'
             . '<div class="pixonaut-preview__frame" style="--pixonaut-preview-ratio: 5 / 7; --pixonaut-preview-aspect: 0.714286"></div>'
             . '</div>';
 
-        self::assertSame(
-            '<div class="pixonaut-shop-product-frame" style="--ps-frame-aspect: 1.5">' . $two_sides . '</div>',
-            $this->frame()->render($two_sides, $this->gallery(null))
-        );
+        self::assertSame($two_sides, $this->frame()->render($two_sides, $this->gallery(null)));
     }
 
     public function testTheStoresShapeWinsOverTheOpeningShape(): void

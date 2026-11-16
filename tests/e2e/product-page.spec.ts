@@ -544,6 +544,126 @@ for ( const viewport of FIXED_PREVIEW_VIEWPORTS ) {
 	} );
 }
 
+/** What the plugin writes on a side's frame once its designer has shown a picture: the picture's shape. */
+const PLUGIN_DRAWN_ASPECT = '--pixonaut-preview-drawn-aspect';
+
+for ( const viewport of FIXED_PREVIEW_VIEWPORTS ) {
+	test( `at ${ viewport.width }x${ viewport.height } the preview's frame takes the shape of the picture the designer shows, not the one it opened at`, async ( {
+		page,
+	} ) => {
+		await openDesigner( page, viewport.width, viewport.height );
+		await page
+			.locator( PREVIEW_FRAME )
+			.evaluate( ( frame, [ property, value ] ) => frame.style.setProperty( property, value ), [
+				PLUGIN_DRAWN_ASPECT,
+				String( FIVE_BY_SEVEN ),
+			] as const );
+		await showView( page, FIVE_BY_SEVEN );
+
+		const side = await page.locator( PREVIEW_SIDE ).boundingBox();
+		const stage = await page.getByTestId( 'sdk-stage' ).boundingBox();
+
+		expectShape(
+			{ width: Math.round( side?.width ?? 0 ), height: Math.round( side?.height ?? 0 ) },
+			FIVE_BY_SEVEN,
+		);
+		// The picture fills the frame: no margin beside or above it but the panel's border.
+		expect( Math.abs( ( stage?.width ?? 0 ) - ( side?.width ?? 0 ) ) ).toBeLessThanOrEqual(
+			PANEL_BORDERS_PX + LAYOUT_TOLERANCE_PX,
+		);
+		expect( Math.abs( ( stage?.height ?? 0 ) - ( side?.height ?? 0 ) ) ).toBeLessThanOrEqual(
+			PANEL_BORDERS_PX + SHAPE_TOLERANCE_PX,
+		);
+	} );
+}
+
+/** The preview panel's border, on both sides of the picture. */
+const PANEL_BORDERS_PX = 2;
+
+/** A form much longer than the window, as a product with many fields has. */
+const LONG_FORM_PX = 3000;
+
+/** Makes the purchase panel as tall as a long form. */
+async function lengthenForm( page: Page ): Promise< void > {
+	await page.locator( PURCHASE_PANEL ).evaluate( ( panel, height ) => {
+		panel.style.minHeight = `${ height }px`;
+	}, LONG_FORM_PX );
+}
+
+/** What the plugin's script tells the stylesheet: how far down the page the preview starts. */
+async function measurePreviewTop( page: Page ): Promise< void > {
+	await page.locator( PREVIEW ).evaluate( ( preview ) => {
+		preview.style.setProperty(
+			'--pixonaut-preview-top',
+			`${ preview.getBoundingClientRect().top + window.scrollY }px`,
+		);
+	} );
+}
+
+/** The portrait and the landscape picture, each as the shape the designer shows. */
+for ( const ratio of SDK_PHOTO_RATIOS ) {
+	test( `at 1280x800 a picture ${ ratio.toFixed( 2 ) } wide stays whole in view while a long form scrolls to its end`, async ( {
+		page,
+	} ) => {
+		await openDesigner( page, 1280, 800 );
+		await lengthenForm( page );
+		await measurePreviewTop( page );
+		await page
+			.locator( PREVIEW_FRAME )
+			.evaluate( ( frame, [ property, value ] ) => frame.style.setProperty( property, value ), [
+				PLUGIN_DRAWN_ASPECT,
+				String( ratio ),
+			] as const );
+		await showView( page, ratio );
+
+		// The last of the form, at the bottom of the window.
+		await page
+			.locator( PURCHASE_PANEL )
+			.evaluate( ( node ) => node.scrollIntoView( { block: 'end' } ) );
+
+		const stage = await page.getByTestId( 'sdk-stage' ).boundingBox();
+
+		expect( await page.evaluate( () => window.scrollY ) ).toBeGreaterThan( 800 );
+		expect( stage ).not.toBeNull();
+		expect( stage?.y ?? -1 ).toBeGreaterThanOrEqual( 0 );
+		expect( ( stage?.y ?? 0 ) + ( stage?.height ?? 0 ) ).toBeLessThanOrEqual(
+			800 + LAYOUT_TOLERANCE_PX,
+		);
+	} );
+}
+
+test( 'at 1280x800 a preview in the frame shape the store picks stays whole in view beside a long form', async ( {
+	page,
+} ) => {
+	await openDesigner( page, 1280, 800 );
+	await lengthenForm( page );
+	await measurePreviewTop( page );
+	await chooseFrame( page, FIVE_BY_SEVEN );
+	await showView( page, SDK_PHOTO_RATIOS[ 0 ] );
+	await page
+		.locator( PURCHASE_PANEL )
+		.evaluate( ( node ) => node.scrollIntoView( { block: 'end' } ) );
+
+	const side = await page.locator( PREVIEW_SIDE ).boundingBox();
+
+	expect( side?.y ?? -1 ).toBeGreaterThanOrEqual( 0 );
+	expect( ( side?.y ?? 0 ) + ( side?.height ?? 0 ) ).toBeLessThanOrEqual(
+		800 + LAYOUT_TOLERANCE_PX,
+	);
+} );
+
+test( 'at 390x844 the preview scrolls away with the page, as before', async ( { page } ) => {
+	await openDesigner( page, 390, 844 );
+	await lengthenForm( page );
+	await page
+		.locator( PURCHASE_PANEL )
+		.evaluate( ( node ) => node.scrollIntoView( { block: 'end' } ) );
+
+	const stage = await page.getByTestId( 'sdk-stage' ).boundingBox();
+
+	expect( ( stage?.y ?? 0 ) + ( stage?.height ?? 0 ) ).toBeLessThan( 0 );
+} );
+
 /** The phones a 5:7 design fills the width of. */
 const PHONE_VIEWPORTS = [
 	{ width: 390, height: 844 },

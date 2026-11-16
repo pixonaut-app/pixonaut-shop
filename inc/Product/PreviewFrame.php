@@ -9,17 +9,15 @@ use Pixonaut\Shop\Blocks\AspectRatios;
 /**
  * The shape of the product page's preview frame, which a store picks in the
  * Site Editor as a style of the Product Image Gallery block: one per
- * `Blocks\AspectRatios` shape. The default style follows the shape
- * Pixonaut for WooCommerce opens the preview at, the design's or its
- * photo's (`src/styles/_product.css`).
+ * `Blocks\AspectRatios` shape. The default style follows the shape of the
+ * picture Pixonaut for WooCommerce's designer shows, and until it has drawn,
+ * the shape the plugin opens the preview at (`src/styles/_product.css`).
  *
  * The plugin prints its preview in place of the gallery's whole output, the
- * block's style class with it, so the shape is carried by a wrapper printed
- * around whatever the block rendered, the gallery or the preview. Without a
- * chosen style the wrapper carries the first side's opening shape, which the
- * plugin prints on each side's frame as `--pixonaut-preview-aspect`, so
- * every side of a product is held at one size and switching side never
- * moves the page. Each style also sets the shape on the block's own class,
+ * block's style class with it, so a chosen shape is carried by a wrapper
+ * printed around whatever the block rendered, the gallery or the preview.
+ * Without a chosen style there is no wrapper, and each side's frame follows
+ * its own picture. Each style also sets the shape on the block's own class,
  * which is what the Site Editor's placeholder gallery shows.
  */
 final class PreviewFrame
@@ -40,9 +38,6 @@ final class PreviewFrame
 
     /** Decimals of the shape's width per unit of height, finer than a pixel at any frame width. */
     private const ASPECT_DECIMALS = 4;
-
-    /** The first side's opening shape, as the plugin prints it on the side's frame. */
-    private const OPENING_ASPECT_PATTERN = '/--pixonaut-preview-aspect:\s*(\d+(?:\.\d+)?)/';
 
     public function __construct(private readonly AspectRatios $ratios)
     {
@@ -77,7 +72,7 @@ final class PreviewFrame
      */
     public function render(string $block_content, array $block): string
     {
-        $aspect = '' === $block_content ? null : ($this->chosen_aspect($block) ?? $this->opening_aspect($block_content));
+        $aspect = '' === $block_content ? null : $this->chosen_aspect($block);
         if (null === $aspect) {
             return $block_content;
         }
@@ -106,15 +101,6 @@ final class PreviewFrame
         }
 
         return null;
-    }
-
-    private function opening_aspect(string $block_content): ?float
-    {
-        if (1 !== preg_match(self::OPENING_ASPECT_PATTERN, $block_content, $match)) {
-            return null;
-        }
-
-        return AspectRatios::aspect($match[1]);
     }
 
     private static function css_number(float $value): string

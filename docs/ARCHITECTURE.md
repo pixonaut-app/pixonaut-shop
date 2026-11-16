@@ -50,7 +50,7 @@ its modules and calling their `register()`:
 | archive | `Archive\ProductGridDefaults` | Starts WooCommerce's Product Catalog setting, which sizes the shop's and its archives' pages, at three rows of the grid's four columns when the theme is activated; the store changes it from there. |
 | archive | `Archive\ShownWhenEmpty` | Skips the popular products, before their query runs, on an archive or a product search that found products of its own, and a search's no-results notice and categories on a search that found something; an empty archive or search shows them, the popular products unless there is nothing to recommend. |
 | archive | `Archive\NoResultsTitle` | Prints a search's no-results title again as it renders, with this request's query, since a template saved in the Site Editor holds the query of the request that saved it. |
-| product | `Product\PreviewFrame` | Offers a frame style per print shape on the Product Image Gallery block, and holds the product page's preview, or the gallery, at the one the store picks; without one every side keeps the shape Pixonaut for WooCommerce opens the first side at. |
+| product | `Product\PreviewFrame` | Offers a frame style per print shape on the Product Image Gallery block, and holds the product page's preview, or the gallery, at the one the store picks; without one each side's frame takes the shape of the picture Pixonaut for WooCommerce's designer shows. |
 | product | `Product\SecondPicture` | Prints a product card's second picture after the first inside WooCommerce's Product Image block, in a product loop: the product's next gallery picture, lazy and sized, with an empty alt text. The card's styles lay it over the first, which stays under it, and show it while the card is hovered or holds the focus, on devices that hover; it takes the Width and Scale the store set on the block. Nothing is printed for a product with no other picture. Its script (`src/product/second-picture.ts`), loaded with the first card that has one, takes a second picture that fails to load out of its card. The picture and the gallery are read through WooCommerce (`get_image_id()`, `get_gallery_image_ids()`), so a card a plugin shows with another picture takes the gallery picture after that one. |
 | dependencies | `Dependencies\WooCommerceNotice` | Tells an administrator who can install plugins that the shop needs WooCommerce, while it is inactive, in a notice they can dismiss for good. |
 | pixonaut | `Pixonaut\Integration` | Holds the theme's callbacks on Pixonaut for WooCommerce's documented hooks, and their names; they run only when the plugin fires them. |
@@ -154,6 +154,12 @@ its designer into it: its preview replaces the
 `woocommerce_before_add_to_cart_button` inside the
 `woocommerce/add-to-cart-form` block. Both blocks stay; the theme adds nothing
 of the designer's own.
+
+From 768px wide, where the two columns sit side by side, the plugin's
+preview stays in view in its column (`position: sticky`) while a form longer
+than the window scrolls beside it, with the strip of the product's views
+under the picture. On a phone the columns stack and the preview scrolls with
+the page, as the plugin lays it out there.
 
 The product's price is not a block of the template: `inc/Product/PriceRow.php`
 prints it in the add-to-cart form's last row, beside the quantity and the

@@ -6,13 +6,17 @@
  * and the side's `#pixonaut-preview-<side>`,
  * `.pixonaut-form`, `.pixonaut-tabs`, `.pixonaut-approval` and
  * `.pixonaut-cart-row`, with the parts its storefront documentation names,
- * its `--pixonaut-preview-height` and `--pixonaut-views-gap`, and the
- * `--pixonaut-preview-aspect` it prints on each frame.
+ * its `--pixonaut-preview-height`, `--pixonaut-preview-top`,
+ * `--pixonaut-preview-mark` and `--pixonaut-views-gap`, and the
+ * `--pixonaut-preview-aspect` and `--pixonaut-preview-drawn-aspect` it sets
+ * on each frame.
  *
  * The frame's shape is the one the store picks as a style of the Product
  * Image Gallery block, which `Product\PreviewFrame` prints as
  * `--ps-frame-aspect` (width per unit of height) on a wrapper; without one it
- * is the shape the plugin opens the first side at, and the gallery's square.
+ * is the shape of the picture the designer shows
+ * (`--pixonaut-preview-drawn-aspect`), until then the one the plugin opens
+ * the side at, and the gallery's square.
  *
  * Phones are Pixonaut for WooCommerce's breakpoint here, not WordPress's:
  * below 768px, written as max-width 767px, where the plugin lays its preview
@@ -37,11 +41,15 @@
  * own fields at, so they read as one form with it: its 40px menus, its
  * labels 0.5rem above them, its 36px option chips, and a choice that cannot
  * be picked at 35% opacity. On a phone, the preview and the mark under it are
- * at most 80vh tall, the cap Pixonaut for WooCommerce sets there. The price
+ * at most 80vh tall, the cap Pixonaut for WooCommerce sets there; beside the
+ * form the picture is at least 320px tall and 24px short of the window's
+ * foot, as the plugin has it. The price
  * row's quantity is 4.5rem of content with its padding and border around it.
  */
 :root {
 	--ps-phone-preview-height: 80vh;
+	--ps-preview-min-height: 320px;
+	--ps-preview-window-margin: 24px;
 	--ps-designer-field-height: 2.5rem;
 	--ps-designer-label-gap: 0.5rem;
 	--ps-chip-height: 2.25rem;
@@ -144,6 +152,28 @@
 
 .pixonaut-shop-product.wp-block-columns {
 	align-items: flex-start;
+}
+
+/*
+ * Beside a form longer than the window, the plugin's preview stays in view
+ * while the form scrolls, under the admin bar where one shows: its column is
+ * as tall as the form's, and the preview, or the frame the store's shape is
+ * printed around it, sticks within it. The plugin holds the picture to the
+ * window's height, so the whole of it shows. On a phone the columns stack,
+ * and the preview scrolls with the page as the plugin lays it out there.
+ */
+@media ( min-width: 768px ) {
+	/* As tall as the form's column, whatever the row aligns its columns to. */
+	.pixonaut-shop-product.wp-block-columns > .wp-block-column:has( .pixonaut-preview ) {
+		align-self: stretch;
+	}
+
+	.pixonaut-shop-product.wp-block-columns
+		> .wp-block-column
+		> :is( .pixonaut-preview, .pixonaut-shop-product-frame:has( .pixonaut-preview ) ) {
+		position: sticky;
+		top: calc( var( --wp-admin--admin-bar--height, 0px ) + var( --wp--preset--spacing--40 ) );
+	}
 }
 
 /*
@@ -307,11 +337,15 @@
 }
 
 /*
- * Each side's preview is held at the frame's shape, the store's or the one
- * the plugin opens it at, whatever view it shows later: the plugin holds its
- * preview element at `--pixonaut-preview-height`, here the frame's width
- * over that shape, and the SDK draws the preview contained in it, so
- * switching side, view or variant never moves the page. The SDK's strip of
+ * Each side's preview is held at the frame's shape: the store's, whatever
+ * view it shows, or else the shape of the picture the designer shows, which
+ * the plugin writes on the frame as `--pixonaut-preview-drawn-aspect` (the
+ * first view's, kept until a view of another shape altogether is shown), and
+ * until it has drawn, the one the plugin opens the side at. The plugin holds
+ * its preview element at `--pixonaut-preview-height`, here the frame's width
+ * over that shape, and the SDK draws the preview contained in it, so the
+ * frame is never larger than its picture and switching between views of one
+ * shape never moves the page. The SDK's strip of
  * views, and the one the plugin prints until it is drawn, keep
  * `--pixonaut-views-gap` above them, at the page's rhythm.
  */
@@ -320,7 +354,10 @@
 }
 
 .pixonaut-shop-product .pixonaut-preview .pixonaut-preview__frame {
-	--ps-frame-shape: var( --ps-frame-aspect, var( --pixonaut-preview-aspect, 1 ) );
+	--ps-frame-shape: var(
+		--ps-frame-aspect,
+		var( --pixonaut-preview-drawn-aspect, var( --pixonaut-preview-aspect, 1 ) )
+	);
 	--pixonaut-preview-height: calc( 100cqi / var( --ps-frame-shape ) );
 	container-type: inline-size;
 }
@@ -328,6 +365,32 @@
 /* The panel's border stays inside the frame, level with the form's card. */
 .pixonaut-shop-product .pixonaut-preview [ id^="pixonaut-preview-" ] {
 	box-sizing: border-box;
+}
+
+/*
+ * Beside the form the whole picture stays in the window, at the frame's
+ * shape: the plugin's own rule, which sizes by the shape it drew, with the
+ * store's shape where it picked one. The frame is as wide as makes it as
+ * tall as the window has room for under where the preview starts
+ * (`--pixonaut-preview-top`, which the plugin measures), less the plugin's
+ * margin and its mark, and never under its least height.
+ */
+@media ( min-width: 768px ) {
+	.pixonaut-shop-product .pixonaut-preview .pixonaut-preview__frame {
+		max-width: calc(
+			(
+				max(
+					var( --ps-preview-min-height ),
+					100vh -
+					var( --pixonaut-preview-top, 0px ) -
+					var( --ps-preview-window-margin )
+				) -
+				var( --pixonaut-preview-mark, 0px )
+			) *
+			var( --ps-frame-shape )
+		);
+		margin-inline: auto;
+	}
 }
 
 /*
