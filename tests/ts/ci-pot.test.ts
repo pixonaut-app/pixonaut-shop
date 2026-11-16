@@ -63,6 +63,16 @@ describe( 'potStrings', () => {
 		assert.equal( potStrings( pot( regenerated, ENTRY, OTHER_ENTRY ) ), committed );
 	} );
 
+	it( 'is the same when only the theme version in the header changed', () => {
+		const released = HEADER.map( ( line ) =>
+			line.startsWith( '"Project-Id-Version:' )
+				? '"Project-Id-Version: Pixonaut Shop 0.2.0\\n"'
+				: line,
+		);
+
+		assert.equal( potStrings( pot( released, ENTRY, OTHER_ENTRY ) ), committed );
+	} );
+
 	for ( const [ what, from, to ] of [
 		[ 'a msgid', 'msgid "Add %s"', 'msgid "Buy %s"' ],
 		[ 'a msgctxt', 'msgctxt "button"', 'msgctxt "link"' ],
