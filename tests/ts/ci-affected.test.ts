@@ -228,12 +228,12 @@ describe( 'affected', () => {
 		} );
 	} );
 
-	it( 'runs the header and the mega menu for a change to the header area', () => {
+	it( 'runs the header, its search and the mega menu for a change to the header area', () => {
 		assert.deepEqual( jobsFor( 'inc/Header/HeaderSearch.php' ), {
 			...NO_JOBS,
 			php: true,
 			integration: true,
-			specs: [ 'header', 'mega-menu' ],
+			specs: [ 'header-search', 'header', 'mega-menu' ],
 			shards: 1,
 		} );
 	} );

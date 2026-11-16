@@ -10,7 +10,9 @@ import { describe, it } from 'node:test';
 import {
 	controlPanel,
 	FALLBACK_OPEN_CLASS,
+	PANEL_OPENED_EVENT,
 	type PanelElements,
+	type PanelPage,
 	supportsPopover,
 } from '../../src/header/mega-menu-panel.ts';
 
@@ -23,6 +25,8 @@ class FakeElement {
 	readonly classes = new Set< string >();
 	readonly matched: string[] = [];
 	hidden = 0;
+	/** Whether a press on the page counts as inside this element. */
+	holdsThePage = false;
 
 	readonly classList = {
 		contains: ( name: string ) => this.classes.has( name ),
@@ -49,6 +53,10 @@ class FakeElement {
 		return false;
 	}
 
+	contains( node: unknown ): boolean {
+		return node === this || this.holdsThePage;
+	}
+
 	hidePopover(): void {
 		this.hidden++;
 	}
@@ -64,7 +72,12 @@ function elements(): { panel: FakeElement; toggle: FakeElement; close: FakeEleme
 	return { panel: new FakeElement(), toggle: new FakeElement(), close: new FakeElement() };
 }
 
-function control( parts: ReturnType< typeof elements >, supported: boolean, changes: boolean[] ) {
+function control(
+	parts: ReturnType< typeof elements >,
+	supported: boolean,
+	changes: boolean[],
+	page?: PanelPage,
+) {
 	return controlPanel(
 		{
 			panel: parts.panel,
@@ -73,7 +86,13 @@ function control( parts: ReturnType< typeof elements >, supported: boolean, chan
 		} as unknown as PanelElements,
 		supported,
 		( opened ) => changes.push( opened ),
+		page,
 	);
+}
+
+/** A key pressed anywhere on the page. */
+function key( name: string ): Event {
+	return Object.assign( new Event( 'keydown' ), { key: name } );
 }
 
 describe( 'supportsPopover', () => {
@@ -128,6 +147,55 @@ describe( 'controlPanel without the Popover API', () => {
 
 		assert.deepEqual( parts.panel.matched, [] );
 		assert.equal( parts.panel.hidden, 0 );
+	} );
+} );
+
+describe( 'controlPanel without the Popover API, on a page', () => {
+	it( 'closes on Escape pressed anywhere, and leaves other keys alone', () => {
+		const page = new EventTarget();
+		const parts = elements();
+		const panel = control( parts, false, [], page );
+
+		parts.toggle.fire( 'click' );
+		page.dispatchEvent( key( 'Tab' ) );
+		assert.equal( panel.isOpen(), true );
+
+		page.dispatchEvent( key( 'Escape' ) );
+		assert.equal( panel.isOpen(), false );
+	} );
+
+	it( 'closes on a press outside the panel and its button, not inside', () => {
+		const page = new EventTarget();
+		const parts = elements();
+		const panel = control( parts, false, [], page );
+
+		parts.toggle.fire( 'click' );
+		parts.panel.holdsThePage = true;
+		page.dispatchEvent( new Event( 'pointerdown' ) );
+		assert.equal( panel.isOpen(), true );
+
+		parts.panel.holdsThePage = false;
+		page.dispatchEvent( new Event( 'pointerdown' ) );
+		assert.equal( panel.isOpen(), false );
+	} );
+
+	it( 'closes when another panel opens, as one popover closes another', () => {
+		const page = new EventTarget();
+		const menuParts = elements();
+		const searchParts = elements();
+		const menu = control( menuParts, false, [], page );
+		const search = control( searchParts, false, [], page );
+		const opened: unknown[] = [];
+		page.addEventListener( PANEL_OPENED_EVENT, ( event ) =>
+			opened.push( ( event as CustomEvent ).detail ),
+		);
+
+		menuParts.toggle.fire( 'click' );
+		searchParts.toggle.fire( 'click' );
+
+		assert.equal( menu.isOpen(), false );
+		assert.equal( search.isOpen(), true );
+		assert.deepEqual( opened, [ menuParts.panel, searchParts.panel ] );
 	} );
 } );
 

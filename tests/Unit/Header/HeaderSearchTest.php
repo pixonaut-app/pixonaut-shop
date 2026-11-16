@@ -8,14 +8,17 @@ use ArrayObject;
 use Brain\Monkey\Functions;
 use PHPUnit\Framework\Attributes\CoversClass;
 use Pixonaut\Shop\Assets\BuiltScript;
+use Pixonaut\Shop\Blocks\Icons;
 use Pixonaut\Shop\Header\HeaderSearch;
 use Pixonaut\Shop\Tests\TestCase;
 
 #[CoversClass(HeaderSearch::class)]
 #[CoversClass(BuiltScript::class)]
+#[CoversClass(Icons::class)]
 final class HeaderSearchTest extends TestCase
 {
-    private const FORM = '<form role="search" class="wp-block-search__button-only wp-block-search"></form>';
+    /** What core prints for the block, which the header's search replaces. */
+    private const CORE_OUTPUT = '<form role="search" class="wp-block-search__button-only wp-block-search"></form>';
 
     /** A theme checkout whose script has been built, and one whose has not. */
     private const BUILT_THEME = __DIR__ . '/fixtures/built';
@@ -24,23 +27,121 @@ final class HeaderSearchTest extends TestCase
 
     private const THEME_URI = 'https://shop.test/wp-content/themes/pixonaut-shop';
 
+    private const SHOP_URL = 'https://shop.test';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        Functions\stubEscapeFunctions();
+        Functions\stubTranslationFunctions();
+        $counter = new ArrayObject();
+        Functions\when('wp_unique_id')->alias(static function (string $prefix) use ($counter): string {
+            $counter[$prefix] = ($counter[$prefix] ?? 0) + 1;
+
+            return $prefix . $counter[$prefix];
+        });
+        Functions\when('home_url')->alias(static fn (string $path = ''): string => self::SHOP_URL . $path);
+        Functions\when('rest_url')->alias(static fn (string $path = ''): string => self::SHOP_URL . '/wp-json/' . $path);
+        $this->theme(self::UNBUILT_THEME);
+    }
+
     public function testRegistersOnTheSearchBlocksRender(): void
     {
         (new HeaderSearch())->register();
 
         self::assertNotFalse(
-            has_filter('render_block_core/search', 'Pixonaut\Shop\Header\HeaderSearch->load_script()')
+            has_filter('render_block_core/search', 'Pixonaut\Shop\Header\HeaderSearch->render()')
         );
     }
 
-    public function testLoadsTheBuiltScriptForASearchThatIsOnlyItsButton(): void
+    public function testLeavesASearchThatShowsItsFieldAsCorePrintsIt(): void
+    {
+        $search = new HeaderSearch();
+
+        self::assertSame(self::CORE_OUTPUT, $search->render(self::CORE_OUTPUT, self::block('button-outside')));
+        self::assertSame(self::CORE_OUTPUT, $search->render(self::CORE_OUTPUT, ['attrs' => []]));
+    }
+
+    public function testLeavesAnIconOnlySearchOfOtherContentAsCorePrintsIt(): void
+    {
+        $posts = ['blockName' => 'core/search', 'attrs' => ['buttonPosition' => 'button-only']];
+
+        self::assertSame(self::CORE_OUTPUT, (new HeaderSearch())->render(self::CORE_OUTPUT, $posts));
+    }
+
+    public function testPrintsTheIconAndThePanelItOpens(): void
+    {
+        $html = (new HeaderSearch())->render(self::CORE_OUTPUT, self::block('button-only'));
+
+        $panel = 'pixonaut-shop-header-search-1-panel';
+        self::assertStringContainsString(
+            '<button type="button" class="pixonaut-shop-header-search__toggle" popovertarget="' . $panel . '" aria-controls="' . $panel . '" aria-label="Search products">',
+            $html
+        );
+        self::assertStringContainsString('<div id="' . $panel . '" class="pixonaut-shop-header-search__panel" popover', $html);
+        self::assertStringContainsString('popovertarget="' . $panel . '" popovertargetaction="hide" aria-label="Close search"', $html);
+    }
+
+    public function testThePanelsFormSearchesTheProductsWithoutScript(): void
+    {
+        $html = (new HeaderSearch())->render(self::CORE_OUTPUT, self::block('button-only'));
+
+        self::assertStringContainsString('<form class="pixonaut-shop-header-search__form" role="search" method="get" action="' . self::SHOP_URL . '/">', $html);
+        self::assertStringContainsString('name="s"', $html);
+        self::assertStringContainsString('<input type="hidden" name="post_type" value="product">', $html);
+        self::assertStringContainsString('<button type="submit"', $html);
+    }
+
+    public function testTheFieldIsALabelledComboboxOverItsSuggestions(): void
+    {
+        $html = (new HeaderSearch())->render(self::CORE_OUTPUT, self::block('button-only'));
+
+        $field = 'pixonaut-shop-header-search-1-field';
+        self::assertStringContainsString('<label class="screen-reader-text" for="' . $field . '">Search products</label>', $html);
+        self::assertMatchesRegularExpression(
+            '/<input id="' . $field . '"[^>]* placeholder="Search products…"[^>]* role="combobox" aria-expanded="false" aria-controls="pixonaut-shop-header-search-1-list" aria-autocomplete="list"/',
+            $html
+        );
+        self::assertStringContainsString('<ul id="pixonaut-shop-header-search-1-list" class="pixonaut-shop-header-search__list" role="listbox" aria-label="Suggestions" hidden></ul>', $html);
+        self::assertStringContainsString('role="status"', $html);
+    }
+
+    public function testTheSuggestionsComeFromTheStoreApi(): void
+    {
+        $html = (new HeaderSearch())->render(self::CORE_OUTPUT, self::block('button-only'));
+
+        self::assertStringContainsString('data-products="' . self::SHOP_URL . '/wp-json/wc/store/v1/products"', $html);
+    }
+
+    public function testTakesTheBlocksOwnPlaceholder(): void
+    {
+        $block = self::block('button-only');
+        $block['attrs']['placeholder'] = 'Find a gift';
+
+        self::assertStringContainsString('placeholder="Find a gift"', (new HeaderSearch())->render(self::CORE_OUTPUT, $block));
+    }
+
+    public function testEachSearchOnAPageHasItsOwnIds(): void
+    {
+        $search = new HeaderSearch();
+        $search->render(self::CORE_OUTPUT, self::block('button-only'));
+
+        self::assertStringContainsString(
+            'id="pixonaut-shop-header-search-2-panel"',
+            $search->render(self::CORE_OUTPUT, self::block('button-only'))
+        );
+    }
+
+    public function testLoadsTheBuiltScriptWithItsTranslations(): void
     {
         $this->theme(self::BUILT_THEME);
         $enqueued = $this->record_enqueued_scripts();
+        Functions\expect('wp_set_script_translations')
+            ->once()
+            ->with(HeaderSearch::SCRIPT_HANDLE, 'pixonaut-shop', self::BUILT_THEME . '/languages');
 
-        $output = (new HeaderSearch())->load_script(self::FORM, self::block('button-only'));
+        (new HeaderSearch())->render(self::CORE_OUTPUT, self::block('button-only'));
 
-        self::assertSame(self::FORM, $output);
         $expected = [
             HeaderSearch::SCRIPT_HANDLE,
             self::THEME_URI . '/build/header-search.js',
@@ -57,21 +158,19 @@ final class HeaderSearchTest extends TestCase
         $this->theme(self::BUILT_THEME);
         $enqueued = $this->record_enqueued_scripts();
 
-        $search = new HeaderSearch();
-        $search->load_script(self::FORM, self::block('button-outside'));
-        $search->load_script(self::FORM, ['blockName' => 'core/search', 'attrs' => []]);
+        (new HeaderSearch())->render(self::CORE_OUTPUT, self::block('button-outside'));
 
         self::assertCount(0, $enqueued);
     }
 
     public function testLoadsNothingInACheckoutWhoseScriptIsNotBuilt(): void
     {
-        $this->theme(self::UNBUILT_THEME);
         $enqueued = $this->record_enqueued_scripts();
+        Functions\expect('wp_set_script_translations')->never();
 
-        $output = (new HeaderSearch())->load_script(self::FORM, self::block('button-only'));
+        $html = (new HeaderSearch())->render(self::CORE_OUTPUT, self::block('button-only'));
 
-        self::assertSame(self::FORM, $output);
+        self::assertStringContainsString('pixonaut-shop-header-search__panel', $html);
         self::assertCount(0, $enqueued);
     }
 
@@ -80,7 +179,7 @@ final class HeaderSearchTest extends TestCase
      */
     private static function block(string $button_position): array
     {
-        return ['blockName' => 'core/search', 'attrs' => ['buttonPosition' => $button_position]];
+        return ['blockName' => 'core/search', 'attrs' => ['buttonPosition' => $button_position, 'query' => ['post_type' => 'product']]];
     }
 
     /**

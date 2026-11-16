@@ -287,7 +287,20 @@ the cart in the drawer without a script of its own.
 The header is one row: the Site Logo and the site title, the menu, product
 search, the account link and the mini-cart. Above it, the `announcement`
 part, which the theme ships empty; a store that wants a bar inserts the
-`pixonaut-shop/announcement` pattern there and writes its text. The menu
+`pixonaut-shop/announcement` pattern there and writes its text.
+
+The search is core's search block in its button-only form, which
+`Header\HeaderSearch` prints as the search icon and a panel under the
+header: a popover the icon opens, holding a form that searches the
+products, so it opens, closes on Escape or a click outside, and searches
+without script. `src/header/search.ts` adds product suggestions as the
+shopper types, from WooCommerce's Store API (`/wc/store/v1/products`), with
+their picture and price, the count and a link to every result, the arrow
+keys among them and the panel closing when focus leaves it. The panel and
+its scrim sit in the top layer, so opening, typing and closing move nothing
+on the page. A store changes the field's placeholder in the block's own
+settings; the results page is `product-search-results`, the archive's
+layout with its filters. The menu
 collapses into the menu button at 1280px and below
 (`src/styles/_header.css`), where a store's menu would otherwise crowd the
 row, not only below core's 600px.

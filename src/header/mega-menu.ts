@@ -43,7 +43,6 @@ const ANCHORING = 'anchor-name: --pixonaut-shop-mega';
 /** The class on `<html>` while the panel is open, which stops the page scrolling under the drawer. */
 const OPEN_CLASS = 'pixonaut-shop-mega-is-open';
 
-const ESCAPE = 'Escape';
 const MOUSE = 'mouse';
 
 function setUp( root: HTMLElement ): void {
@@ -123,6 +122,7 @@ function setUp( root: HTMLElement ): void {
 		{ panel, toggle, closers: [ ...panel.querySelectorAll< HTMLElement >( CLOSE ) ] },
 		popover,
 		changed,
+		document,
 	);
 	const isOpen = (): boolean => control.isOpen();
 
@@ -148,12 +148,6 @@ function setUp( root: HTMLElement ): void {
 
 	document.addEventListener( 'keydown', ( event ) => {
 		if ( ! isOpen() ) {
-			return;
-		}
-
-		// The browser closes a popover on Escape; without one, this does.
-		if ( event.key === ESCAPE && ! popover ) {
-			control.close();
 			return;
 		}
 

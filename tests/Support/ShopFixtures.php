@@ -183,6 +183,30 @@ final class ShopFixtures
         self::ONE_PICTURE_PRODUCT_SLUG  => 'Poster in one picture',
     ];
 
+    /** The products `searchable_products()` makes for the header's search, in a category of their own. */
+    public const SEARCHABLE_CATEGORY_SLUG = 'searchable-products';
+
+    private const SEARCHABLE_CATEGORY_NAME = 'Searchable products';
+
+    /** The product a shopper finds by typing its name. */
+    public const SEARCHABLE_PRODUCT_SLUG = 'searchable-lantern-mug';
+
+    public const SEARCHABLE_PRODUCT_NAME = 'Lantern mug';
+
+    /** A product hidden from the catalogue and its search, which no suggestion may show. */
+    public const HIDDEN_PRODUCT_NAME = 'Lantern kept hidden';
+
+    private const HIDDEN_PRODUCT_SLUG = 'searchable-lantern-hidden';
+
+    private const SEARCHABLE_PRODUCTS = [
+        self::SEARCHABLE_PRODUCT_SLUG => self::SEARCHABLE_PRODUCT_NAME,
+        'searchable-lantern-poster'   => 'Lantern poster',
+        self::HIDDEN_PRODUCT_SLUG     => self::HIDDEN_PRODUCT_NAME,
+    ];
+
+    /** WooCommerce's catalogue visibility for a product neither the shop nor its search lists. */
+    private const HIDDEN_VISIBILITY = 'hidden';
+
     private const CARD_IMAGE_SLUG = 'pixonaut-shop-card-picture';
 
     private const CARD_SECOND_IMAGE_SLUG = 'pixonaut-shop-card-second-picture';
@@ -701,6 +725,42 @@ final class ShopFixtures
         }
 
         $term = get_term_by('slug', self::PICTURED_CATEGORY_SLUG, self::CATEGORY_TAXONOMY);
+
+        if ($term instanceof WP_Term) {
+            wp_delete_term($term->term_id, self::CATEGORY_TAXONOMY);
+        }
+    }
+
+    /** Products with a picture, which the header's search suggests by name, and one it may not. */
+    public static function searchable_products(): void
+    {
+        $category = self::category(self::SEARCHABLE_CATEGORY_NAME, self::SEARCHABLE_CATEGORY_SLUG);
+        $picture  = self::image(self::CARD_IMAGE_SLUG, true);
+
+        foreach (self::SEARCHABLE_PRODUCTS as $slug => $name) {
+            $product = self::product($slug, $name, $category);
+            $product->set_image_id($picture);
+
+            if (self::HIDDEN_PRODUCT_SLUG === $slug) {
+                $product->set_catalog_visibility(self::HIDDEN_VISIBILITY);
+            }
+
+            $product->save();
+        }
+    }
+
+    /** The searchable products and their category gone again. */
+    public static function forget_searchable_products(): void
+    {
+        foreach (array_keys(self::SEARCHABLE_PRODUCTS) as $slug) {
+            $existing = get_page_by_path($slug, OBJECT, 'product');
+
+            if (null !== $existing) {
+                wp_delete_post($existing->ID, true);
+            }
+        }
+
+        $term = get_term_by('slug', self::SEARCHABLE_CATEGORY_SLUG, self::CATEGORY_TAXONOMY);
 
         if ($term instanceof WP_Term) {
             wp_delete_term($term->term_id, self::CATEGORY_TAXONOMY);
