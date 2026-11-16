@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.7.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.6.0...v1.7.0) (2026-11-16)
+
+
+### Features
+
+* **header:** open the search as a panel with product suggestions ([#33](https://github.com/pixonaut-app/pixonaut-shop/issues/33)) ([eb0daa8](https://github.com/pixonaut-app/pixonaut-shop/commit/eb0daa825b366e67e4f96a7d14de06f9e1ba77ad))
+
+
+### Bug Fixes
+
+* **archive:** show a dependent attribute once, under the chosen values it applies to ([#32](https://github.com/pixonaut-app/pixonaut-shop/issues/32)) ([06f4510](https://github.com/pixonaut-app/pixonaut-shop/commit/06f4510d312e8fbe81abe591a0bd9d474a6e5697))
+
 ## [1.6.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.5.0...v1.6.0) (2026-11-16)
 
 
