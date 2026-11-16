@@ -172,11 +172,8 @@ final class ProductFilters
      */
     private function attribute_groups(): array
     {
-        $attributes = array_values(array_filter(
-            wc_get_attribute_taxonomies(),
-            static fn (mixed $attribute): bool => \is_object($attribute) && isset($attribute->attribute_id, $attribute->attribute_label)
-        ));
-        $nested     = (new AttributeDependencies())->nested(array_map(AttributeFilterBlock::taxonomy_of(...), $attributes));
+        $attributes = AttributeFilterBlock::store_attributes();
+        $nested     = (new AttributeDependencies())->nested(AttributeFilterBlock::store_taxonomies());
         $groups     = [];
 
         foreach ($attributes as $attribute) {

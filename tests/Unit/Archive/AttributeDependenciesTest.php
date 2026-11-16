@@ -60,16 +60,24 @@ final class AttributeDependenciesTest extends TestCase
         self::assertSame([], (new AttributeDependencies())->dependents_under(self::FRAMING));
     }
 
-    public function testADependentWhoseParentShowsNowhereKeepsItsOwnGroup(): void
+    public function testADependentWhoseParentIsMissingKeepsItsOwnGroupAndItsDependentsNestUnderIt(): void
     {
-        // Each under the other, and the colour under an attribute the store does not have.
         $this->answer([
             self::FRAME_COLOUR => ['pa_gone' => ['frame']],
+            'pa_frame-finish' => [self::FRAME_COLOUR => ['oak']],
+        ]);
+
+        self::assertSame(['pa_frame-finish'], (new AttributeDependencies())->nested([self::FRAME_COLOUR, 'pa_frame-finish']));
+    }
+
+    public function testTheFirstOfACircleKeepsItsOwnGroupAndTheRestNestUnderIt(): void
+    {
+        $this->answer([
             'pa_a' => ['pa_b' => ['x']],
             'pa_b' => ['pa_a' => ['y']],
         ]);
 
-        self::assertSame([], (new AttributeDependencies())->nested([self::FRAME_COLOUR, 'pa_a', 'pa_b']));
+        self::assertSame(['pa_b'], (new AttributeDependencies())->nested(['pa_a', 'pa_b']));
     }
 
     public function testADependentUnderANestedOneNestsToo(): void
@@ -82,6 +90,23 @@ final class AttributeDependenciesTest extends TestCase
         self::assertSame(
             [self::FRAME_COLOUR, 'pa_frame-finish'],
             (new AttributeDependencies())->nested([self::FRAMING, self::FRAME_COLOUR, 'pa_frame-finish'])
+        );
+    }
+
+    public function testAnAttributeDeeperThanTheLimitKeepsItsOwnGroup(): void
+    {
+        $chain = [self::FRAMING, 'pa_level-1', 'pa_level-2', 'pa_level-3'];
+        $answer = [];
+
+        foreach (\array_slice($chain, 1) as $level => $taxonomy) {
+            $answer[$taxonomy] = [$chain[$level] => ['x']];
+        }
+
+        $this->answer($answer);
+
+        self::assertSame(
+            \array_slice($chain, 1, AttributeDependencies::MAX_DEPTH),
+            (new AttributeDependencies())->nested($chain)
         );
     }
 

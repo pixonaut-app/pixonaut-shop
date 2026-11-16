@@ -77,9 +77,14 @@ final class NestedAttributeFilters
 
         $id       = $attributes['attributeId'] ?? null;
         $taxonomy = is_numeric($id) ? wc_attribute_taxonomy_name_by_id((int) $id) : '';
-        $under    = '' === $taxonomy ? [] : (new AttributeDependencies())->dependents_under($taxonomy);
 
-        if ([] === $under || \in_array($taxonomy, $this->rendering, true)) {
+        if ('' === $taxonomy || \in_array($taxonomy, $this->rendering, true) || \count($this->rendering) >= AttributeDependencies::MAX_DEPTH) {
+            return $block_content;
+        }
+
+        $under = $this->placed_under($taxonomy);
+
+        if ([] === $under) {
             return $block_content;
         }
 
@@ -87,11 +92,41 @@ final class NestedAttributeFilters
 
         try {
             return $this->folds_values($block_content)
-                ? $block_content . $this->groups(array_values(array_unique(array_merge(...array_values($under)))), $instance)
+                ? $block_content . $this->groups(array_values(array_unique(array_merge(...array_values($under)))), $instance, $taxonomy)
                 : $this->with_nested($block_content, $taxonomy, $under, $instance);
         } finally {
             array_pop($this->rendering);
         }
+    }
+
+    /**
+     * The attributes that nest under each of the attribute's values: those
+     * `AttributeDependencies::nested()` places nested, the same ones the
+     * panel leaves without a group of their own.
+     *
+     * @return array<array-key, list<string>>
+     */
+    private function placed_under(string $taxonomy): array
+    {
+        $dependencies = new AttributeDependencies();
+        $under        = $dependencies->dependents_under($taxonomy);
+
+        if ([] === $under) {
+            return [];
+        }
+
+        $nested = $dependencies->nested(AttributeFilterBlock::store_taxonomies());
+        $placed = [];
+
+        foreach ($under as $value => $dependents) {
+            $kept = array_values(array_intersect($dependents, $nested));
+
+            if ([] !== $kept) {
+                $placed[$value] = $kept;
+            }
+        }
+
+        return $placed;
     }
 
     /**
@@ -174,11 +209,13 @@ final class NestedAttributeFilters
     }
 
     /**
-     * The dependent attributes' own groups, for a parent whose values WooCommerce folds.
+     * The dependent attributes' own groups, for a parent whose values
+     * WooCommerce folds, with ids of their own: a dependent of two such
+     * parents follows each.
      *
      * @param list<string> $dependents
      */
-    private function groups(array $dependents, WP_Block $instance): string
+    private function groups(array $dependents, WP_Block $instance, string $parent_taxonomy): string
     {
         $groups = '';
 
@@ -187,7 +224,7 @@ final class NestedAttributeFilters
             $block     = null === $attribute ? null : AttributeFilterBlock::group($attribute);
 
             if (null !== $block) {
-                $groups .= (new WP_Block($block, $instance->context))->render();
+                $groups .= $this->in_place((new WP_Block($block, $instance->context))->render(), sanitize_title($parent_taxonomy));
             }
         }
 
@@ -197,7 +234,7 @@ final class NestedAttributeFilters
     /**
      * The values with ids of their own: an attribute nested under two values
      * shows twice, and a label must tick the checkbox beside it, not its twin
-     * under the other value.
+     * elsewhere.
      */
     private function in_place(string $values, string $place): string
     {

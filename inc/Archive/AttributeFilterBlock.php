@@ -83,11 +83,35 @@ final class AttributeFilterBlock
         return self::parsed(self::LIST_MARKUP, $attribute);
     }
 
+    /**
+     * The store's product attributes, as `wc_get_attribute_taxonomies()`
+     * lists them, in its order.
+     *
+     * @return list<object>
+     */
+    public static function store_attributes(): array
+    {
+        return array_values(array_filter(
+            wc_get_attribute_taxonomies(),
+            static fn (mixed $attribute): bool => \is_object($attribute) && isset($attribute->attribute_id, $attribute->attribute_label)
+        ));
+    }
+
+    /**
+     * The taxonomies of the store's product attributes, in its order.
+     *
+     * @return list<string>
+     */
+    public static function store_taxonomies(): array
+    {
+        return array_map(self::taxonomy_of(...), self::store_attributes());
+    }
+
     /** The store's product attribute with this taxonomy, as `wc_get_attribute_taxonomies()` lists it. */
     public static function attribute_of(string $taxonomy): ?object
     {
-        foreach (wc_get_attribute_taxonomies() as $attribute) {
-            if (\is_object($attribute) && isset($attribute->attribute_name) && \is_string($attribute->attribute_name) && wc_attribute_taxonomy_name($attribute->attribute_name) === $taxonomy) {
+        foreach (self::store_attributes() as $attribute) {
+            if (self::taxonomy_of($attribute) === $taxonomy) {
                 return $attribute;
             }
         }

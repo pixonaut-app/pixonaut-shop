@@ -124,6 +124,23 @@ final class ProductFiltersTest extends TestCase
         self::assertSame(1, $this->count_of($archive, FilterFixtures::OAK));
     }
 
+    public function testAttributesThatDependOnEachOtherShowOnceTheFirstListedAsAGroup(): void
+    {
+        $taxonomy = static fn (string $label): string => wc_attribute_taxonomy_name(wc_sanitize_taxonomy_name($label));
+        add_filter(
+            AttributeDependencies::FILTER,
+            static fn (): array => [
+                $taxonomy(FilterFixtures::FRAME_COLOUR) => [$taxonomy(FilterFixtures::FRAMING) => [FilterFixtures::FRAME_SLUG]],
+                $taxonomy(FilterFixtures::FRAMING) => [$taxonomy(FilterFixtures::FRAME_COLOUR) => [sanitize_title(FilterFixtures::OAK)]],
+            ]
+        );
+        $archive = $this->render(FilterFixtures::category());
+
+        // WooCommerce lists attributes by slug, so the frame colour is the first.
+        self::assertSame([FilterFixtures::FRAME_COLOUR, 'Price'], $this->group_headings($archive));
+        self::assertSame(1, preg_match_all(self::NESTED, $archive), 'The colour does not nest again under the framing nested in it.');
+    }
+
     public function testANestedValueTicksLikeAnyOtherAndShowsOpen(): void
     {
         $this->frame_colour_depends_on_a_frame();

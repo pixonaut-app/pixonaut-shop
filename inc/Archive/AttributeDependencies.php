@@ -20,6 +20,14 @@ final class AttributeDependencies
      */
     public const FILTER = 'pixonaut_wc_storefront_attribute_dependencies';
 
+    /**
+     * How many levels down an attribute nests at most: a frame's colour
+     * under the framing, and a finish under the colour. Each level renders
+     * a dependent's values again under every value of its parent, so the
+     * markup grows with each one.
+     */
+    public const MAX_DEPTH = 2;
+
     /** @var array<string, array<string, list<string>>> */
     private array $dependencies;
 
@@ -60,33 +68,66 @@ final class AttributeDependencies
     }
 
     /**
-     * The dependent attributes that show nested: those under a value of an
-     * attribute that shows as a group of its own, or under one nested there
-     * in turn. Any other keeps its own group, so it never disappears.
+     * The dependent attributes that show nested, each under the values of
+     * its parent wherever that shows, at most `MAX_DEPTH` levels down.
      *
-     * @param list<string> $taxonomies The taxonomies of the store's product attributes.
+     * Every attribute that depends on nothing shows as a group of its own,
+     * and so does one no such group leads to (its parent missing from the
+     * store, a circle, or too deep), in the store's order: the first of a
+     * circle keeps a group, the rest nest under it. So each attribute shows
+     * as a group or nested, never neither, and never both.
+     *
+     * @param list<string> $taxonomies The taxonomies of the store's product attributes, in its order.
      *
      * @return list<string>
      */
     public function nested(array $taxonomies): array
     {
+        $groups  = array_values(array_filter($taxonomies, fn (string $taxonomy): bool => ! $this->is_dependent($taxonomy)));
         $reached = [];
-        $next    = array_values(array_filter($taxonomies, fn (string $taxonomy): bool => ! $this->is_dependent($taxonomy)));
 
-        while ([] !== $next) {
-            $parent_taxonomy = array_shift($next);
+        foreach ($groups as $group) {
+            $this->reach($group, $taxonomies, $groups, $reached);
+        }
 
-            foreach ($this->dependents_under($parent_taxonomy) as $dependents) {
-                foreach ($dependents as $dependent) {
-                    if (\in_array($dependent, $taxonomies, true) && ! \in_array($dependent, $reached, true)) {
-                        $reached[] = $dependent;
-                        $next[]    = $dependent;
-                    }
-                }
+        foreach ($taxonomies as $taxonomy) {
+            if (! \in_array($taxonomy, $groups, true) && ! \in_array($taxonomy, $reached, true)) {
+                $groups[] = $taxonomy;
+                $this->reach($taxonomy, $taxonomies, $groups, $reached);
             }
         }
 
         return $reached;
+    }
+
+    /**
+     * Adds what a group leads to, breadth first so each attribute is
+     * placed as high as it can go.
+     *
+     * @param list<string> $taxonomies
+     * @param list<string> $groups
+     * @param list<string> $reached
+     */
+    private function reach(string $group, array $taxonomies, array $groups, array &$reached): void
+    {
+        $next = [[$group, 0]];
+
+        while ([] !== $next) {
+            [$parent_taxonomy, $depth] = array_shift($next);
+
+            if ($depth >= self::MAX_DEPTH) {
+                continue;
+            }
+
+            foreach ($this->dependents_under($parent_taxonomy) as $dependents) {
+                foreach ($dependents as $dependent) {
+                    if (\in_array($dependent, $taxonomies, true) && ! \in_array($dependent, $groups, true) && ! \in_array($dependent, $reached, true)) {
+                        $reached[] = $dependent;
+                        $next[]    = [$dependent, $depth + 1];
+                    }
+                }
+            }
+        }
     }
 
     /**
