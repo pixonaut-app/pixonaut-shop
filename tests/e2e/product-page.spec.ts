@@ -632,6 +632,26 @@ for ( const ratio of SDK_PHOTO_RATIOS ) {
 	} );
 }
 
+test( 'at 1280x800 a preview in the frame shape the store picks stays whole in view beside a long form', async ( {
+	page,
+} ) => {
+	await openDesigner( page, 1280, 800 );
+	await lengthenForm( page );
+	await measurePreviewTop( page );
+	await chooseFrame( page, FIVE_BY_SEVEN );
+	await showView( page, SDK_PHOTO_RATIOS[ 0 ] );
+	await page
+		.locator( PURCHASE_PANEL )
+		.evaluate( ( node ) => node.scrollIntoView( { block: 'end' } ) );
+
+	const side = await page.locator( PREVIEW_SIDE ).boundingBox();
+
+	expect( side?.y ?? -1 ).toBeGreaterThanOrEqual( 0 );
+	expect( ( side?.y ?? 0 ) + ( side?.height ?? 0 ) ).toBeLessThanOrEqual(
+		800 + LAYOUT_TOLERANCE_PX,
+	);
+} );
+
 test( 'at 390x844 the preview scrolls away with the page, as before', async ( { page } ) => {
 	await openDesigner( page, 390, 844 );
 	await lengthenForm( page );

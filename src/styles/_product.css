@@ -163,6 +163,11 @@
  * and the preview scrolls with the page as the plugin lays it out there.
  */
 @media ( min-width: 768px ) {
+	/* As tall as the form's column, whatever the row aligns its columns to. */
+	.pixonaut-shop-product.wp-block-columns > .wp-block-column:has( .pixonaut-preview ) {
+		align-self: stretch;
+	}
+
 	.pixonaut-shop-product.wp-block-columns
 		> .wp-block-column
 		> :is( .pixonaut-preview, .pixonaut-shop-product-frame:has( .pixonaut-preview ) ) {
