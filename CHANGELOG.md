@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.7.4...v1.8.0) (2026-11-17)
+
+
+### Features
+
+* **archive:** open the filters in a drawer from the toolbar, with sections and chips ([#50](https://github.com/pixonaut-app/pixonaut-shop/issues/50)) ([06e2972](https://github.com/pixonaut-app/pixonaut-shop/commit/06e29725dce4451cacbdc861bcc348b9f9e8c1cd))
+
 ## [1.7.4](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.7.3...v1.7.4) (2026-11-17)
 
 
