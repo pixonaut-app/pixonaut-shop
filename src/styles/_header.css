@@ -85,7 +85,12 @@
 	color: var( --wp--preset--color--contrast );
 }
 
-/* The search icon keeps its place in the row beside a long title; its panel opens over the page (`_header-search.css`). */
+/*
+ * The search icon keeps its place in the row beside a long title; its panel
+ * opens over the page (`_header-search.css`). The logo keeps its size too, so
+ * the title's width, which changes when its typeface arrives, never squeezes it.
+ */
+.pixonaut-shop-header__row > .wp-block-site-logo,
 .pixonaut-shop-header__row > .wp-block-search {
 	flex-shrink: 0;
 }
