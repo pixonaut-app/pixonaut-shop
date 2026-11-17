@@ -88,7 +88,7 @@ final class ProductPageTest extends TestCase
         $this->assertPriceRowFollowsTheInsertionPoint($page);
         self::assertStringContainsString('woocommerce-variation-add-to-cart', $page);
         self::assertMatchesRegularExpression(
-            '/data-pixonaut-price>From .*' . min(self::SIZE_PRICES) . '/s',
+            '/data-pixonaut-price><span class="from">From <\/span>.*' . min(self::SIZE_PRICES) . '/s',
             $page,
             'The row shows the sizes\' prices from the lowest.'
         );

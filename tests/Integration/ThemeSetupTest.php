@@ -80,16 +80,16 @@ final class ThemeSetupTest extends TestCase
                     LowestPrice::WINDOW_DAYS
                 )
             );
-            // A variable product's price before a variation is chosen, in full and short.
+            // The word before a price from its lowest amount, in full and short.
             self::assertSame(
-                'Från %s',
-                /* translators: %s: a variable product's lowest price. */
-                _x('From %s', 'variable product price', 'pixonaut-shop')
+                'Från',
+                /* translators: Before a product's lowest price, as in "From 299 kr". */
+                _x('From', 'price from its lowest amount', 'pixonaut-shop')
             );
             self::assertSame(
-                'Fr. %s',
-                /* translators: %s: a variable product's lowest price. The short form of "From %s". */
-                _x('Fr. %s', 'variable product price, short', 'pixonaut-shop')
+                'Fr.',
+                /* translators: Before a product's lowest price, as in "From 299 kr". The short form of "From". */
+                _x('Fr.', 'price from its lowest amount, short', 'pixonaut-shop')
             );
         } finally {
             remove_filter('locale', $swedish);

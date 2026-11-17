@@ -302,19 +302,17 @@ msgstr "”Fr.” lägsta priset"
 msgid "The range from the lowest price to the highest"
 msgstr "Spannet från lägsta till högsta priset"
 
-#. translators: %s: a variable product's lowest price. The short form of "From %s".
-#: inc/Product/VariablePrice.php:132
-#, php-format
-msgctxt "variable product price, short"
-msgid "Fr. %s"
-msgstr "Fr. %s"
+#. translators: Before a product's lowest price, as in "From 299 kr". The short form of "From".
+#: inc/Product/VariablePrice.php
+msgctxt "price from its lowest amount, short"
+msgid "Fr."
+msgstr "Fr."
 
-#. translators: %s: a variable product's lowest price.
-#: inc/Product/VariablePrice.php:134
-#, php-format
-msgctxt "variable product price"
-msgid "From %s"
-msgstr "Från %s"
+#. translators: Before a product's lowest price, as in "From 299 kr".
+#: inc/Product/VariablePrice.php
+msgctxt "price from its lowest amount"
+msgid "From"
+msgstr "Från"
 
 #: patterns/announcement.php
 msgctxt "Pattern title"

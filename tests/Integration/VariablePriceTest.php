@@ -46,9 +46,9 @@ final class VariablePriceTest extends TestCase
     {
         $product = $this->variable_product();
 
-        self::assertMatchesRegularExpression('/^From <span class="woocommerce-Price-amount amount"><bdi>(?:(?!<\/bdi>).)*299/s', $product->get_price_html());
+        self::assertMatchesRegularExpression('/^<span class="from">From <\/span><span class="woocommerce-Price-amount amount"><bdi>(?:(?!<\/bdi>).)*299/s', $product->get_price_html());
         self::assertStringNotContainsString(max(self::SIZE_PRICES), $product->get_price_html());
-        self::assertMatchesRegularExpression('/data-pixonaut-price>From .*299/s', $this->product_page($product->get_id()));
+        self::assertMatchesRegularExpression('/data-pixonaut-price><span class="from">From <\/span>.*299/s', $this->product_page($product->get_id()));
         self::assertMatchesRegularExpression('/Sized tee.*wc-block-components-product-price.*From .*299/s', $this->grid());
     }
 
@@ -56,7 +56,7 @@ final class VariablePriceTest extends TestCase
     {
         set_theme_mod(VariablePrice::SETTING, VariablePrice::FROM_SHORT);
 
-        self::assertMatchesRegularExpression('/^Fr\. .*299/s', $this->variable_product()->get_price_html());
+        self::assertMatchesRegularExpression('/^<span class="from">Fr\. <\/span>.*299/s', $this->variable_product()->get_price_html());
     }
 
     public function testShowsTheRangeWhenTheStorePicksIt(): void

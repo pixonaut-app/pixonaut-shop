@@ -18,6 +18,12 @@ use WP_Customize_Manager;
  * The amount is WooCommerce's, formatted with its own decimals, and its
  * price suffix stays after it. Variations all at one price have no range,
  * so that price shows as WooCommerce prints it.
+ *
+ * The word is WooCommerce's "From:" too, wherever a price is printed from
+ * its lowest amount (a grouped product, or a plugin's card of a variable
+ * product), so a store shows one word for it: the choice's, or "From" in
+ * full where the store shows ranges. The word is in its own `from` span,
+ * as WooCommerce prints its own, for the stylesheet to set it apart.
  */
 final class VariablePrice
 {
@@ -49,6 +55,7 @@ final class VariablePrice
     public function register(): void
     {
         add_filter('woocommerce_variable_price_html', [$this, 'with_price_html'], 10, 2);
+        add_filter('woocommerce_get_price_html_from_text', [$this, 'from_text']);
         add_action('customize_register', [$this, 'customize']);
     }
 
@@ -87,7 +94,13 @@ final class VariablePrice
             return $price_html;
         }
 
-        return \sprintf(self::template($choice), wc_price((float) $lowest)) . $product->get_price_suffix();
+        return $this->from_text() . wc_price((float) $lowest) . $product->get_price_suffix();
+    }
+
+    /** The word before a price from its lowest amount, in its `from` span, with the space after it. */
+    public function from_text(): string
+    {
+        return '<span class="from">' . self::word(self::current()) . ' </span>';
     }
 
     /** Adds the choice to the Customizer, in WooCommerce's panel when it has one. */
@@ -124,13 +137,13 @@ final class VariablePrice
         return \is_string($value) && \in_array($value, [self::FROM, self::FROM_SHORT, self::RANGE], true) ? $value : self::DEFAULT;
     }
 
-    /** The "from" line for a choice, escaped, with `%s` where the price goes. */
-    private static function template(string $choice): string
+    /** The word for a choice, escaped: short when the store picks it, else in full. */
+    private static function word(string $choice): string
     {
         return self::FROM_SHORT === $choice
-            /* translators: %s: a variable product's lowest price. The short form of "From %s". */
-            ? esc_html_x('Fr. %s', 'variable product price, short', 'pixonaut-shop')
-            /* translators: %s: a variable product's lowest price. */
-            : esc_html_x('From %s', 'variable product price', 'pixonaut-shop');
+            /* translators: Before a product's lowest price, as in "From 299 kr". The short form of "From". */
+            ? esc_html_x('Fr.', 'price from its lowest amount, short', 'pixonaut-shop')
+            /* translators: Before a product's lowest price, as in "From 299 kr". */
+            : esc_html_x('From', 'price from its lowest amount', 'pixonaut-shop');
     }
 }
