@@ -521,6 +521,8 @@ main:has(
 	background: var( --wp--preset--color--base );
 	box-shadow: var( --wp--preset--shadow--card );
 	--ps-card-inset: var( --wp--preset--spacing--40 );
+	/* The colour of a skeleton: a picture not loaded yet, a card whose new results are on their way. */
+	--ps-skeleton: var( --wp--preset--color--surface );
 	/* How long a card's second picture takes to fade in over the first. */
 	--ps-picture-fade: 0.25s ease;
 }
@@ -534,6 +536,16 @@ main:has(
 	position: relative;
 	margin-bottom: var( --wp--preset--spacing--20 );
 	padding-inline: 0;
+}
+
+/*
+ * A picture still on its way shows the skeleton's colour in its box, which
+ * its size holds open, never the card's white. The picture covers it as it
+ * loads. The second picture over it stays clear, so while it loads the
+ * first shows through.
+ */
+.wc-block-product .wc-block-components-product-image img:not( .pixonaut-shop-second-picture ) {
+	background-color: var( --ps-skeleton );
 }
 
 /*

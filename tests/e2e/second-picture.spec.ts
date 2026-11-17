@@ -13,6 +13,8 @@ import { TEST_SUPPORT, wpEval } from './support/wp-cli';
 const CARD = '.wc-block-product';
 const FIRST_PICTURE = '.wc-block-components-product-image img[data-testid="product-image"]';
 const SECOND_PICTURE = '.wc-block-components-product-image .pixonaut-shop-second-picture';
+/** A background that paints nothing. */
+const TRANSPARENT = 'rgba(0, 0, 0, 0)';
 const SHOWN = '1';
 const HIDDEN = '0';
 /** The second picture's file in every size, as the fixture names it. */
@@ -60,6 +62,8 @@ test( 'hovering a card with two pictures shows the second over the first', async
 	await product.hover();
 
 	await expect( second ).toHaveCSS( 'opacity', SHOWN );
+	// Clear while it loads, so the first shows through rather than a blank box.
+	await expect( second ).toHaveCSS( 'background-color', TRANSPARENT );
 	// Over the first picture's box, so the card keeps its size.
 	expect( await second.boundingBox() ).toEqual( await first.boundingBox() );
 	expect( await product.boundingBox() ).toEqual( before );

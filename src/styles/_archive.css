@@ -67,19 +67,130 @@
 	justify-self: end;
 }
 
-.pixonaut-shop-archive-toolbar .woocommerce-ordering {
+/*
+ * The sorting (`Archive\SortControl`): an outline button like the filters'
+ * button at the other end. The form is the button, with the store's button
+ * border and font; the menu fills it, with room at the end for a chevron
+ * drawn as the drawer's sections draw theirs. A browser that lets a menu's
+ * list be styled shows the orders in a panel of the shop's own; another opens
+ * its own list, as a phone does.
+ */
+.pixonaut-shop-archive-toolbar .woocommerce-ordering.wp-element-button {
+	position: relative;
+	display: flex;
+	box-sizing: border-box;
+	max-width: 100%;
+	min-height: var( --ps-field-height );
 	margin: 0;
+	padding: 0;
+	background-color: var( --wp--preset--color--base );
+	color: var( --wp--preset--color--accent );
 }
 
-.pixonaut-shop-archive-toolbar .woocommerce-ordering select {
-	min-height: var( --ps-field-height );
-	padding: 0 var( --wp--preset--spacing--40 );
-	border: 1px solid var( --wp--preset--color--border-strong );
-	border-radius: var( --wp--custom--radius--small );
-	background-color: var( --wp--preset--color--base );
-	color: var( --wp--preset--color--contrast );
-	font: inherit;
+.pixonaut-shop-archive-toolbar .woocommerce-ordering.wp-element-button select {
+	appearance: none;
+	align-self: stretch;
+	/* The whole button opens it, not only its line of text. */
+	height: auto;
+	min-width: 0;
+	margin: 0;
+	padding-block: 0;
+	padding-inline: var( --wp--preset--spacing--40 ) var( --ps-sort-mark-room );
+	border: 0;
+	border-radius: inherit;
+	background: transparent;
+	color: inherit;
+	/* A long order on a phone shortens to one line rather than growing the toolbar. */
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 	cursor: pointer;
+}
+
+/* The ring goes round the button the menu fills. */
+.pixonaut-shop-archive-toolbar .woocommerce-ordering.wp-element-button select:focus-visible {
+	outline-offset: var( --ps-sort-ring-offset );
+}
+
+.pixonaut-shop-archive-toolbar .woocommerce-ordering.wp-element-button::after {
+	position: absolute;
+	inset-block-start: 50%;
+	inset-inline-end: var( --wp--preset--spacing--40 );
+	width: var( --ps-section-mark-size );
+	height: var( --ps-section-mark-size );
+	/*
+	 * Turned, the corner's two sides hang below the box's middle by a
+	 * quarter of its diagonal (√2 / 4, about 0.35 of a side); up by that and
+	 * half the box, the chevron itself is centred.
+	 */
+	margin-block-start: calc( var( --ps-section-mark-size ) * -0.85 );
+	border-right: 2px solid currentcolor;
+	border-bottom: 2px solid currentcolor;
+	content: "";
+	pointer-events: none;
+	transform: rotate( 45deg );
+}
+
+:root {
+	/* The menu's end padding: the chevron and a gap on either side of it. */
+	--ps-sort-mark-room: calc( var( --wp--preset--spacing--40 ) * 2 + var( --ps-section-mark-size ) );
+	/* Out past the button's border, which is the store's: the theme's buttons draw theirs at 2px. */
+	--ps-sort-ring-offset: 4px;
+}
+
+@supports ( appearance: base-select ) {
+	.pixonaut-shop-archive-toolbar .woocommerce-ordering.wp-element-button select,
+	.pixonaut-shop-archive-toolbar .woocommerce-ordering ::picker( select ) {
+		appearance: base-select;
+	}
+
+	/* Its text in the middle of the height it fills, as a native menu sets it. */
+	.pixonaut-shop-archive-toolbar .woocommerce-ordering.wp-element-button select {
+		display: flex;
+		align-items: center;
+	}
+
+	/* The chevron above stands for the browser's own. */
+	.pixonaut-shop-archive-toolbar .woocommerce-ordering select::picker-icon {
+		display: none;
+	}
+
+	.pixonaut-shop-archive-toolbar .woocommerce-ordering ::picker( select ) {
+		min-width: anchor-size( width );
+		margin-block: var( --wp--preset--spacing--20 );
+		padding: var( --wp--preset--spacing--20 );
+		border: 1px solid var( --wp--preset--color--border );
+		border-radius: var( --wp--custom--radius--large );
+		background-color: var( --wp--preset--color--base );
+		box-shadow: var( --wp--preset--shadow--card );
+		position-area: block-end span-inline-start;
+		position-try-fallbacks: flip-block;
+	}
+
+	.pixonaut-shop-archive-toolbar .woocommerce-ordering option {
+		padding: var( --wp--preset--spacing--20 ) var( --wp--preset--spacing--30 );
+		border-radius: var( --wp--custom--radius--small );
+		color: var( --wp--preset--color--contrast );
+		font-family: var( --wp--preset--font-family--body );
+		font-size: var( --wp--preset--font-size--small );
+		font-weight: 400;
+		cursor: pointer;
+	}
+
+	/* The tint marks the order under the pointer or the keys, so it needs no ring. */
+	.pixonaut-shop-archive-toolbar .woocommerce-ordering option:is( :hover, :focus-visible ) {
+		outline: none;
+		background-color: var( --wp--preset--color--tint-1 );
+	}
+
+	.pixonaut-shop-archive-toolbar .woocommerce-ordering option:checked {
+		color: var( --wp--preset--color--accent );
+		font-weight: 700;
+	}
+
+	.pixonaut-shop-archive-toolbar .woocommerce-ordering option::checkmark {
+		display: none;
+	}
 }
 
 @media ( width <= 782px ) {
@@ -194,4 +305,52 @@
 
 .pixonaut-shop-archive-promises {
 	margin-top: var( --wp--preset--spacing--70 );
+}
+
+/* ---------- New results on their way (src/archive/filters-loading.ts) ---------- */
+
+/*
+ * While a filter, a sort or a page fetches new results, each card shows as a
+ * skeleton in its own place and size, so nothing moves as the results swap:
+ * the picture's box, and a bar for each line of the name, the description and
+ * the price, the width of the card's text.
+ */
+.is-loading-products .pixonaut-shop-archive-results .wc-block-product > * {
+	background: var( --ps-skeleton ) content-box;
+	color: transparent;
+}
+
+.is-loading-products .pixonaut-shop-archive-results .wc-block-product > * > *,
+.is-loading-products .pixonaut-shop-archive-results .pixonaut-shop-no-products {
+	visibility: hidden;
+}
+
+/* A shine passes over the skeletons; with reduced motion they hold still. */
+@media ( prefers-reduced-motion: no-preference ) {
+	.is-loading-products .pixonaut-shop-archive-results .wc-block-product > * {
+		background-image: linear-gradient(
+			90deg,
+			transparent,
+			var( --wp--preset--color--base ),
+			transparent
+		);
+		background-repeat: no-repeat;
+		background-size: 50% 100%;
+		animation: pixonaut-shop-skeleton-shine var( --ps-skeleton-shine ) linear infinite;
+	}
+}
+
+:root {
+	/* How long the shine takes to cross a skeleton. */
+	--ps-skeleton-shine: 1.4s;
+}
+
+@keyframes pixonaut-shop-skeleton-shine {
+	from {
+		background-position: -100% 0;
+	}
+
+	to {
+		background-position: 200% 0;
+	}
 }

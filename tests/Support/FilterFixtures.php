@@ -90,6 +90,11 @@ final class FilterFixtures
     /** The term meta WooCommerce orders an attribute's values by. */
     private const TERM_ORDER_META = 'order';
 
+    /** WooCommerce's Product Catalog setting, which sizes an archive's page. */
+    private const ROWS_OPTION = 'woocommerce_catalog_rows';
+
+    private const COLUMNS_OPTION = 'woocommerce_catalog_columns';
+
     public static function prepare(): void
     {
         $taxonomies = [];
@@ -155,6 +160,30 @@ final class FilterFixtures
     }
 
     /** The ID of the category's term. */
+    /**
+     * Makes an archive's page list one product, so the fixture's two
+     * products take two pages; WooCommerce's Product Catalog setting sizes
+     * the page. Returns the setting it replaced, for `keep_page_size()`.
+     *
+     * @return array{int, int}
+     */
+    public static function one_product_a_page(): array
+    {
+        $kept = [(int) get_option(self::ROWS_OPTION), (int) get_option(self::COLUMNS_OPTION)];
+
+        update_option(self::ROWS_OPTION, 1);
+        update_option(self::COLUMNS_OPTION, 1);
+
+        return $kept;
+    }
+
+    /** Puts back the Product Catalog setting `one_product_a_page()` replaced. */
+    public static function keep_page_size(int $rows, int $columns): void
+    {
+        update_option(self::ROWS_OPTION, $rows);
+        update_option(self::COLUMNS_OPTION, $columns);
+    }
+
     public static function category(): int
     {
         $term = get_term_by('slug', self::CATEGORY_SLUG, self::CATEGORY_TAXONOMY);

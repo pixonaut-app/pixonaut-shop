@@ -13,12 +13,15 @@ use WP_Query;
  * the button and the dialog; this names them for what they do. The button
  * says how many filters are chosen, the dialog takes its name from a heading,
  * and its footer clears every filter or closes it on the products the filters
- * list, saying how many. WooCommerce loads the page again for every choice,
- * so that number is always the page's own.
+ * list, saying how many. WooCommerce renders the panel anew on the server for
+ * every choice, whether it swaps it in place or loads the page again, so that
+ * number is always the new results' own.
  *
  * Its scripts move the focus into the drawer and back to the button
- * (`src/archive/filters-drawer.ts`) and keep the customer's place from one
- * filtered page to the next (`src/archive/filters-place.ts`).
+ * (`src/archive/filters-drawer.ts`), show the grid as skeletons while new
+ * results are on their way (`src/archive/filters-loading.ts`) and keep the
+ * customer's place from one filtered page to the next where WooCommerce loads
+ * the page again (`src/archive/filters-place.ts`).
  */
 final class FilterDrawer
 {
@@ -60,6 +63,7 @@ final class FilterDrawer
     private const SCRIPTS = [
         'pixonaut-shop-filters-drawer' => 'filters-drawer',
         'pixonaut-shop-filters-place' => 'filters-place',
+        'pixonaut-shop-filters-loading' => 'filters-loading',
     ];
 
     public function register(): void
@@ -166,9 +170,10 @@ final class FilterDrawer
 
     /**
      * Clears every filter with WooCommerce's own action, as its Clear button
-     * block does; greyed out while none is chosen. Every choice loads the page
-     * again, so the page's own count holds: a binding to WooCommerce's state
-     * would be worked out on the server too, where that state does not exist.
+     * block does; greyed out while none is chosen. The server renders the
+     * panel anew for every choice, so its own count holds: a binding to
+     * WooCommerce's state would be worked out on the server too, where that
+     * state does not exist.
      */
     private function clear_button(int $chosen): string
     {
