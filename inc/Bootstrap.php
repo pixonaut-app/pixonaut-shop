@@ -150,6 +150,7 @@ final class Bootstrap
         (new Product\PreviewFrame(new Blocks\AspectRatios()))->register();
         (new Product\PriceRow())->register();
         (new Product\VariablePrice())->register();
+        (new Product\WholeAmounts())->register();
         (new Product\VariationSwatches())->register();
         (new Product\SecondPicture())->register();
         $lowest_price->register();
