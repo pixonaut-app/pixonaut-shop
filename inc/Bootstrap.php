@@ -110,6 +110,8 @@ final class Bootstrap
         (new Archive\NoResultsTitle())->register();
         (new Archive\ProductFilters())->register();
         (new Archive\NestedAttributeFilters())->register();
+        (new Archive\FilterSections())->register();
+        (new Archive\FilterDrawer())->register();
         (new Search\ProductSearch())->register();
     }
 

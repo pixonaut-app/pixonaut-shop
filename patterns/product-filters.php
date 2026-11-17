@@ -7,21 +7,20 @@
  *
  * @package Pixonaut\Shop
  *
- * The filters beside an archive's product grid: a group of checkboxes for
- * each product attribute the store has, which `Archive\ProductFilters` adds
- * above the price as the panel renders, and the price. On a phone WooCommerce
- * shows a button in the panel's place, which opens the filters in a dialog.
+ * The filters of an archive, in its toolbar above the grid: a button that
+ * opens them in a drawer at every width, so the grid keeps the page's whole
+ * width. The drawer holds a group of checkboxes for each product attribute
+ * the store has, which `Archive\ProductFilters` adds above the price as the
+ * panel renders, and the price, each a section that opens and closes
+ * (`Archive\FilterSections`). `Archive\FilterDrawer` names the drawer and
+ * gives it a footer that clears the filters or shows the products.
  */
 
 declare(strict_types=1);
 
 ?>
-<!-- wp:woocommerce/product-filters {"className":"pixonaut-shop-archive-filters"} -->
+<!-- wp:woocommerce/product-filters {"overlayMode":"always","overlayPosition":"left","className":"pixonaut-shop-archive-filters"} -->
 <div class="wp-block-woocommerce-product-filters wc-block-product-filters pixonaut-shop-archive-filters">
-	<!-- wp:heading -->
-	<h2 class="wp-block-heading"><?php echo esc_html__( 'Filter', 'pixonaut-shop' ); ?></h2>
-	<!-- /wp:heading -->
-
 	<!-- wp:woocommerce/product-filter-price -->
 	<div class="wp-block-woocommerce-product-filter-price">
 		<!-- wp:heading {"level":3} -->

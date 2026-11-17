@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace Pixonaut\Shop\Archive;
 
-use Pixonaut\Shop\Assets\BuiltScript;
 use WC_Query;
-use WP_HTML_Tag_Processor;
 use WP_Query;
 
 /**
- * The filters beside an archive's product grid (`patterns/product-filters.php`):
- * one group for every product attribute the store has, which the theme cannot
+ * The filters in an archive's drawer (`patterns/product-filters.php`): one
+ * group for every product attribute the store has, which the theme cannot
  * name, since each store has its own, and the price last.
  *
  * WooCommerce's attribute filter takes one attribute, picked in the Site
@@ -30,22 +28,13 @@ final class ProductFilters
 
     private const PRICE_BLOCK = 'woocommerce/product-filter-price';
 
-    /** The button that closes WooCommerce's filter dialog on a phone. */
-    private const APPLY_CLASS = 'wc-block-product-filters__apply';
-
     /** The query arguments WooCommerce's price filter narrows a listing with. */
     private const PRICE_ARGUMENTS = ['min_price', 'max_price'];
-
-    private const SCRIPT_HANDLE = 'pixonaut-shop-filters-place';
-
-    /** `src/archive/filters-place.ts`, which keeps the customer's place from one filtered page to the next. */
-    private const SCRIPT = 'filters-place';
 
     public function register(): void
     {
         add_filter('pre_render_block', [$this, 'skip'], 10, 2);
         add_filter('render_block_data', [$this, 'add_attributes']);
-        add_filter('render_block_' . self::FILTERS_BLOCK, [$this, 'finish_the_panel'], 10, 2);
     }
 
     /**
@@ -57,7 +46,7 @@ final class ProductFilters
      */
     public function skip(?string $pre_render, array $parsed_block): ?string
     {
-        if (! $this->is_the_panel($parsed_block) || ! $this->main_query_is_empty() || $this->is_filtered()) {
+        if (! self::is_the_panel($parsed_block) || ! $this->main_query_is_empty() || self::is_filtered()) {
             return $pre_render;
         }
 
@@ -71,7 +60,7 @@ final class ProductFilters
      */
     public function add_attributes(array $parsed_block): array
     {
-        if (! $this->is_the_panel($parsed_block) || ! \function_exists('wc_get_attribute_taxonomies')) {
+        if (! self::is_the_panel($parsed_block) || ! \function_exists('wc_get_attribute_taxonomies')) {
             return $parsed_block;
         }
 
@@ -100,42 +89,6 @@ final class ProductFilters
         );
 
         return $parsed_block;
-    }
-
-    /**
-     * The dialog's button closes it on choices that already apply, so it says
-     * what the customer gets rather than WooCommerce's "Apply". The panel
-     * also brings the script that keeps the customer's place.
-     *
-     * @param array<array-key, mixed> $block
-     */
-    public function finish_the_panel(string $block_content, array $block): string
-    {
-        if (! $this->is_the_panel($block)) {
-            return $block_content;
-        }
-
-        BuiltScript::enqueue(self::SCRIPT_HANDLE, self::SCRIPT);
-
-        $tags = new WP_HTML_Tag_Processor($block_content);
-
-        if (! $tags->next_tag(['class_name' => self::APPLY_CLASS])) {
-            return $block_content;
-        }
-
-        while ($tags->next_token()) {
-            if ('#text' === $tags->get_token_name() && '' !== trim($tags->get_modifiable_text())) {
-                $tags->set_modifiable_text(__('Show products', 'pixonaut-shop'));
-
-                return $tags->get_updated_html();
-            }
-
-            if ($tags->is_tag_closer() && 'BUTTON' === $tags->get_tag()) {
-                break;
-            }
-        }
-
-        return $block_content;
     }
 
     /**
@@ -214,9 +167,12 @@ final class ProductFilters
     }
 
     /**
+     * Whether the block is the panel of `patterns/product-filters.php`, rather
+     * than another Product Filters block, such as the chosen filters'.
+     *
      * @param array<array-key, mixed> $block
      */
-    private function is_the_panel(array $block): bool
+    public static function is_the_panel(array $block): bool
     {
         if (self::FILTERS_BLOCK !== ($block['blockName'] ?? null)) {
             return false;
@@ -236,12 +192,18 @@ final class ProductFilters
     }
 
     /** Whether the request narrows the listing by an attribute or a price. */
-    private function is_filtered(): bool
+    public static function is_filtered(): bool
     {
         if (class_exists(WC_Query::class) && [] !== WC_Query::get_layered_nav_chosen_attributes()) {
             return true;
         }
 
+        return self::is_filtered_by_price();
+    }
+
+    /** Whether the request narrows the listing by a price. */
+    public static function is_filtered_by_price(): bool
+    {
         foreach (self::PRICE_ARGUMENTS as $argument) {
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a filter in a link, which changes nothing.
             if (isset($_GET[$argument])) {

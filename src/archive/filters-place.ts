@@ -1,10 +1,11 @@
 /**
  * Keeps a customer's place while they filter an archive
  * (`patterns/product-filters.php`). WooCommerce loads the page again for
- * every value ticked, which would send them back to the top and, on a phone,
- * close the dialog the filters open in after each tick. The place is noted
- * as a filter changes and taken up again as the next page loads: the page's
- * scroll, and the dialog open where it was scrolled to.
+ * every value ticked, which would send them back to the top and close the
+ * drawer the filters open in after each tick. The place is noted as a filter
+ * changes and taken up again as the next page loads: the page's scroll, and
+ * the drawer open where it was scrolled to, with the same sections open and
+ * the focus on the control the customer used.
  */
 
 import { archivePath } from './archive-path';
@@ -13,6 +14,9 @@ const PANEL = '.pixonaut-shop-archive-filters';
 const CHOSEN = '.pixonaut-shop-archive-chosen';
 const OPEN_BUTTON = '.wc-block-product-filters__open-overlay';
 const DIALOG_CONTENT = '.wc-block-product-filters__overlay-content';
+/** A section of the drawer, named by its key (`inc/Archive/FilterSections.php`). */
+const SECTION_KEY = 'data-pixonaut-shop-section';
+const SECTION = `details[${ SECTION_KEY }]`;
 /** WooCommerce's class on the panel while its dialog is open. */
 const OPENED_CLASS = 'is-overlay-opened';
 /** Skips the dialog's slide while it is opened again on a new page. */
@@ -30,18 +34,28 @@ interface Place {
 	path: string;
 	at: number;
 	scroll: number;
-	/** How far the open dialog was scrolled, or null with the dialog closed. */
+	/** How far the open drawer was scrolled, or null with the drawer closed. */
 	dialogScroll: number | null;
+	/** The keys of the drawer's open sections. */
+	sections: string[];
+	/** The id of the control the customer used in the drawer, if it has one. */
+	focus: string | null;
 }
 
 function notePlace(): void {
 	const panel = document.querySelector( PANEL );
 	const opened = panel?.classList.contains( OPENED_CLASS ) ?? false;
+	const active = document.activeElement;
 	const place: Place = {
 		path: archivePath( window.location.pathname ),
 		at: Date.now(),
 		scroll: window.scrollY,
 		dialogScroll: opened ? ( panel?.querySelector( DIALOG_CONTENT )?.scrollTop ?? 0 ) : null,
+		sections: Array.from( panel?.querySelectorAll< HTMLDetailsElement >( SECTION ) ?? [] )
+			.filter( ( section ) => section.open )
+			.map( ( section ) => section.getAttribute( SECTION_KEY ) ?? '' ),
+		focus:
+			opened && active !== null && panel?.contains( active ) && active.id !== '' ? active.id : null,
 	};
 
 	try {
@@ -67,12 +81,21 @@ function notedPlace(): Place | null {
 	}
 }
 
+/** Opens the sections the customer had open; those with a chosen value are open already. */
+function openSections( panel: Element, keys: string[] ): void {
+	for ( const section of panel.querySelectorAll< HTMLDetailsElement >( SECTION ) ) {
+		if ( keys.includes( section.getAttribute( SECTION_KEY ) ?? '' ) ) {
+			section.open = true;
+		}
+	}
+}
+
 /**
- * Opens the dialog as the customer left it. WooCommerce's script answers the
- * button only once it has started, so the button is pressed until the dialog
+ * Opens the drawer as the customer left it. WooCommerce's script answers the
+ * button only once it has started, so the button is pressed until the drawer
  * opens, and never again after: the customer may close it right away.
  */
-function openDialog( panel: Element, scroll: number ): void {
+function openDialog( panel: Element, scroll: number, focus: string | null ): void {
 	const root = document.documentElement;
 	let attemptsLeft = OPEN_ATTEMPTS;
 	let timer = 0;
@@ -93,6 +116,13 @@ function openDialog( panel: Element, scroll: number ): void {
 
 		if ( content ) {
 			content.scrollTop = scroll;
+		}
+
+		// By id: a nested value's id is its own (`NestedAttributeFilters`).
+		const control = focus === null ? null : document.getElementById( focus );
+
+		if ( control && panel.contains( control ) ) {
+			control.focus( { preventScroll: true } );
 		}
 
 		finish();
@@ -127,8 +157,14 @@ function takeUpPlace(): void {
 
 	const panel = document.querySelector( PANEL );
 
-	if ( panel && place.dialogScroll !== null ) {
-		openDialog( panel, place.dialogScroll );
+	if ( ! panel ) {
+		return;
+	}
+
+	openSections( panel, place.sections ?? [] );
+
+	if ( place.dialogScroll !== null ) {
+		openDialog( panel, place.dialogScroll, place.focus ?? null );
 	}
 }
 
