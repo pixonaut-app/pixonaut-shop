@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-11-17T11:43:15+00:00\n"
+"POT-Creation-Date: 2026-11-17T17:56:34+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -91,37 +91,88 @@ msgstr "Totalt"
 msgid "Status"
 msgstr "Status"
 
-#: inc/Archive/FilterDrawer.php:115
-msgid "Show filters"
-msgstr "Visa filter"
+#. translators: %s: how many products the archive shows.
+#. translators: %s: the number of products in a category.
+#. translators: %s: how many products match the search.
+#: inc/Archive/ClientArchive.php:163 inc/Blocks/ProductCategories.php:173
+#: build/header-search.js:3
+#, php-format
+msgid "%s product"
+msgid_plural "%s products"
+msgstr[0] "%s produkt"
+msgstr[1] "%s produkter"
+
+#: inc/Archive/ClientArchive.php:164
+msgid "No products"
+msgstr "Inga produkter"
+
+#. translators: %s: how many products the chosen filters list.
+#: inc/Archive/ClientArchive.php:166 inc/Archive/FilterDrawer.php:203
+#, php-format
+msgid "Show %s product"
+msgid_plural "Show %s products"
+msgstr[0] "Visa %s produkt"
+msgstr[1] "Visa %s produkter"
 
 #. translators: %s: how many filters the customer has chosen.
-#: inc/Archive/FilterDrawer.php:154
+#: inc/Archive/ClientArchive.php:168 inc/Archive/FilterDrawer.php:160
 #, php-format
 msgid "(%s chosen)"
 msgid_plural "(%s chosen)"
 msgstr[0] "(%s vald)"
 msgstr[1] "(%s valda)"
 
-#: inc/Archive/FilterDrawer.php:163
+#. translators: %s: a chosen filter, as "Size: Large".
+#: inc/Archive/ClientArchive.php:170
+#, php-format
+msgid "Remove the filter %s"
+msgstr "Ta bort filtret %s"
+
+#: inc/Archive/ClientArchive.php:171
+msgid "Loading more products…"
+msgstr "Laddar fler produkter…"
+
+#: inc/Archive/ClientArchive.php:172
+msgid "Fetching products…"
+msgstr "Hämtar produkter…"
+
+#. translators: 1: how many products the customer has scrolled past, 2: how many the archive shows.
+#: inc/Archive/ClientArchive.php:174
+#, php-format
+msgid "You have seen %1$s of %2$s products"
+msgstr "Du har sett %1$s av %2$s produkter"
+
+#. translators: %s: how many products the archive shows, all of which the customer has scrolled past.
+#: inc/Archive/ClientArchive.php:176
+#, php-format
+msgid "You have seen %s product"
+msgid_plural "You have seen all %s products"
+msgstr[0] "Du har sett %s produkt"
+msgstr[1] "Du har sett alla %s produkter"
+
+#: inc/Archive/ClientArchive.php:177
+msgid "Show more"
+msgstr "Visa fler"
+
+#: inc/Archive/ClientArchive.php:178
+msgid "Back to top"
+msgstr "Till toppen"
+
+#: inc/Archive/FilterDrawer.php:121
+msgid "Show filters"
+msgstr "Visa filter"
+
+#: inc/Archive/FilterDrawer.php:169
 msgid "Filters"
 msgstr "Filter"
 
-#: inc/Archive/FilterDrawer.php:180 patterns/chosen-filters.php:31
+#: inc/Archive/FilterDrawer.php:187 patterns/chosen-filters.php:31
 msgid "Clear all"
 msgstr "Rensa alla"
 
-#: inc/Archive/FilterDrawer.php:190
+#: inc/Archive/FilterDrawer.php:197
 msgid "Show products"
 msgstr "Visa produkter"
-
-#. translators: %s: how many products the chosen filters list.
-#: inc/Archive/FilterDrawer.php:196
-#, php-format
-msgid "Show %s product"
-msgid_plural "Show %s products"
-msgstr[0] "Visa %s produkt"
-msgstr[1] "Visa %s produkter"
 
 #. translators: %s: what the customer searched for.
 #: inc/Archive/NoResultsTitle.php:33
@@ -194,15 +245,6 @@ msgstr "Du får fri frakt"
 #, php-format
 msgid "Add %s more for free shipping"
 msgstr "Handla för %s till för fri frakt"
-
-#. translators: %s: the number of products in a category.
-#. translators: %s: how many products match the search.
-#: inc/Blocks/ProductCategories.php:173 build/header-search.js:3
-#, php-format
-msgid "%s product"
-msgid_plural "%s products"
-msgstr[0] "%s produkt"
-msgstr[1] "%s produkter"
 
 #: inc/Dependencies/WooCommerceNotice.php:68
 msgid ""
@@ -332,9 +374,10 @@ msgid ""
 "has one, shown from its start to its end: each a date, or a date and time, "
 "in the site's time zone. Without one, no band shows."
 msgstr ""
-"En textrad ovanför sidhuvudet på varje sida, länkad till en adress om den har "
-"en, som visas från sin start till sitt slut: vart och ett ett datum, eller "
-"ett datum och en tid, i webbplatsens tidszon. Utan den visas inget band."
+"En textrad ovanför sidhuvudet på varje sida, länkad till en adress om den "
+"har en, som visas från sin start till sitt slut: vart och ett ett datum, "
+"eller ett datum och en tid, i webbplatsens tidszon. Utan den visas inget "
+"band."
 
 #. translators: %d: the number of days before a price reduction the lowest price is looked for.
 #: inc/Product/LowestPrice.php:453

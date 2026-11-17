@@ -1,7 +1,7 @@
 /**
  * The theme builds one stylesheet, for the front end and the editor canvas
  * alike, its front-end scripts (the product page's swatches, a product
- * card's second picture, the header's search and mega menu, a customer's place while they filter an archive, the grid while its new results are on their way, and the keyboard in the drawer the filters open in), one editor script, which heads the footer's menus in the Site
+ * card's second picture, the header's search and mega menu, a customer's place while they filter an archive, the grid while its new results are on their way, the keyboard in the drawer the filters open in, the dependent filters a value clears, and the archive filtered in the browser), one editor script, which heads the footer's menus in the Site
  * Editor as `inc/Blocks/MenuHeading.php` does on the front end, and its
  * blocks: wp-scripts finds every block.json under src/blocks/ and builds each
  * block, with its render.php, into build/blocks/<name>/, where
@@ -22,5 +22,7 @@ module.exports = {
 		'filters-place': './src/archive/filters-place.ts',
 		'filters-drawer': './src/archive/filters-drawer.ts',
 		'filters-loading': './src/archive/filters-loading.ts',
+		'dependent-values': './src/archive/dependent-values.ts',
+		'client-archive': './src/archive/client-archive.ts',
 	} ),
 };

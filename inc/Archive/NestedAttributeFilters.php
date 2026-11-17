@@ -49,6 +49,28 @@ final class NestedAttributeFilters
 
     private const CONTEXT = 'data-wp-context';
 
+    /**
+     * What the Interactivity API tells an element apart by when the router
+     * swaps the drawer in place. An element it keeps keeps its context, so a
+     * value ticked in place would be drawn from the context it had before,
+     * unticked: a key of its own for each value, chosen or not, has a value
+     * whose choice changed drawn anew from the new page.
+     */
+    private const KEY = 'data-wp-key';
+
+    private const KEY_PREFIX = 'pixonaut-shop-value-';
+
+    /**
+     * On a value, the dependent attributes it opens; on a nested group, the
+     * attribute it is. Unticking a value clears the values chosen of what it
+     * alone opened (`src/archive/dependent-values.ts`).
+     */
+    public const OPENS = 'data-pixonaut-shop-opens';
+
+    public const NESTED_ATTRIBUTE = 'data-pixonaut-shop-attribute';
+
+    private const CHOSEN_KEY_SUFFIX = '-chosen';
+
     /** The flags WooCommerce encodes an Interactivity API context with. */
     private const CONTEXT_FLAGS = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP;
 
@@ -157,6 +179,12 @@ final class NestedAttributeFilters
 
             if ('DIV' === $tag && $markup->has_class(self::ITEM_CLASS)) {
                 $markup->remove_attribute(self::EACH_CHILD);
+                $value = $this->item_value($markup->get_attribute(self::CONTEXT));
+                $markup->set_attribute(self::KEY, $this->item_key($markup->get_attribute(self::CONTEXT)));
+
+                if ([] !== ($under[$value] ?? [])) {
+                    $markup->set_attribute(self::OPENS, implode(' ', $under[$value]));
+                }
             } elseif ('TEMPLATE' === $tag && null !== $markup->get_attribute(self::EACH)) {
                 $markup->remove_attribute(self::EACH);
                 $markup->remove_attribute(self::EACH_KEY);
@@ -167,6 +195,32 @@ final class NestedAttributeFilters
         }
 
         return $markup->with_additions();
+    }
+
+    /**
+     * A value's key, from the context WooCommerce gave its item: the value,
+     * and whether it is chosen.
+     */
+    private function item_key(mixed $context): string
+    {
+        return self::KEY_PREFIX . $this->item_value($context) . (true === ($this->item($context)['selected'] ?? null) ? self::CHOSEN_KEY_SUFFIX : '');
+    }
+
+    private function item_value(mixed $context): string
+    {
+        $value = $this->item($context)['value'] ?? null;
+
+        return \is_scalar($value) ? (string) $value : '';
+    }
+
+    /**
+     * @return array<array-key, mixed>
+     */
+    private function item(mixed $context): array
+    {
+        $data = \is_string($context) ? json_decode($context, true) : null;
+
+        return \is_array($data) && \is_array($data['item'] ?? null) ? $data['item'] : [];
     }
 
     /**
@@ -260,10 +314,12 @@ final class NestedAttributeFilters
 
         // WooCommerce's list names itself to a screen reader already.
         return \sprintf(
-            '<div class="%1$s"><p class="%1$s__label" aria-hidden="true">%2$s</p>%3$s</div>',
+            '<div class="%1$s" %4$s="%5$s"><p class="%1$s__label" aria-hidden="true">%2$s</p>%3$s</div>',
             esc_attr(self::NESTED_CLASS),
             esc_html(AttributeFilterBlock::label_of($attribute)),
-            $this->in_place($values, sanitize_title($taxonomy))
+            $this->in_place($values, sanitize_title($taxonomy)),
+            self::NESTED_ATTRIBUTE,
+            esc_attr($dependent)
         );
     }
 

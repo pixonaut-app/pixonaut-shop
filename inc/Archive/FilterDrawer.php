@@ -21,7 +21,8 @@ use WP_Query;
  * (`src/archive/filters-drawer.ts`), show the grid as skeletons while new
  * results are on their way (`src/archive/filters-loading.ts`) and keep the
  * customer's place from one filtered page to the next where WooCommerce loads
- * the page again (`src/archive/filters-place.ts`).
+ * the page again (`src/archive/filters-place.ts`). Unticking a value clears the
+ * values chosen of the filters it opened (`src/archive/dependent-values.ts`).
  */
 final class FilterDrawer
 {
@@ -64,6 +65,7 @@ final class FilterDrawer
         'pixonaut-shop-filters-drawer' => 'filters-drawer',
         'pixonaut-shop-filters-place' => 'filters-place',
         'pixonaut-shop-filters-loading' => 'filters-loading',
+        'pixonaut-shop-dependent-values' => 'dependent-values',
     ];
 
     public function register(): void

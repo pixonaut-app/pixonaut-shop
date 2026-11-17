@@ -25,7 +25,7 @@ final class Bootstrap
         $lowest_price = new Product\LowestPrice();
         $this->register_campaign($lowest_price);
         $this->register_content();
-        $this->register_archive();
+        $this->register_archive($lowest_price);
         $this->register_front_page();
         $this->register_dependencies();
         $this->register_product($lowest_price);
@@ -106,8 +106,10 @@ final class Bootstrap
         (new Content\PageExcerpt())->register();
     }
 
-    private function register_archive(): void
+    private function register_archive(Product\LowestPrice $lowest_price): void
     {
+        (new Archive\ArchiveIndexFields($lowest_price))->register();
+        (new Archive\ClientArchive())->register();
         (new Archive\ProductGridDefaults())->register();
         (new Archive\ShownWhenEmpty())->register();
         (new Archive\NoResultsTitle())->register();

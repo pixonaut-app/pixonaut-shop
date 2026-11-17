@@ -325,19 +325,22 @@
  * the picture's box, and a bar for each line of the name, the description and
  * the price, the width of the card's text.
  */
-.is-loading-products .pixonaut-shop-archive-results .wc-block-product > * {
+.is-loading-products .pixonaut-shop-archive-results .wc-block-product > *,
+.pixonaut-shop-archive-results .wc-block-product.pixonaut-shop-skeleton-card > * {
 	background: var( --ps-skeleton ) content-box;
 	color: transparent;
 }
 
 .is-loading-products .pixonaut-shop-archive-results .wc-block-product > * > *,
-.is-loading-products .pixonaut-shop-archive-results .pixonaut-shop-no-products {
+.is-loading-products .pixonaut-shop-archive-results .pixonaut-shop-no-products,
+.pixonaut-shop-archive-results .wc-block-product.pixonaut-shop-skeleton-card > * > * {
 	visibility: hidden;
 }
 
 /* A shine passes over the skeletons; with reduced motion they hold still. */
 @media ( prefers-reduced-motion: no-preference ) {
-	.is-loading-products .pixonaut-shop-archive-results .wc-block-product > * {
+	.is-loading-products .pixonaut-shop-archive-results .wc-block-product > *,
+	.pixonaut-shop-archive-results .wc-block-product.pixonaut-shop-skeleton-card > * {
 		background-image: linear-gradient(
 			90deg,
 			transparent,
@@ -363,4 +366,70 @@
 	to {
 		background-position: 200% 0;
 	}
+}
+
+/* ---------- More cards as the shopper scrolls (src/archive/client/feed.ts) ---------- */
+
+/*
+ * Below the grid filtered in the browser: a row of skeleton cards where the
+ * next ones come, else "Show more" with how far the shopper has come, else
+ * the end of the list. The skeleton row is the grid's own, one gap below it.
+ */
+.pixonaut-shop-archive-feed__skeletons {
+	margin-top: var( --wp--style--block-gap, var( --wp--preset--spacing--50 ) );
+}
+
+.pixonaut-shop-archive-feed__more,
+.pixonaut-shop-archive-feed__end {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var( --wp--preset--spacing--30 );
+	margin-top: var( --wp--preset--spacing--60 );
+	text-align: center;
+}
+
+.pixonaut-shop-archive-feed__more[ hidden ],
+.pixonaut-shop-archive-feed__end[ hidden ],
+.pixonaut-shop-archive-feed__skeletons[ hidden ] {
+	display: none;
+}
+
+.pixonaut-shop-archive-feed__progress,
+.pixonaut-shop-archive-feed__end p {
+	margin: 0;
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+}
+
+.pixonaut-shop-archive-feed__bar {
+	width: min( 16rem, 100% );
+	height: 4px;
+	border-radius: 999px;
+	background: var( --wp--preset--color--border );
+	overflow: hidden;
+}
+
+.pixonaut-shop-archive-feed__bar > div {
+	height: 100%;
+	background: var( --wp--preset--color--accent );
+}
+
+/* "Show more": an outline button, as the toolbar's "Show filters" is one. */
+.pixonaut-shop-archive-feed__more .wp-element-button {
+	border-color: var( --wp--preset--color--accent );
+	background-color: var( --wp--preset--color--base );
+	color: var( --wp--preset--color--accent );
+	cursor: pointer;
+}
+
+/* "Back to top", as the theme's text links look. */
+.pixonaut-shop-archive-feed__top {
+	padding: 0;
+	border: 0;
+	background: none;
+	color: inherit;
+	font: inherit;
+	text-decoration: underline;
+	cursor: pointer;
 }

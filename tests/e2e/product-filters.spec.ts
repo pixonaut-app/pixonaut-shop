@@ -691,6 +691,9 @@ test.describe( 'with an attribute that applies under a value of another', () => 
 
 			const nested = item( page, fixture.frame ).locator( NESTED );
 			await expect( nested ).toHaveCount( 1 );
+			await expect(
+				item( page, fixture.frame ).getByRole( 'checkbox', { name: fixture.frame, exact: true } ),
+			).toBeChecked();
 			await expect( nested.getByRole( 'group', { name: fixture.frameColour } ) ).toBeVisible();
 			await expect( item( page, fixture.hanger ).locator( NESTED ) ).toHaveCount( 0 );
 
@@ -713,6 +716,31 @@ test.describe( 'with an attribute that applies under a value of another', () => 
 			).toBeVisible();
 		} );
 	}
+
+	test( 'unticking the value it shows under clears its chosen values, and the value stays ticked meanwhile', async ( {
+		page,
+	} ) => {
+		await page.goto( fixture.path );
+		await openDrawer( page );
+		await tick( page, fixture.framing, fixture.frame, new RegExp( fixture.filter ) );
+
+		const frame = item( page, fixture.frame ).getByRole( 'checkbox', {
+			name: fixture.frame,
+			exact: true,
+		} );
+		await item( page, fixture.frame )
+			.locator( NESTED )
+			.getByRole( 'checkbox', { name: fixture.black, exact: true } )
+			.check();
+		await expect( page ).toHaveURL( new RegExp( fixture.blackFilter ) );
+		await expect( frame ).toBeChecked();
+
+		await frame.uncheck();
+		await expect( page ).not.toHaveURL( new RegExp( fixture.filter ) );
+		await expect( page ).not.toHaveURL( new RegExp( fixture.blackFilter ) );
+		await expect( page.locator( PANEL ).locator( NESTED ) ).toHaveCount( 0 );
+		await expect( frame ).not.toBeChecked();
+	} );
 
 	test( 'it shows once under several chosen values it applies under', async ( { page } ) => {
 		await page.goto( `${ fixture.path }?${ fixture.hangerAndFrameFilter }` );

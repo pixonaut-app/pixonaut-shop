@@ -180,7 +180,7 @@ describe( 'affected', () => {
 		} );
 	} );
 
-	it( 'runs the cart, the mini-cart, the checkout, the product pages and order pages for the callbacks on the plugin hooks the fake fires', () => {
+	it( 'runs the cart, the mini-cart, the checkout, the archive in the browser, the product pages and order pages for the callbacks on the plugin hooks the fake fires', () => {
 		assert.deepEqual( jobsFor( 'inc/Pixonaut/Integration.php' ), {
 			...NO_JOBS,
 			php: true,
@@ -189,6 +189,7 @@ describe( 'affected', () => {
 				'buy-row',
 				'cart',
 				'checkout',
+				'client-archive',
 				'mini-cart',
 				'order-received',
 				'product-options',
@@ -218,12 +219,12 @@ describe( 'affected', () => {
 		} );
 	} );
 
-	it( 'runs the shop, its filters, the searches and the mega menu for a change to the archive area', () => {
+	it( 'runs the shop, its filters in the browser and on the server, the searches and the mega menu for a change to the archive area', () => {
 		assert.deepEqual( jobsFor( 'inc/Archive/ShownWhenEmpty.php' ), {
 			...NO_JOBS,
 			php: true,
 			integration: true,
-			specs: [ 'mega-menu', 'product-filters', 'search', 'shop' ],
+			specs: [ 'client-archive', 'mega-menu', 'product-filters', 'search', 'shop' ],
 			shards: 1,
 		} );
 	} );
@@ -347,7 +348,7 @@ describe( 'affected', () => {
 		assert.deepEqual( result.unmatched, [] );
 	} );
 
-	it( 'runs the cart, the mini-cart, the checkout, the product pages and order pages, integration and PHP checks for the fake plugin', () => {
+	it( 'runs the cart, the mini-cart, the checkout, the archive in the browser, the product pages and order pages, integration and PHP checks for the fake plugin', () => {
 		assert.deepEqual( jobsFor( 'tests/e2e/fake-pixonaut.php' ), {
 			...NO_JOBS,
 			php: true,
@@ -356,6 +357,7 @@ describe( 'affected', () => {
 				'buy-row',
 				'cart',
 				'checkout',
+				'client-archive',
 				'mini-cart',
 				'order-received',
 				'product-options',

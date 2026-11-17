@@ -39,7 +39,7 @@ final class ProductFiltersTest extends TestCase
     private const RENDERED_CHIP = '/' . self::CHIP . '"\s+data-wp-each-child/';
 
     /** A dependent attribute nested under a value, with its name. */
-    private const NESTED_GROUP = '<div class="' . NestedAttributeFilters::NESTED_CLASS . '"><p class="' . NestedAttributeFilters::NESTED_CLASS . '__label"[^>]*>';
+    private const NESTED_GROUP = '<div class="' . NestedAttributeFilters::NESTED_CLASS . '"[^>]*><p class="' . NestedAttributeFilters::NESTED_CLASS . '__label"[^>]*>';
 
     private const NESTED = '/' . self::NESTED_GROUP . '/';
 
@@ -152,6 +152,39 @@ final class ProductFiltersTest extends TestCase
             'The hanger, not chosen, offers no frame colour.'
         );
         self::assertSame(1, preg_match_all('/value="' . sanitize_title(FilterFixtures::BLACK) . '"/', $archive), 'Each colour shows once.');
+    }
+
+    public function testAValueThatOpensADependentIsKeyedByWhetherItIsChosenAndNamesWhatItOpens(): void
+    {
+        $this->frame_colour_depends_on_a_frame_or_a_hanger();
+        $colour   = wc_attribute_taxonomy_name(wc_sanitize_taxonomy_name(FilterFixtures::FRAME_COLOUR));
+        $unchosen = $this->render(FilterFixtures::category(), ['filter_' . FilterFixtures::FRAMING_SLUG => FilterFixtures::HANGER_SLUG]);
+        $this->forget_chosen_filters();
+        $chosen = $this->render(FilterFixtures::category(), ['filter_' . FilterFixtures::FRAMING_SLUG => FilterFixtures::FRAME_SLUG]);
+
+        // A value ticked in place is drawn anew rather than kept unticked from the page before.
+        self::assertNotSame($this->item_attribute($unchosen, FilterFixtures::FRAME_SLUG, 'data-wp-key'), $this->item_attribute($chosen, FilterFixtures::FRAME_SLUG, 'data-wp-key'));
+        self::assertSame($colour, $this->item_attribute($chosen, FilterFixtures::FRAME_SLUG, NestedAttributeFilters::OPENS));
+        self::assertNull($this->item_attribute($chosen, sanitize_title(FilterFixtures::NO_FRAME), NestedAttributeFilters::OPENS), '"No frame" opens nothing.');
+        self::assertMatchesRegularExpression('/' . NestedAttributeFilters::NESTED_ATTRIBUTE . '="' . $colour . '"/', $chosen);
+    }
+
+    /** An attribute of the item that holds the value's checkbox in the framing's list. */
+    private function item_attribute(string $archive, string $value, string $attribute): ?string
+    {
+        $markup = new WP_HTML_Tag_Processor($archive);
+        $found  = null;
+
+        while ($markup->next_tag()) {
+            if ($markup->has_class('wc-block-product-filter-checkbox-list__item')) {
+                $found = $markup->get_attribute($attribute);
+                $found = \is_string($found) ? $found : null;
+            } elseif ('INPUT' === $markup->get_tag() && $value === $markup->get_attribute('value')) {
+                return $found;
+            }
+        }
+
+        self::fail("No item for {$value}.");
     }
 
     public function testADependentOfSeveralChosenValuesShowsOnceAfterTheLast(): void

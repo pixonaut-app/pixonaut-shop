@@ -491,3 +491,209 @@ add_filter(
         return is_array($decoded) ? $decoded : $dependencies;
     }
 );
+
+/**
+ * The cookie a suite turns the archive's index on with: `1` serves it, `404`
+ * answers that the archive has none, `slow` takes longer than the theme waits.
+ */
+const PIXONAUT_SHOP_FAKE_INDEX_COOKIE = 'fake_archive_index';
+
+const PIXONAUT_SHOP_FAKE_INDEX_ROUTE = 'pixonaut-fake/v1';
+
+/** Longer than the theme waits for an index, in seconds. */
+const PIXONAUT_SHOP_FAKE_INDEX_SLOW_SECONDS = 10;
+
+/**
+ * The archive an index is for, as the plugin names it: `shop`, or the
+ * term's taxonomy and id; null off a product archive.
+ */
+function pixonaut_shop_fake_index_archive(): ?string
+{
+    if (is_shop()) {
+        return 'shop';
+    }
+
+    $term = get_queried_object();
+
+    return (is_product_category() || is_product_tag()) && $term instanceof WP_Term ? $term->taxonomy . '-' . $term->term_id : null;
+}
+
+/** The archive names the index it has, as the plugin's archives do (pixonaut-for-woocommerce's archive index). */
+add_action(
+    'wp_footer',
+    static function (): void {
+        $mode    = $_COOKIE[PIXONAUT_SHOP_FAKE_INDEX_COOKIE] ?? null;
+        $archive = pixonaut_shop_fake_index_archive();
+
+        if (! is_string($mode) || null === $archive || ! pixonaut_shop_fake_is_standing_in()) {
+            return;
+        }
+
+        $url = add_query_arg(['v' => '1', 'mode' => $mode], rest_url(PIXONAUT_SHOP_FAKE_INDEX_ROUTE . '/archive-index/' . $archive));
+        printf('<script type="application/json" id="pixonaut-archive-index">%s</script>', wp_json_encode(['url' => $url, 'version' => '1', 'count' => 0]));
+    }
+);
+
+/** The index's attribute values each variation of a product holds, by the attribute's short name. */
+function pixonaut_shop_fake_index_values(WC_Product $product, WC_Product $offer): array
+{
+    $values = [];
+
+    foreach ($product->get_attributes() as $attribute) {
+        if (! $attribute instanceof WC_Product_Attribute || ! $attribute->is_taxonomy()) {
+            continue;
+        }
+
+        $taxonomy = $attribute->get_name();
+        $key      = wc_attribute_taxonomy_slug($taxonomy);
+
+        if ($attribute->get_variation() && $offer->is_type('variation')) {
+            $slug           = $offer->get_attributes()[$taxonomy] ?? '';
+            $values[$key]   = '' === $slug ? [] : [$slug];
+            continue;
+        }
+
+        $values[$key] = array_values(array_filter(array_map(static fn (int $id): string => (string) get_term($id)?->slug, $attribute->get_options())));
+    }
+
+    return $values;
+}
+
+add_action(
+    'rest_api_init',
+    static function (): void {
+        register_rest_route(PIXONAUT_SHOP_FAKE_INDEX_ROUTE, '/archive-index/(?P<archive>[a-z_]+-?[0-9]*)', [
+            'methods' => 'GET',
+            'permission_callback' => '__return_true',
+            'callback' => static function (WP_REST_Request $request): WP_REST_Response {
+                $mode = (string) $request->get_param('mode');
+
+                if ('404' === $mode) {
+                    return new WP_REST_Response(['code' => 'no_index'], 404);
+                }
+
+                if ('slow' === $mode) {
+                    sleep(PIXONAUT_SHOP_FAKE_INDEX_SLOW_SECONDS);
+                }
+
+                $archive = (string) $request['archive'];
+                $query   = ['post_type' => 'product', 'post_status' => 'publish', 'posts_per_page' => -1, 'fields' => 'ids'];
+
+                if ('shop' !== $archive) {
+                    $at                  = (int) strrpos($archive, '-');
+                    $query['tax_query']  = [['taxonomy' => substr($archive, 0, $at), 'terms' => [(int) substr($archive, $at + 1)]]]; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- a test double's archive.
+                }
+
+                $sorts     = [];
+                $positions = [];
+
+                $menu = [
+                    'menu_order' => 'Default sorting',
+                    'popularity' => 'Sort by popularity',
+                    'rating' => 'Sort by average rating',
+                    'date' => 'Sort by latest',
+                    'price' => 'Sort by price: low to high',
+                    'price-desc' => 'Sort by price: high to low',
+                ];
+
+                foreach ((array) apply_filters('woocommerce_catalog_orderby', $menu) as $key => $label) {
+                    $sorts[]  = ['key' => (string) $key, 'label' => (string) $label];
+                    $ordering = WC()->query->get_catalog_ordering_args((string) $key);
+                    $ordered  = new WP_Query($query + ['orderby' => $ordering['orderby'], 'order' => $ordering['order']] + ('' === ($ordering['meta_key'] ?? '') ? [] : ['meta_key' => $ordering['meta_key']]));
+
+                    foreach ($ordered->posts as $position => $id) {
+                        $positions[(int) $id][(string) $key] = $position;
+                    }
+                }
+
+                $cards = [];
+                $keys  = [];
+
+                foreach ((new WP_Query($query + ['orderby' => 'menu_order title', 'order' => 'ASC']))->posts as $id) {
+                    $product = wc_get_product($id);
+
+                    if (! $product instanceof WC_Product) {
+                        continue;
+                    }
+
+                    $rows = [];
+
+                    foreach ($product->is_type('variable') ? $product->get_children() : [$product->get_id()] as $child) {
+                        $offer = wc_get_product($child);
+
+                        if (! $offer instanceof WC_Product || '' === $offer->get_price()) {
+                            continue;
+                        }
+
+                        $values = pixonaut_shop_fake_index_values($product, $offer);
+                        $keys  += array_fill_keys(array_keys($values), true);
+                        $rows[] = apply_filters('pixonaut_wc_archive_index_variation', [
+                            'values' => $values,
+                            'price' => (float) wc_get_price_to_display($offer),
+                            'regularPrice' => (float) wc_get_price_to_display($offer, ['price' => $offer->get_regular_price()]),
+                        ], $offer, $product);
+                    }
+
+                    $image   = wp_get_attachment_image_src((int) $product->get_image_id(), 'woocommerce_thumbnail');
+                    $cards[] = apply_filters('pixonaut_wc_archive_index_card', [
+                        'id' => (string) $product->get_id(),
+                        'productId' => $product->get_id(),
+                        'title' => $product->get_name(),
+                        'url' => (string) get_permalink($product->get_id()),
+                        'summary' => wp_strip_all_tags($product->get_short_description()),
+                        'image' => is_array($image)
+                            ? ['src' => $image[0], 'srcset' => '', 'width' => (int) $image[1], 'height' => (int) $image[2], 'alt' => $product->get_name()]
+                            : ['src' => wc_placeholder_img_src('woocommerce_thumbnail'), 'srcset' => '', 'width' => 600, 'height' => 600, 'alt' => $product->get_name()],
+                        'sort' => $positions[$product->get_id()] ?? [],
+                        'holds' => new stdClass(),
+                        'listedBy' => [],
+                        'onlyFiltered' => [],
+                        'choices' => array_values(array_map(
+                            static fn (WC_Product_Attribute $attribute): string => wc_attribute_taxonomy_slug($attribute->get_name()),
+                            array_filter($product->get_attributes(), static fn (mixed $attribute): bool => $attribute instanceof WC_Product_Attribute && $attribute->is_taxonomy() && $attribute->get_variation())
+                        )),
+                        'variations' => $rows,
+                    ], $product);
+                }
+
+                $dependencies = (array) apply_filters('pixonaut_wc_storefront_attribute_dependencies', []);
+                $filters      = [];
+
+                foreach (array_keys($keys) as $key) {
+                    $taxonomy = wc_attribute_taxonomy_name($key);
+                    $terms    = get_terms(['taxonomy' => $taxonomy, 'hide_empty' => false]);
+                    $filter   = [
+                        'key' => $key,
+                        'label' => wc_attribute_label($taxonomy),
+                        'type' => 'attribute',
+                        'values' => array_map(static fn (WP_Term $term): array => ['id' => $term->slug, 'label' => $term->name, 'order' => (int) get_term_meta($term->term_id, 'order', true)], is_array($terms) ? $terms : []),
+                    ];
+
+                    foreach ((array) ($dependencies[$taxonomy] ?? []) as $parent => $under) {
+                        $filter['parent'] = ['key' => wc_attribute_taxonomy_slug((string) $parent), 'values' => array_values((array) $under)];
+                    }
+
+                    $filters[] = $filter;
+                }
+
+                $filters[] = ['key' => 'price', 'label' => 'Price', 'type' => 'price'];
+
+                return new WP_REST_Response([
+                    'version' => '1',
+                    'currency' => [
+                        'code' => get_woocommerce_currency(),
+                        'symbol' => html_entity_decode(get_woocommerce_currency_symbol()),
+                        'position' => (string) get_option('woocommerce_currency_pos'),
+                        'decimals' => wc_get_price_decimals(),
+                        'decimalSeparator' => wc_get_price_decimal_separator(),
+                        'thousandSeparator' => wc_get_price_thousand_separator(),
+                    ],
+                    'filters' => $filters,
+                    'sorts' => $sorts,
+                    'cards' => $cards,
+                    'images' => [],
+                ]);
+            },
+        ]);
+    }
+);

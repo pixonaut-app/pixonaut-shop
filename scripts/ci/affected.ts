@@ -115,12 +115,14 @@ export const BLOCK_SPECS: readonly string[] = [
  * What Pixonaut for WooCommerce's output, and the fake plugin that stands in
  * for it, can break: the product page with its designer, a variable
  * product's options beside it, and the rows it adds to a line in the cart,
- * the mini-cart drawer, the checkout's summary and the order received page.
+ * the mini-cart drawer, the checkout's summary and the order received page,
+ * and the index an archive is filtered in the browser from.
  */
 export const PLUGIN_SPECS: readonly string[] = [
 	'buy-row',
 	'cart',
 	'checkout',
+	'client-archive',
 	'mini-cart',
 	'order-received',
 	'product-options',
@@ -144,7 +146,7 @@ export const E2E_OWNERS: Readonly< Record< string, SpecSelection > > = {
 	// shows instead.
 	// The category picture the mega header's menu shares with the categories block.
 	// The filters beside an archive's grid.
-	'inc/Archive': [ 'mega-menu', 'product-filters', 'search', 'shop' ],
+	'inc/Archive': [ 'client-archive', 'mega-menu', 'product-filters', 'search', 'shop' ],
 	'inc/Assets': 'all',
 	// The block styles, which reach every page's global stylesheet, the
 	// menu heading, on every page's footer, and the theme's own blocks.
@@ -266,8 +268,11 @@ export const EDITOR_SPECS: readonly string[] = [ 'site-editor' ];
  */
 export const PRODUCT_SCRIPT_SPECS: readonly string[] = [ 'product-options', 'second-picture' ];
 
-/** What a change to an archive's script can break: a customer's place while they filter. */
-export const ARCHIVE_SCRIPT_SPECS: readonly string[] = [ 'product-filters' ];
+/**
+ * What a change to an archive's script can break: a customer's place while
+ * they filter, and the archive filtered in the browser.
+ */
+export const ARCHIVE_SCRIPT_SPECS: readonly string[] = [ 'client-archive', 'product-filters' ];
 
 /**
  * The specs a pattern has of its own, run with `PAGE_SPECS` when it changes.
