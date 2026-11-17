@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.12.3...v1.13.0) (2026-11-17)
+
+
+### Features
+
+* **archive:** filter, sort and count an archive in the browser and load more cards as the shopper scrolls ([#77](https://github.com/pixonaut-app/pixonaut-shop/issues/77)) ([da0b204](https://github.com/pixonaut-app/pixonaut-shop/commit/da0b20464ea971a19e62eed06aa25ba4ff5e1978))
+
 ## [1.12.3](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.12.2...v1.12.3) (2026-11-17)
 
 
