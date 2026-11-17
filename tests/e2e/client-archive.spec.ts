@@ -36,8 +36,16 @@ let fixture: {
 	black: string;
 	framingSlug: string;
 	frameSlug: string;
+	noFrameSlug: string;
+	frameColourSlug: string;
+	blackSlug: string;
 	dependencies: Record< string, Record< string, string[] > >;
 };
+
+/** The slug WordPress gives a name of the fixture's: lower case, a hyphen for each space. */
+function slugOf( name: string ): string {
+	return name.toLowerCase().replace( / /g, '-' );
+}
 
 test.beforeAll( () => {
 	const [
@@ -81,8 +89,11 @@ test.beforeAll( () => {
 		black,
 		framingSlug,
 		frameSlug,
+		noFrameSlug: slugOf( noFrame ),
+		frameColourSlug: slugOf( frameColour ),
+		blackSlug: slugOf( black ),
 		dependencies: {
-			[ `pa_${ frameColour.toLowerCase().replace( / /g, '-' ) }` ]: {
+			[ `pa_${ slugOf( frameColour ) }` ]: {
 				[ `pa_${ framingSlug }` ]: [ hangerSlug, frameSlug ],
 			},
 		},
@@ -192,6 +203,68 @@ for ( const viewport of [ DESKTOP, PHONE ] ) {
 		expect( made.map( ( request ) => request.url() ) ).toEqual( [] );
 	} );
 }
+
+/** Records every text the result count shows from the first paint on, in `window.pixonautShopCounts`. */
+async function recordCounts( page: Page ): Promise< void > {
+	await page.addInitScript( ( selector ) => {
+		const seen: string[] = [];
+		( window as unknown as { pixonautShopCounts: string[] } ).pixonautShopCounts = seen;
+		const note = () => {
+			const text = document.querySelector( selector )?.textContent?.trim();
+
+			if ( text && seen.at( -1 ) !== text ) {
+				seen.push( text );
+			}
+		};
+		new MutationObserver( note ).observe( document, {
+			subtree: true,
+			childList: true,
+			characterData: true,
+		} );
+	}, RESULT_COUNT );
+}
+
+test( 'the result count reads the same from the first paint, with or without JavaScript, as once the browser takes over', async ( {
+	browser,
+	page,
+} ) => {
+	const addresses: Record< string, [ string, string ] > = {
+		unfiltered: [ '', '2 products' ],
+		'one value': [ `?filter_${ fixture.framingSlug }=${ fixture.frameSlug }`, '1 product' ],
+		'several values of one attribute': [
+			`?filter_${ fixture.framingSlug }=${ fixture.frameSlug },${ fixture.noFrameSlug }&query_type_${ fixture.framingSlug }=or`,
+			'2 products',
+		],
+		'two attributes': [
+			`?filter_${ fixture.framingSlug }=${ fixture.frameSlug }&filter_${ fixture.frameColourSlug }=${ fixture.blackSlug }`,
+			'1 product',
+		],
+	};
+	const withoutScripts = await browser.newContext( { javaScriptEnabled: false } );
+	await withIndex( await withoutScripts.newPage() );
+	await withIndex( page );
+	await recordCounts( page );
+
+	for ( const [ name, [ query, expected ] ] of Object.entries( addresses ) ) {
+		const server = await withoutScripts.newPage();
+		await server.goto( fixture.path + query );
+		await expect( server.locator( RESULT_COUNT ), `${ name }, with no JavaScript` ).toHaveText(
+			expected,
+		);
+		await server.close();
+
+		await openArchive( page, query );
+		await expect( page.locator( RESULT_COUNT ), name ).toHaveText( expected );
+		expect(
+			await page.evaluate(
+				() => ( window as unknown as { pixonautShopCounts: string[] } ).pixonautShopCounts,
+			),
+			`${ name }: the count never changes`,
+		).toEqual( [ expected ] );
+	}
+
+	await withoutScripts.close();
+} );
 
 test( 'a chip and "Clear all" take filters away, and back and forward step through the choices', async ( {
 	page,

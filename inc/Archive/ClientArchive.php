@@ -173,8 +173,8 @@ final class ClientArchive
         $plural = static fn (callable $words): array => ['one' => $words(1), 'other' => $words(2)];
 
         return [
-            /* translators: %s: how many products the archive shows. */
-            'count' => $plural(static fn (int $n): string => _n('%s product', '%s products', $n, 'pixonaut-shop')),
+            // The server prints the same words from the first paint.
+            'count' => $plural(ResultCount::words(...)),
             'none' => __('No products', 'pixonaut-shop'),
             /* translators: %s: how many products the chosen filters list. */
             'showProducts' => $plural(static fn (int $n): string => _n('Show %s product', 'Show %s products', $n, 'pixonaut-shop')),
