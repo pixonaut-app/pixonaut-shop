@@ -525,6 +525,45 @@ test.describe( 'with pictures', () => {
 		} );
 	}
 
+	test( 'a tick whose new pictures are slow keeps the cards in view until they are in', async ( {
+		page,
+	} ) => {
+		await withIndex( page, '1,pictures' );
+		await openArchive( page );
+		const shown = await page.locator( CARD ).count();
+		let release: () => void = () => undefined;
+		const held = new Promise< void >( ( resolve ) => {
+			release = resolve;
+		} );
+		// The framed variations' own picture is the store's placeholder (`fake-pixonaut.php`).
+		await page.route( /placeholder/, async ( route ) => {
+			await held;
+			await route.continue();
+		} );
+		await openDrawer( page );
+		await ( await section( page, fixture.framing ) )
+			.getByRole( 'checkbox', { name: fixture.frame, exact: true } )
+			.check();
+
+		await expect( page.locator( RESULT_COUNT ) ).toHaveText( '1 product' );
+		await expect( page.locator( 'main .wc-block-product-template[aria-busy="true"]' ) ).toHaveCount(
+			1,
+		);
+		await expect( page.locator( CARD ) ).toHaveCount( shown );
+
+		release();
+		await expect( page.locator( CARD ) ).toHaveCount( 1 );
+		await expect
+			.poll( () =>
+				page
+					.locator( CARD )
+					.locator( 'img' )
+					.first()
+					.evaluate( ( image: HTMLImageElement ) => image.naturalWidth ),
+			)
+			.toBeGreaterThan( 0 );
+	} );
+
 	test( 'a card whose filtered picture is missing shows its own picture', async ( { page } ) => {
 		await withIndex( page, '1,missing' );
 		await openArchive( page );

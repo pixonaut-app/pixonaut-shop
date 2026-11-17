@@ -34,8 +34,10 @@ export interface FeedOptions {
 	words: FeedWords;
 	/** Draws the card at a place in the shown list. */
 	draw: ( place: number ) => HTMLElement;
-	/** Resolves once the cards' pictures are loaded (or given up on). */
+	/** Resolves once the cards' pictures are loaded (or have failed, with their fallbacks). */
 	ready: ( cards: HTMLElement[] ) => Promise< void >;
+	/** Readies cards for the choice they come in for, as they come in. */
+	show: ( cards: HTMLElement[] ) => void;
 	/** Says how many cards are drawn now, for the address's history. */
 	onDrawn: ( drawn: number ) => void;
 }
@@ -50,7 +52,7 @@ export class Feed {
 	private autoLoaded = 0;
 	/** Counts the lists drawn, so a list whose pictures came in late never covers a newer one. */
 	private generation = 0;
-	/** Whether a new list waits for its pictures. */
+	/** Whether new cards wait for their pictures. */
 	private pending = false;
 	private readonly footer: HTMLElement;
 	private readonly skeletons: HTMLElement;
@@ -147,6 +149,7 @@ export class Feed {
 		this.generation += 1;
 		const generation = this.generation;
 		this.pending = true;
+		this.options.grid.setAttribute( 'aria-busy', 'true' );
 
 		return this.options.ready( cards ).then( () => {
 			if ( generation !== this.generation ) {
@@ -154,6 +157,8 @@ export class Feed {
 			}
 
 			this.pending = false;
+			this.options.grid.removeAttribute( 'aria-busy' );
+			this.options.show( cards );
 			this.options.grid.replaceChildren( ...cards );
 			this.update();
 			window.requestAnimationFrame( () => this.loadWhileInReach() );
@@ -164,6 +169,7 @@ export class Feed {
 		return this.drawn;
 	}
 
+	/** Draws the next page's cards; they come in once their pictures are loaded. */
 	private load( auto: boolean ): void {
 		if (
 			this.pending ||
@@ -177,22 +183,36 @@ export class Feed {
 		const cards = Array.from( { length: next - this.drawn }, ( _, i ) =>
 			this.options.draw( this.drawn + i ),
 		);
-		this.options.grid.append( ...cards );
-		this.drawn = next;
-		this.autoLoaded = auto ? this.autoLoaded + 1 : 0;
+		const generation = this.generation;
+		this.pending = true;
+		this.options.grid.setAttribute( 'aria-busy', 'true' );
 
-		if ( ! auto ) {
-			// The first new card takes the focus the button had.
-			cards[ 0 ]?.querySelector< HTMLElement >( 'a' )?.focus( { preventScroll: true } );
-		}
+		void this.options.ready( cards ).then( () => {
+			// A new list replaced the grid meanwhile.
+			if ( generation !== this.generation ) {
+				return;
+			}
 
-		this.update();
-		this.options.onDrawn( this.drawn );
+			this.pending = false;
+			this.options.grid.removeAttribute( 'aria-busy' );
+			this.options.show( cards );
+			this.options.grid.append( ...cards );
+			this.drawn = next;
+			this.autoLoaded = auto ? this.autoLoaded + 1 : 0;
 
-		// The observer says so only when the skeletons come into reach, not while they stay in it.
-		if ( auto ) {
-			window.requestAnimationFrame( () => this.loadWhileInReach() );
-		}
+			if ( ! auto ) {
+				// The first new card takes the focus the button had.
+				cards[ 0 ]?.querySelector< HTMLElement >( 'a' )?.focus( { preventScroll: true } );
+			}
+
+			this.update();
+			this.options.onDrawn( this.drawn );
+
+			// The observer says so only when the skeletons come into reach, not while they stay in it.
+			if ( auto ) {
+				window.requestAnimationFrame( () => this.loadWhileInReach() );
+			}
+		} );
 	}
 
 	private loadWhileInReach(): void {

@@ -173,6 +173,7 @@ class ClientArchive {
 			words: config.text,
 			draw: ( place ) => this.nodes.nodeOf( this.shown[ place ] ),
 			ready: ( cards ) => this.nodes.whenLoaded( cards ),
+			show: ( cards ) => this.nodes.show( cards ),
 			onDrawn: () => this.noteEntry(),
 		} );
 		grid.parentElement?.append( this.none );

@@ -134,8 +134,8 @@ export function drawCard(
 			first.sizes = sizes;
 		}
 
-		// A card with swatches shows no second picture, which would cover the one chosen.
-		if ( entry.card.secondImage && entry.swatches.length < 2 ) {
+		// Hidden while the card has swatches (`_archive.css`): it would cover the one chosen.
+		if ( entry.card.secondImage ) {
 			const second = first.cloneNode() as HTMLImageElement;
 			second.className = SECOND_PICTURE_CLASS;
 			second.removeAttribute( 'style' );
