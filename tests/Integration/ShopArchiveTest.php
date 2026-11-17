@@ -7,6 +7,7 @@ namespace Pixonaut\Shop\Tests\Integration;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use WC_Product_Simple;
+use WP_HTML_Tag_Processor;
 use WP_Query;
 use WP_Term;
 
@@ -53,6 +54,9 @@ final class ShopArchiveTest extends TestCase
     private const ROUTER = 'core/router';
 
     private const NAVIGATION_DISABLED = 'clientNavigationDisabled';
+
+    /** The theme's button look, which the filters' button has too. */
+    private const BUTTON_CLASS = 'wp-element-button';
 
     /** WooCommerce's Product Catalog setting, which sizes the archive's page. */
     private const ROWS_OPTION = 'woocommerce_catalog_rows';
@@ -160,6 +164,18 @@ final class ShopArchiveTest extends TestCase
         $this->render($category);
 
         self::assertFalse(wp_interactivity_config(self::ROUTER)[self::NAVIGATION_DISABLED] ?? false);
+    }
+
+    public function testTheSortingIsAMenuThatLooksLikeTheFiltersButton(): void
+    {
+        $category = $this->category(self::FULL_CATEGORY);
+        $this->product(self::PRODUCT, $category);
+
+        $markup = new WP_HTML_Tag_Processor($this->render($category));
+
+        self::assertTrue($markup->next_tag(['tag_name' => 'form', 'class_name' => self::SORTING]));
+        self::assertTrue($markup->has_class(self::BUTTON_CLASS));
+        self::assertTrue($markup->next_tag(['tag_name' => 'select']), 'The sorting is no longer a menu.');
     }
 
     public function testTheThemeStartsWooCommercesProductCatalogAtThreeRowsOfFour(): void

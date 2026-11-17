@@ -114,6 +114,7 @@ final class Bootstrap
         (new Archive\FilterSections())->register();
         (new Archive\FilterDrawer())->register();
         (new Archive\ProductSearchNavigation())->register();
+        (new Archive\SortControl())->register();
         (new Search\ProductSearch())->register();
         (new Search\PopularSearches())->register();
     }

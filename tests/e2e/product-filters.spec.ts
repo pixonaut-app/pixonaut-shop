@@ -230,9 +230,15 @@ async function watchShifts( page: Page ): Promise< void > {
 	} );
 }
 
-/** Forgets the shifts so far, such as a section the customer opened. */
+/**
+ * Forgets the shifts so far, such as a section the customer opened. The
+ * browser reports a shift a frame or so after it, so those frames pass first.
+ */
 async function forgetShifts( page: Page ): Promise< void > {
-	await page.evaluate( () => {
+	await page.evaluate( async () => {
+		for ( const _frame of [ 1, 2 ] ) {
+			await new Promise( requestAnimationFrame );
+		}
 		( window as unknown as { shifts: number[] } ).shifts.length = 0;
 	} );
 }
@@ -299,15 +305,35 @@ for ( const viewport of VIEWPORTS ) {
 			await expect( page.locator( CHOSEN ) ).toBeHidden();
 		} );
 
-		test( 'the sorting in the toolbar changes the order', async ( { page } ) => {
+		test( "the sorting in the toolbar, a button like the filters' one, changes the order in place", async ( {
+			page,
+		} ) => {
 			await page.goto( fixture.path );
+			await markThePage( page );
 			await expect( cards( page ).first() ).toContainText( fixture.framed );
 
-			await page.locator( `${ TOOLBAR } ${ SORTING }` ).selectOption( 'date' );
+			const sorting = page.locator( `${ TOOLBAR } ${ SORTING }` );
+			const button = page.locator( TOOLBAR ).getByRole( 'button', { name: /Show filters/ } );
+			const looks = ( element: Element ) => {
+				const style = getComputedStyle( element );
+
+				return [
+					element.getBoundingClientRect().height,
+					style.borderRadius,
+					style.borderTopWidth,
+					style.fontWeight,
+				];
+			};
+			expect( await sorting.locator( 'xpath=..' ).evaluate( looks ) ).toEqual(
+				await button.evaluate( looks ),
+			);
+
+			await sorting.selectOption( 'date' );
 
 			await expect( page ).toHaveURL( /orderby=date/ );
 			await expect( cards( page ).first() ).toContainText( fixture.unframed );
 			await expect( drawer( page ).locator( SORTING ) ).toHaveCount( 0 );
+			expect( await wasLoadedAgain( page ) ).toBe( false );
 		} );
 
 		test( 'loading, opening and closing shift no layout, nor do the skeletons while new results are on their way', async ( {
