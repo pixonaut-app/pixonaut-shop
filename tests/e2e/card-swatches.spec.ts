@@ -94,6 +94,18 @@ for ( const viewport of [
 		await expect(
 			card.locator( '.wp-block-woocommerce-product-image img' ).first(),
 		).toHaveAttribute( 'src', `${ base }/frame.png` );
+		await expect(
+			card.locator( '.wp-block-woocommerce-product-image img' ).first(),
+		).toHaveAttribute( 'alt', 'Framed print' );
+		await expect( card.locator( '.wp-block-post-title a' ) ).toHaveText( 'Framed version' );
+
+		// Back to the card's own swatch, which names no other name.
+		await swatches.getByRole( 'button', { name: 'Hanger' } ).click();
+		await expect( card.locator( '.wp-block-post-title a' ) ).toHaveText( fixture.framed );
+		await expect( card.locator( '.wp-block-post-title a' ) ).toHaveAttribute(
+			'href',
+			`${ base }/?hanger`,
+		);
 		expect( made ).toEqual( [] );
 	} );
 }

@@ -47,10 +47,12 @@ function choose( button: HTMLButtonElement ): void {
 		}
 	}
 
-	const title = card.querySelector( TITLE );
+	const title = card.querySelector< HTMLElement >( TITLE );
 
-	if ( title && swatch.title !== undefined ) {
-		title.textContent = swatch.title;
+	if ( title ) {
+		// The card's own name, kept for a swatch that names none.
+		title.dataset.pixonautShopOwnTitle ??= title.textContent ?? '';
+		title.textContent = swatch.title ?? title.dataset.pixonautShopOwnTitle;
 	}
 
 	const price = card.querySelector( PRICE );
