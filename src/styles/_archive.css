@@ -477,3 +477,8 @@
 	background: var( --wp--preset--color--accent );
 	color: var( --wp--preset--color--accent-contrast );
 }
+
+/* A card with swatches keeps the picture of the value chosen on hover: its second picture would cover it. */
+.wc-block-product:has( .pixonaut-shop-card-swatches ) .pixonaut-shop-second-picture {
+	display: none;
+}

@@ -118,7 +118,8 @@ export function drawCard( model: HTMLElement, entry: Shown, look: CardLook ): HT
 		setPicture( first, picture, picture.alt );
 		first.loading = 'lazy';
 
-		if ( entry.card.secondImage ) {
+		// A card with swatches shows no second picture, which would cover the one chosen.
+		if ( entry.card.secondImage && entry.swatches.length < 2 ) {
 			const second = first.cloneNode() as HTMLImageElement;
 			second.className = SECOND_PICTURE_CLASS;
 			second.removeAttribute( 'style' );
@@ -152,7 +153,9 @@ export function drawCard( model: HTMLElement, entry: Shown, look: CardLook ): HT
 					srcset: memberPicture.srcset,
 					width: memberPicture.width,
 					height: memberPicture.height,
+					alt: memberPicture.alt,
 				},
+				price: priceMarkup( member.variations, look.prices, index.currency ),
 				current: member === entry,
 			};
 		} );

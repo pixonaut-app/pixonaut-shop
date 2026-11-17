@@ -42,14 +42,14 @@ final class CardSwatchesTest extends TestCase
         $id = $this->product('Swatched print');
         add_filter(CardSwatches::FILTER, static fn (array $swatches, WC_Product $product): array => $product->get_id() === $id ? [
             ['values' => [['key' => 'framing', 'id' => 'hanger', 'label' => 'Hanger']], 'url' => 'https://example.test/print/?framing=hanger', 'image' => self::PICTURE, 'current' => true],
-            ['values' => [['key' => 'framing', 'id' => 'frame', 'label' => 'Frame'], ['key' => 'colour', 'id' => 'oak', 'label' => 'Oak & ash']], 'url' => 'https://example.test/print/?framing=frame', 'image' => ['src' => 'https://example.test/frame.jpg'] + self::PICTURE],
+            ['values' => [['key' => 'framing', 'id' => 'frame', 'label' => 'Frame'], ['key' => 'colour', 'id' => 'oak', 'label' => 'Oak & ash']], 'url' => 'https://example.test/print/?framing=frame', 'image' => ['src' => 'https://example.test/frame.jpg', 'alt' => 'Framed print'] + self::PICTURE],
         ] : $swatches, 10, 2);
 
         $grid = $this->render();
 
         self::assertMatchesRegularExpression('/<div class="' . CardSwatches::GROUP_CLASS . '" role="group" aria-label="Versions of Swatched print">/', $grid);
         self::assertMatchesRegularExpression('/<button type="button" class="' . CardSwatches::SWATCH_CLASS . '" aria-pressed="true" data-pixonaut-shop-link="https:\/\/example.test\/print\/\?framing=hanger"[^>]*>Hanger<\/button>/', $grid);
-        self::assertMatchesRegularExpression('/aria-pressed="false"[^>]*data-pixonaut-shop-picture="[^"]*frame\.jpg[^"]*">Frame \/ Oak &amp; ash<\/button>/', $grid);
+        self::assertMatchesRegularExpression('/aria-pressed="false"[^>]*data-pixonaut-shop-picture="[^"]*frame\.jpg[^"]*Framed print[^"]*">Frame \/ Oak &amp; ash<\/button>/', $grid);
         self::assertMatchesRegularExpression('/wp-block-woocommerce-product-image.*<\/div><div class="' . CardSwatches::GROUP_CLASS . '"/s', $grid, 'After the card\'s picture.');
     }
 

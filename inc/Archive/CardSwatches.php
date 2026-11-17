@@ -76,7 +76,7 @@ final class CardSwatches
     /**
      * The swatches the plugin names that carry what a button needs.
      *
-     * @return list<array{label: string, url: string, image: array{src: string, srcset: string, width: int, height: int}, current: bool}>
+     * @return list<array{label: string, url: string, image: array{src: string, srcset: string, width: int, height: int, alt: string}, current: bool}>
      */
     private static function swatches(mixed $named): array
     {
@@ -99,6 +99,7 @@ final class CardSwatches
                     'srcset' => \is_string($image['srcset'] ?? null) ? $image['srcset'] : '',
                     'width' => is_numeric($image['width'] ?? null) ? (int) $image['width'] : 0,
                     'height' => is_numeric($image['height'] ?? null) ? (int) $image['height'] : 0,
+                    'alt' => \is_string($image['alt'] ?? null) ? $image['alt'] : '',
                 ],
                 'current' => true === ($swatch['current'] ?? false),
             ];
@@ -122,7 +123,7 @@ final class CardSwatches
     }
 
     /**
-     * @param list<array{label: string, url: string, image: array{src: string, srcset: string, width: int, height: int}, current: bool}> $swatches
+     * @param list<array{label: string, url: string, image: array{src: string, srcset: string, width: int, height: int, alt: string}, current: bool}> $swatches
      */
     private static function markup(array $swatches, string $name): string
     {

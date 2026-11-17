@@ -50,7 +50,7 @@ for ( const viewport of [
 							{
 								values: [ { key: 'framing', id: 'frame', label: 'Frame' } ],
 								url: `${ base }/?frame`,
-								image: { src: `${ base }/frame.png`, ...PICTURE },
+								image: { src: `${ base }/frame.png`, ...PICTURE, alt: 'Framed print' },
 							},
 						],
 					} ),
