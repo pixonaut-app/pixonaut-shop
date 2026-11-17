@@ -174,12 +174,47 @@ async function section( page: Page, name: string ) {
 	return found;
 }
 
-/** Ticks a value in the drawer and waits for the filtered page, which opens the drawer again. */
+/** Ticks a value in the drawer and waits for the filtered results, with the drawer still open. */
 async function tick( page: Page, group: string, value: string, address: RegExp ): Promise< void > {
 	const list = await section( page, group );
 	await list.getByRole( 'checkbox', { name: value, exact: true } ).check();
 	await expect( page ).toHaveURL( address );
 	await expect( drawer( page ) ).toBeVisible();
+}
+
+/** The page's root, which carries the class for results on their way (`src/archive/filters-loading.ts`). */
+const LOADING = /\bis-loading-products\b/;
+const RESULTS = 'main .pixonaut-shop-archive-results';
+
+/**
+ * Holds back the archive's new results that `matches` picks until the
+ * returned function is called. WooCommerce's router fetches them as a page.
+ */
+async function holdResults( page: Page, matches: ( url: URL ) => boolean ): Promise< () => void > {
+	let release = (): void => {};
+	const released = new Promise< void >( ( resolve ) => {
+		release = resolve;
+	} );
+
+	await page.route( matches, async ( route ) => {
+		await released;
+		await route.continue();
+	} );
+
+	return release;
+}
+
+/** Marks the page, so a test can tell it was never loaded again. */
+async function markThePage( page: Page ): Promise< void > {
+	await page.evaluate( () => {
+		( window as unknown as { notLoadedAgain: boolean } ).notLoadedAgain = true;
+	} );
+}
+
+async function wasLoadedAgain( page: Page ): Promise< boolean > {
+	return page.evaluate(
+		() => ( window as unknown as { notLoadedAgain?: boolean } ).notLoadedAgain !== true,
+	);
 }
 
 /** Records every layout shift from now on, in `window.shifts`. */
@@ -192,6 +227,13 @@ async function watchShifts( page: Page ): Promise< void > {
 				shifts.push( ( entry as PerformanceEntry & { value: number } ).value );
 			}
 		} ).observe( { type: 'layout-shift', buffered: true } );
+	} );
+}
+
+/** Forgets the shifts so far, such as a section the customer opened. */
+async function forgetShifts( page: Page ): Promise< void > {
+	await page.evaluate( () => {
+		( window as unknown as { shifts: number[] } ).shifts.length = 0;
 	} );
 }
 
@@ -244,7 +286,7 @@ for ( const viewport of VIEWPORTS ) {
 			await drawer( page ).getByRole( 'button', { name: 'Clear all' } ).click();
 
 			await expect( page ).not.toHaveURL( /filter_|min_price/ );
-			// The drawer opens again on the cleared page, as it left it, for new choices.
+			// The drawer stays as it was, for new choices.
 			await expect( drawer( page ) ).toBeVisible();
 			await expect( drawer( page ).getByRole( 'button', { name: 'Clear all' } ) ).toBeDisabled();
 			await expect(
@@ -268,7 +310,7 @@ for ( const viewport of VIEWPORTS ) {
 			await expect( drawer( page ).locator( SORTING ) ).toHaveCount( 0 );
 		} );
 
-		test( 'loading, opening, closing, ticking and taking a chip away shift no layout', async ( {
+		test( 'loading, opening and closing shift no layout, nor do the skeletons while new results are on their way', async ( {
 			page,
 		} ) => {
 			// The first visit loads the fonts, whose swap moves text on every page;
@@ -285,17 +327,59 @@ for ( const viewport of VIEWPORTS ) {
 			await expect( drawer( page ) ).toBeHidden();
 			expect( await shifts( page ), 'opening and closing' ).toEqual( [] );
 
+			// The new results themselves may move the grid: they hold other cards.
+			const release = await holdResults( page, ( url ) => url.search.includes( fixture.filter ) );
 			await openDrawer( page );
-			await tick( page, fixture.framing, fixture.frame, new RegExp( fixture.filter ) );
-			await page.evaluate( () => document.fonts.ready );
-			await drawer( page ).getByRole( 'button', { name: 'Show 1 product' } ).click();
-			await expect( drawer( page ) ).toBeHidden();
-			expect( await shifts( page ), 'ticking a value' ).toEqual( [] );
+			const framing = await section( page, fixture.framing );
+			await forgetShifts( page );
+			await framing.getByRole( 'checkbox', { name: fixture.frame, exact: true } ).check();
+			await expect( page.locator( 'html' ) ).toHaveClass( LOADING );
+			await page.evaluate( () => new Promise( requestAnimationFrame ) );
+			expect( await shifts( page ), 'showing the skeletons' ).toEqual( [] );
+			release();
+			await expect( page.locator( 'html' ) ).not.toHaveClass( LOADING );
+		} );
 
-			await page.locator( `${ CHOSEN } ${ CHIP }` ).getByRole( 'button' ).click();
+		test( 'ticking three values filters in place: the drawer stays open and the grid shows skeletons until each result is in', async ( {
+			page,
+		} ) => {
+			await page.goto( fixture.path );
+			await markThePage( page );
+			await openDrawer( page );
+
+			const release = await holdResults( page, ( url ) => url.search.includes( fixture.filter ) );
+			const frame = ( await section( page, fixture.framing ) ).getByRole( 'checkbox', {
+				name: fixture.frame,
+				exact: true,
+			} );
+			await frame.check();
+
+			await expect( page.locator( 'html' ) ).toHaveClass( LOADING );
+			await expect( page.locator( RESULTS ) ).toHaveAttribute( 'aria-busy', 'true' );
 			await expect( cards( page ) ).toHaveCount( 2 );
-			await page.evaluate( () => document.fonts.ready );
-			expect( await shifts( page ), 'taking the chip away' ).toEqual( [] );
+			await expect( drawer( page ) ).toBeVisible();
+
+			release();
+			await expect( page ).toHaveURL( new RegExp( fixture.filter ) );
+			await expect( page.locator( 'html' ) ).not.toHaveClass( LOADING );
+			await expect( page.locator( RESULTS ) ).not.toHaveAttribute( 'aria-busy', /.*/ );
+			await expect( cards( page ) ).toHaveCount( 1 );
+			await expect( drawer( page ) ).toBeVisible();
+			await expect( frame ).toBeFocused();
+
+			for ( const value of [ fixture.hanger, fixture.noFrame ] ) {
+				await ( await section( page, fixture.framing ) )
+					.getByRole( 'checkbox', { name: value, exact: true } )
+					.check();
+				await expect( page.locator( 'html' ) ).not.toHaveClass( LOADING );
+				await expect( drawer( page ) ).toBeVisible();
+			}
+
+			await expect( cards( page ) ).toHaveCount( 2 );
+			await expect(
+				page.locator( TOOLBAR ).getByRole( 'button', { name: /Show filters/ } ),
+			).toContainText( '3' );
+			expect( await wasLoadedAgain( page ) ).toBe( false );
 		} );
 	} );
 }
@@ -377,7 +461,7 @@ test( 'an address with a filter opens the archive filtered', async ( { page } ) 
 	await expect( cards( page ) ).toHaveCount( 2 );
 } );
 
-test( 'the drawer opens again where it was, with the same sections open and the focus on the value', async ( {
+test( 'a value ticked from the keyboard keeps the drawer where it was, with the same sections open and the focus on the value', async ( {
 	page,
 } ) => {
 	await page.goto( fixture.path );
@@ -400,6 +484,83 @@ test( 'the drawer opens again where it was, with the same sections open and the 
 	await expect(
 		drawer( page ).getByRole( 'checkbox', { name: fixture.frame, exact: true } ),
 	).toBeFocused();
+} );
+
+test( 'a later choice wins over an earlier one still on its way', async ( { page } ) => {
+	await page.goto( fixture.path );
+	await markThePage( page );
+	await openDrawer( page );
+	const framing = await section( page, fixture.framing );
+
+	// Unframed alone lists one product; with the frame too, both.
+	const releaseNoFrame = await holdResults(
+		page,
+		( url ) =>
+			url.searchParams.get( `filter_${ slugOf( fixture.framing ) }` ) === slugOf( fixture.noFrame ),
+	);
+	await framing.getByRole( 'checkbox', { name: fixture.noFrame, exact: true } ).check();
+	await expect( page.locator( 'html' ) ).toHaveClass( LOADING );
+	await framing.getByRole( 'checkbox', { name: fixture.frame, exact: true } ).check();
+
+	await expect( page.locator( 'html' ) ).not.toHaveClass( LOADING );
+	await expect( cards( page ) ).toHaveCount( 2 );
+	releaseNoFrame();
+	await page.waitForLoadState( 'networkidle' );
+
+	await expect( cards( page ) ).toHaveCount( 2 );
+	await expect(
+		framing.getByRole( 'checkbox', { name: fixture.frame, exact: true } ),
+	).toBeChecked();
+	expect( await wasLoadedAgain( page ) ).toBe( false );
+} );
+
+test.describe( 'a page of the filtered results', () => {
+	/** A lowest price both of the fixture's products are over, so the filter lists two pages of one. */
+	const LOWEST_PRICE = 50;
+	let kept = '';
+
+	test.beforeAll( () => {
+		kept = wpEval( `echo implode( ",", ${ TEST_SUPPORT }FilterFixtures::one_product_a_page() );` );
+	} );
+
+	test.afterAll( () => {
+		wpEval( `${ TEST_SUPPORT }FilterFixtures::keep_page_size( ${ kept } );` );
+	} );
+
+	test( 'opens in place and keeps the filter', async ( { page } ) => {
+		await page.goto( `${ fixture.path }?min_price=${ LOWEST_PRICE }` );
+		await markThePage( page );
+		await expect( cards( page ) ).toHaveCount( 1 );
+		const first = await cards( page ).innerText();
+
+		await page
+			.locator( RESULTS )
+			.locator( '.wp-block-query-pagination' )
+			.getByRole( 'link', { name: '2' } )
+			.click();
+
+		await expect( page ).toHaveURL( new RegExp( `/page/2/.*min_price=${ LOWEST_PRICE }` ) );
+		await expect( cards( page ) ).toHaveCount( 1 );
+		await expect( cards( page ) ).not.toHaveText( first );
+		expect( await wasLoadedAgain( page ) ).toBe( false );
+	} );
+} );
+
+test( 'a picture still on its way shows the skeleton colour in its box, not the card', async ( {
+	page,
+} ) => {
+	await page.goto( fixture.path );
+
+	const background = await cards( page )
+		.first()
+		.locator( '.wc-block-components-product-image img' )
+		.evaluate( ( picture ) => getComputedStyle( picture ).backgroundColor );
+	const card = await cards( page )
+		.first()
+		.evaluate( ( element ) => getComputedStyle( element ).backgroundColor );
+
+	expect( background ).not.toBe( 'rgba(0, 0, 0, 0)' );
+	expect( background ).not.toBe( card );
 } );
 
 test( 'a price typed into its field keeps the drawer open', async ( { page } ) => {

@@ -49,6 +49,11 @@ final class ShopArchiveTest extends TestCase
 
     private const BACK_TO_THE_SHOP = 'Back to the shop';
 
+    /** The Interactivity API router's settings, which say whether a page may change in place. */
+    private const ROUTER = 'core/router';
+
+    private const NAVIGATION_DISABLED = 'clientNavigationDisabled';
+
     /** WooCommerce's Product Catalog setting, which sizes the archive's page. */
     private const ROWS_OPTION = 'woocommerce_catalog_rows';
 
@@ -139,6 +144,22 @@ final class ShopArchiveTest extends TestCase
         self::assertStringContainsString(self::POPULAR_HEADING, $archive);
         self::assertStringContainsString(self::PRODUCT, $archive, 'The popular products show no product.');
         self::assertStringNotContainsString(self::ADD_TO_CART, $archive);
+    }
+
+    /**
+     * The no-results panel is inside the product collection on every
+     * archive, rendered or not, so its product search alone decides whether
+     * a filter, a sort or a page swaps the results in place.
+     */
+    public function testAnArchiveFiltersSortsAndPagesWithoutLoadingThePageAgain(): void
+    {
+        $category = $this->category(self::FULL_CATEGORY);
+        $this->product(self::PRODUCT, $category);
+        wp_interactivity_config(self::ROUTER, [self::NAVIGATION_DISABLED => false]);
+
+        $this->render($category);
+
+        self::assertFalse(wp_interactivity_config(self::ROUTER)[self::NAVIGATION_DISABLED] ?? false);
     }
 
     public function testTheThemeStartsWooCommercesProductCatalogAtThreeRowsOfFour(): void

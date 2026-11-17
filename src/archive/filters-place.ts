@@ -1,11 +1,15 @@
 /**
  * Keeps a customer's place while they filter an archive
- * (`patterns/product-filters.php`). WooCommerce loads the page again for
- * every value ticked, which would send them back to the top and close the
- * drawer the filters open in after each tick. The place is noted as a filter
- * changes and taken up again as the next page loads: the page's scroll, and
- * the drawer open where it was scrolled to, with the same sections open and
- * the focus on the control the customer used.
+ * (`patterns/product-filters.php`) on a page that WooCommerce loads again for
+ * every value ticked. It filters in place where it can
+ * (`src/archive/filters-loading.ts`), but loads the whole page where a block
+ * in the product collection cannot stay on a page that changes under it,
+ * which would send the customer back to the top and close the drawer the
+ * filters open in after each tick. The place is noted as a filter changes,
+ * kept only if the page then goes, and taken up again as the next page
+ * loads: the page's scroll, and the drawer open where it was scrolled to,
+ * with the same sections open and the focus on the control the customer
+ * used.
  */
 
 import { archivePath } from './archive-path';
@@ -44,6 +48,9 @@ interface Place {
 	focus: string | null;
 }
 
+/** The place as the customer last changed a filter, and the address they changed it on. */
+let noted: { place: Place; from: string } | null = null;
+
 function notePlace(): void {
 	const panel = document.querySelector( PANEL );
 	const opened = panel?.classList.contains( OPENED_CLASS ) ?? false;
@@ -60,8 +67,25 @@ function notePlace(): void {
 			opened && active !== null && panel?.contains( active ) && active.id !== '' ? active.id : null,
 	};
 
+	noted = { place, from: window.location.href };
+}
+
+/**
+ * Keeps the place for the next page only when the change loads one: the
+ * page then goes before the address moves. Filtered in place, the address
+ * has moved by the time the customer leaves.
+ */
+function keepPlace(): void {
+	if (
+		noted === null ||
+		noted.from !== window.location.href ||
+		Date.now() - noted.place.at >= PLACE_LIFETIME_MS
+	) {
+		return;
+	}
+
 	try {
-		window.sessionStorage.setItem( STORAGE_KEY, JSON.stringify( place ) );
+		window.sessionStorage.setItem( STORAGE_KEY, JSON.stringify( noted.place ) );
 	} catch {
 		// Without storage the next page starts at its top, as it would have.
 	}
@@ -189,6 +213,8 @@ document.addEventListener(
 		notePlace(),
 	true,
 );
+
+window.addEventListener( 'pagehide', keepPlace );
 
 if ( document.readyState === 'loading' ) {
 	document.addEventListener( 'DOMContentLoaded', takeUpPlace );
