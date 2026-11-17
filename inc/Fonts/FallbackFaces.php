@@ -55,7 +55,10 @@ final class FallbackFaces
     /** The heaviest weight a regular local face stands in for. */
     private const REGULAR_UP_TO = 500;
 
-    /** The weights a variable face's two fallback faces are measured at. */
+    /**
+     * The weights of the local regular and bold faces, which a variable
+     * face's two fallback faces are also measured at.
+     */
     private const REGULAR_WEIGHT = 400;
     private const BOLD_WEIGHT    = 700;
 
@@ -169,7 +172,7 @@ final class FallbackFaces
     public function stack(string $stack, array $with_faces): string
     {
         $parts = explode(',', $stack, 2);
-        $name  = self::unquote($parts[0]);
+        $name  = Settings::typeface($stack);
 
         if (
             '' === $name
@@ -205,7 +208,7 @@ final class FallbackFaces
                 continue;
             }
 
-            $name = self::unquote(explode(',', $family['fontFamily'], 2)[0]);
+            $name = Settings::typeface($family['fontFamily']);
 
             foreach ($this->local_fonts($name) as $local => $faces) {
                 $fallback = self::fallback_name($name, $local);
@@ -230,7 +233,8 @@ final class FallbackFaces
      */
     private function face(string $name, string $local, array $faces, string $descriptor, int $weight): string
     {
-        $overrides = $this->metrics->overrides($name, $local, $weight);
+        $bold      = $weight >= self::BOLD_FROM;
+        $overrides = $this->metrics->overrides($name, $weight, $local, $bold ? self::BOLD_WEIGHT : self::REGULAR_WEIGHT);
 
         if (null === $overrides) {
             return '';
@@ -238,7 +242,7 @@ final class FallbackFaces
 
         $sources = array_map(
             static fn (string $face): string => 'local("' . $face . '")',
-            $weight >= self::BOLD_FROM ? $faces['bold'] : $faces['regular']
+            $bold ? $faces['bold'] : $faces['regular']
         );
 
         return \sprintf(
@@ -288,7 +292,7 @@ final class FallbackFaces
                     continue;
                 }
 
-                $name          = strtolower(self::unquote($font));
+                $name          = strtolower(Settings::typeface($font));
                 [$low, $high]  = Settings::weight_range($face, self::REGULAR_WEIGHT);
                 $weights[$name] ??= [];
 
@@ -344,11 +348,6 @@ final class FallbackFaces
         $families = wp_get_global_settings(['typography', 'fontFamilies']);
 
         return \is_array($families) ? $families : [];
-    }
-
-    private static function unquote(string $name): string
-    {
-        return trim($name, " \t\n\"'");
     }
 
     private static function percent(float $fraction): string

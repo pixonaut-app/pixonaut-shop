@@ -114,6 +114,22 @@ final class FallbackFacesTest extends TestCase
         );
     }
 
+    public function testTheLocalFaceIsMeasuredAtTheWeightItIs(): void
+    {
+        // Nunito ExtraBold (481/1000) on Roboto Bold, the 700 face local()
+        // loads (926/2048), not on Roboto's own 800 (930/2048).
+        $css = (new FallbackFaces())->css([self::family(self::NAMED_STACK, ['800'])]);
+
+        self::assertStringContainsString('src:local("Roboto Bold"),local("Roboto-Bold");size-adjust:106.38%;', $css);
+    }
+
+    public function testAWeightKeywordIsTheWeightCssGivesIt(): void
+    {
+        $css = (new FallbackFaces())->css([self::family(self::NAMED_STACK, ['bold'])]);
+
+        self::assertStringContainsString('font-family:"Nunito Fallback Arial";font-style:normal;font-weight:700;src:local("Arial Bold")', $css);
+    }
+
     public function testAVariableFaceGetsARegularAndABoldFallback(): void
     {
         $css = (new FallbackFaces())->css([self::family(self::NAMED_STACK, ['200 900'])]);

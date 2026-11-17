@@ -46,13 +46,14 @@ final class FontMetrics
     }
 
     /**
-     * The overrides that make a fallback typeface take the room of `$family`
-     * at `$weight`: its `size-adjust`, then its ascent, descent and line gap
-     * over that scale, as fractions. Null when either typeface is unknown.
+     * The overrides that make a fallback typeface's face of `$local_weight`
+     * take the room of `$family` at `$weight`: its `size-adjust`, then its
+     * ascent, descent and line gap over that scale, as fractions. Null when
+     * either typeface is unknown.
      *
      * @return array{size: float, ascent: float, descent: float, line_gap: float}|null
      */
-    public function overrides(string $family, string $fallback, int $weight): ?array
+    public function overrides(string $family, int $weight, string $fallback, int $local_weight): ?array
     {
         $font  = $this->row($family);
         $local = $this->row($fallback);
@@ -62,7 +63,7 @@ final class FontMetrics
         }
 
         $font_width  = self::width($font, $weight);
-        $local_width = self::width($local, $weight);
+        $local_width = self::width($local, $local_weight);
 
         if (0 === $font_width || 0 === $local_width || 0 === $font[1] || 0 === $local[1]) {
             return null;

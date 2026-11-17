@@ -76,7 +76,7 @@ final class TitleFontPreload
             return null;
         }
 
-        $faces  = self::faces(self::family($families, $slug));
+        $faces  = self::faces($families, $slug);
         $weight = Settings::weight_range(
             ['fontWeight' => Settings::string_at($title_styles, 'typography', 'fontWeight') ?? Settings::string_at($root_styles, 'typography', 'fontWeight')],
             self::NORMAL_WEIGHT
@@ -107,42 +107,66 @@ final class TitleFontPreload
     }
 
     /**
+     * The families in effect: one per slug, a later origin's replacing an earlier one's.
+     *
      * @param array<mixed> $families
-     * @return array<mixed>|null
+     * @return list<array<mixed>>
      */
-    private static function family(array $families, string $slug): ?array
+    private static function effective(array $families): array
     {
-        $found = null;
+        $by_slug = [];
 
         foreach (self::ORIGINS as $origin) {
             foreach (\is_array($families[$origin] ?? null) ? $families[$origin] : [] as $family) {
-                if (\is_array($family) && $slug === ($family['slug'] ?? null)) {
-                    $found = $family;
+                $slug = Settings::string_at($family, 'slug');
+
+                if (\is_array($family) && null !== $slug) {
+                    $by_slug[$slug] = $family;
                 }
             }
         }
 
-        return $found;
+        return array_values($by_slug);
     }
 
     /**
-     * The family's upright faces that draw Latin text.
+     * The upright faces that draw Latin text in the typeface the preset
+     * `$slug` names first, wherever a family in effect declares them: a
+     * preset may share the faces another declares.
      *
-     * @param array<mixed>|null $family
+     * @param array<mixed> $families
      * @return list<array<mixed>>
      */
-    private static function faces(?array $family): array
+    private static function faces(array $families, string $slug): array
     {
-        $faces = Settings::at($family, 'fontFace');
-        $found = [];
+        $effective = self::effective($families);
+        $stack     = null;
 
-        foreach (\is_array($faces) ? $faces : [] as $face) {
-            if (
-                \is_array($face)
-                && 'italic' !== Settings::string_at($face, 'fontStyle')
-                && self::draws_latin(Settings::string_at($face, 'unicodeRange') ?? '')
-            ) {
-                $found[] = $face;
+        foreach ($effective as $family) {
+            if ($slug === Settings::string_at($family, 'slug')) {
+                $stack = Settings::string_at($family, 'fontFamily');
+            }
+        }
+
+        $typeface = strtolower(Settings::typeface($stack ?? ''));
+        $found    = [];
+
+        if ('' === $typeface) {
+            return [];
+        }
+
+        foreach ($effective as $family) {
+            $faces = Settings::at($family, 'fontFace');
+
+            foreach (\is_array($faces) ? $faces : [] as $face) {
+                if (
+                    \is_array($face)
+                    && $typeface === strtolower(Settings::typeface(Settings::string_at($face, 'fontFamily') ?? ''))
+                    && 'italic' !== Settings::string_at($face, 'fontStyle')
+                    && self::draws_latin(Settings::string_at($face, 'unicodeRange') ?? '')
+                ) {
+                    $found[] = $face;
+                }
             }
         }
 

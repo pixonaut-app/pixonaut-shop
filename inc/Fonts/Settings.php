@@ -10,6 +10,9 @@ namespace Pixonaut\Shop\Fonts;
  */
 final class Settings
 {
+    /** The weights CSS gives its weight keywords. */
+    private const WEIGHT_KEYWORDS = ['normal' => '400', 'bold' => '700'];
+
     public static function at(mixed $data, string ...$path): mixed
     {
         foreach ($path as $key) {
@@ -31,14 +34,23 @@ final class Settings
     }
 
     /**
+     * The first typeface a font stack names, without its quotes.
+     */
+    public static function typeface(string $stack): string
+    {
+        return trim(explode(',', $stack, 2)[0], " \t\n\"'");
+    }
+
+    /**
      * The `fontWeight` of a face or a style as its lowest and highest weight:
-     * the same twice for one weight, `$fallback` when it has none.
+     * the same twice for one weight, `$fallback` when it has none. The
+     * keywords `normal` and `bold` are the weights CSS gives them.
      *
      * @return array{int, int}
      */
     public static function weight_range(mixed $data, int $fallback): array
     {
-        $value = trim(self::string_at($data, 'fontWeight') ?? '');
+        $value = strtr(strtolower(trim(self::string_at($data, 'fontWeight') ?? '')), self::WEIGHT_KEYWORDS);
         $range = '' === $value ? [] : array_map('intval', explode(' ', (string) preg_replace('/\s+/', ' ', $value)));
         $low   = ($range[0] ?? 0) > 0 ? $range[0] : $fallback;
         $high  = ($range[1] ?? 0) > 0 ? $range[1] : $low;

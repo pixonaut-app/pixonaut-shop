@@ -46,12 +46,14 @@ final class TitleFontPreloadTest extends TestCase
             'theme'  => [
                 [
                     'slug'     => 'body',
+                    'fontFamily' => '"Inter", "Inter Fallback", sans-serif',
                     'fontFace' => [['fontFamily' => 'Inter', 'fontWeight' => '700', 'src' => ['file:./assets/fonts/inter/inter-700.woff2']]],
                 ],
             ],
             'custom' => [
                 [
                     'slug'     => 'body',
+                    'fontFamily' => '"Nunito", system-ui, sans-serif',
                     'fontFace' => [
                         self::face('400', 'nunito-ext-400.woff2', self::LATIN_EXT),
                         self::face('400', 'nunito-400.woff2'),
@@ -132,6 +134,7 @@ final class TitleFontPreloadTest extends TestCase
     {
         $families = ['custom' => [[
             'slug'     => 'body',
+            'fontFamily' => 'Nunito, sans-serif',
             'fontFace' => [
                 self::face('200', 'nunito-200.woff2'),
                 self::face('400', 'nunito-400.woff2'),
@@ -141,6 +144,35 @@ final class TitleFontPreloadTest extends TestCase
         ],],];
 
         self::assertSame(self::UPLOADS . $file, (new TitleFontPreload())->href($families, ['typography' => ['fontWeight' => $weight]], self::BODY));
+    }
+
+    public function testAPresetSharingAnothersFacesPreloadsThem(): void
+    {
+        $families                        = self::families();
+        $families['custom'][]            = ['slug' => 'heading', 'fontFamily' => '"Nunito", system-ui, sans-serif'];
+
+        $href = (new TitleFontPreload())->href(
+            $families,
+            ['typography' => ['fontFamily' => 'var:preset|font-family|heading', 'fontWeight' => '800']],
+            self::BODY
+        );
+
+        self::assertSame(self::UPLOADS . 'nunito-800.woff2', $href);
+    }
+
+    public function testFacesOfAReplacedFamilyAreNotPreloaded(): void
+    {
+        // The store's body replaces the theme's: the theme's Inter is no longer loaded.
+        $href = (new TitleFontPreload())->href(self::families(), ['typography' => ['fontWeight' => '700']], self::BODY);
+
+        self::assertStringNotContainsString('inter', (string) $href);
+    }
+
+    public function testAWeightKeywordIsTheWeightCssGivesIt(): void
+    {
+        $href = (new TitleFontPreload())->href(self::families(), ['typography' => ['fontWeight' => 'bold']], self::BODY);
+
+        self::assertSame(self::UPLOADS . 'nunito-800.woff2', $href);
     }
 
     public function testTheLinkIsPrintedAsAFontPreload(): void
