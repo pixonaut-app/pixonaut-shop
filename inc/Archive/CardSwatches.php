@@ -12,9 +12,10 @@ use WC_Product;
  * chosen values of one attribute (Frame: hanger, none and frame): Pixonaut
  * for WooCommerce lists the design once and names, through
  * `pixonaut_wc_storefront_card_swatches`, each of its cards the archive
- * merged, the card's own first (`current`), with the values it is shown for. They follow the card's picture, one button each, the
+ * merged, the card's own first (`current`), with the values it is shown for. They follow the card's price, one compact pill each, the
  * shown one pressed; choosing another shows the design in that value, its
- * picture and the link the card opens, in place (`src/archive/card-swatches.ts`).
+ * picture and the link the card opens, in place (`src/archive/card-swatches.ts`;
+ * in the archive filtered in the browser, the other card itself: `src/archive/client/card-nodes.ts`).
  * The archive filtered in the browser draws the same (`src/archive/client/cards.ts`).
  */
 final class CardSwatches
@@ -25,7 +26,14 @@ final class CardSwatches
 
     public const SWATCH_CLASS = 'pixonaut-shop-card-swatch';
 
-    private const IMAGE_BLOCK = 'woocommerce/product-image';
+    /** The swatches follow the card's price, so the picture-to-name space is the same on every card. */
+    private const PRICE_BLOCK = 'woocommerce/product-price';
+
+    /** WordPress's default priority: nothing else of the theme's changes the price block. */
+    private const PRIORITY = 10;
+
+    /** The filter's arguments: the markup, the block and its instance, whose context names the card's product. */
+    private const ARGUMENTS = 3;
 
     /** Between the labels of a swatch's values, as the archive in the browser joins them. */
     private const LABEL_SEPARATOR = ' / ';
@@ -34,12 +42,9 @@ final class CardSwatches
 
     public const SCRIPT = 'card-swatches';
 
-    /** After the card's second picture (`Product\SecondPicture`), which goes inside the block. */
-    private const AFTER_SECOND_PICTURE = 20;
-
     public function register(): void
     {
-        add_filter('render_block_' . self::IMAGE_BLOCK, [$this, 'render'], self::AFTER_SECOND_PICTURE, 3);
+        add_filter('render_block_' . self::PRICE_BLOCK, [$this, 'render'], self::PRIORITY, self::ARGUMENTS);
     }
 
     /**
