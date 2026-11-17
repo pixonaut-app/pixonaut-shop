@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.3](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.7.2...v1.7.3) (2026-11-17)
+
+
+### Bug Fixes
+
+* **search:** count and suggest in the header search what the results page lists ([#46](https://github.com/pixonaut-app/pixonaut-shop/issues/46)) ([4d83e50](https://github.com/pixonaut-app/pixonaut-shop/commit/4d83e500b409c2497edbae9c71a490fb0e23899f))
+
 ## [1.7.2](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.7.1...v1.7.2) (2026-11-17)
 
 
