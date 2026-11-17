@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.3](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.12.2...v1.12.3) (2026-11-17)
+
+
+### Bug Fixes
+
+* **header:** keep the header's size from the first paint when a store's typeface loads ([#78](https://github.com/pixonaut-app/pixonaut-shop/issues/78)) ([412cf7b](https://github.com/pixonaut-app/pixonaut-shop/commit/412cf7b0fdd4d44a5b086e0cbb952d40929ea334))
+
 ## [1.12.2](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.12.1...v1.12.2) (2026-11-17)
 
 
