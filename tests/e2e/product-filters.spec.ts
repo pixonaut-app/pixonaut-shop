@@ -336,6 +336,18 @@ for ( const viewport of VIEWPORTS ) {
 			await expect( cards( page ).first() ).toContainText( fixture.unframed );
 			await expect( drawer( page ).locator( SORTING ) ).toHaveCount( 0 );
 			expect( await wasLoadedAgain( page ) ).toBe( false );
+
+			// The longest order stays in its own place, clear of the filters' button.
+			await sorting.selectOption( 'price-desc' );
+			await expect( page ).toHaveURL( /orderby=price-desc/ );
+			const buttonBox = await button.boundingBox();
+			const sortingBox = await sorting.locator( 'xpath=..' ).boundingBox();
+			expect( sortingBox?.x ).toBeGreaterThanOrEqual(
+				( buttonBox?.x ?? 0 ) + ( buttonBox?.width ?? 0 ),
+			);
+			expect( ( sortingBox?.x ?? 0 ) + ( sortingBox?.width ?? 0 ) ).toBeLessThanOrEqual(
+				viewport.width,
+			);
 		} );
 
 		test( 'loading, opening and closing shift no layout, nor do the skeletons while new results are on their way', async ( {
