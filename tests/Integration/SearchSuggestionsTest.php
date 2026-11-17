@@ -35,9 +35,10 @@ final class SearchSuggestionsTest extends TestCase
     protected function tearDown(): void
     {
         SplitCardFixtures::forget();
-        // The main query is the one object a request has; empty it again.
+        // The main query and WooCommerce's product loop are one per request; empty them again.
         $GLOBALS['wp_query']->init();
         wp_reset_postdata();
+        wc_reset_loop();
         parent::tearDown();
     }
 
