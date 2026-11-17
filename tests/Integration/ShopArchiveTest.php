@@ -80,9 +80,10 @@ final class ShopArchiveTest extends TestCase
         }
         $this->catalogue_options = [];
 
-        // The main query is the one object a request has; empty it again.
+        // The main query and WooCommerce's product loop are one per request; empty them again.
         $GLOBALS['wp_query']->init();
         wp_reset_postdata();
+        wc_reset_loop();
         parent::tearDown();
     }
 
@@ -209,6 +210,8 @@ final class ShopArchiveTest extends TestCase
         $hierarchy = apply_filters('taxonomy_template_hierarchy', ["taxonomy-{$term->taxonomy}-{$term->slug}", "taxonomy-{$term->taxonomy}", 'taxonomy']);
         $template  = resolve_block_template('taxonomy', $hierarchy, '');
         self::assertNotNull($template);
+        // WooCommerce sets up its loop once a request, from the main query.
+        wc_reset_loop();
 
         // The archive itself: the header's search lists popular products of its own.
         self::assertSame(1, preg_match('/<main\b.*<\/main>/s', do_blocks($template->content), $main));

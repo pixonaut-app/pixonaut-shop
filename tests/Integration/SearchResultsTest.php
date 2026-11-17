@@ -86,9 +86,10 @@ final class SearchResultsTest extends TestCase
 
         wp_delete_term($this->term_id, self::CATEGORY);
 
-        // The main query is the one object a request has; empty it again.
+        // The main query and WooCommerce's product loop are one per request; empty them again.
         $GLOBALS['wp_query']->init();
         wp_reset_postdata();
+        wc_reset_loop();
         parent::tearDown();
     }
 
