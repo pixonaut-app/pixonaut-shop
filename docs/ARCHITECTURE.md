@@ -54,6 +54,7 @@ its modules and calling their `register()`:
 | product | `Product\SecondPicture` | Prints a product card's second picture after the first inside WooCommerce's Product Image block, in a product loop: the product's next gallery picture, lazy and sized, with an empty alt text. The card's styles lay it over the first, which stays under it, and show it while the card is hovered or holds the focus, on devices that hover; it takes the Width and Scale the store set on the block. Nothing is printed for a product with no other picture. Its script (`src/product/second-picture.ts`), loaded with the first card that has one, takes a second picture that fails to load out of its card. The picture and the gallery are read through WooCommerce (`get_image_id()`, `get_gallery_image_ids()`), so a card a plugin shows with another picture takes the gallery picture after that one. |
 | dependencies | `Dependencies\WooCommerceNotice` | Tells an administrator who can install plugins that the shop needs WooCommerce, while it is inactive, in a notice they can dismiss for good. |
 | pixonaut | `Pixonaut\Integration` | Holds the theme's callbacks on Pixonaut for WooCommerce's documented hooks, and their names; they run only when the plugin fires them. |
+| pixonaut | `Pixonaut\ThemeSettings` | Declares the store's settings below ([Options other tools write](#options-other-tools-write)) through the plugin's `pixonaut_wc_theme_settings` filter, so its tools read and change them. |
 | updates | `Updates\Updates` | Starts the update checker. Not in the wordpress.org build. |
 
 Hooks are added with explicit priorities inside each module where a priority
@@ -396,7 +397,7 @@ shows the menu as the simple header does in either variant.
 
 ## Options other tools write
 
-Two options are a contract with the tools that set up a store, which write
+These options are a contract with the tools that set up a store, which write
 them; the theme only reads them, and a store's own edits never write them.
 Their names and shapes stay as they are.
 
@@ -405,6 +406,27 @@ Their names and shapes stay as they are.
 | `pixonaut_shop_hero` | An array: `heading`, `text`, `button_label` and `button_url`, each a string, and `image_id`, an int, an image attachment's ID. | `inc/FrontPage/Hero.php` | The `pixonaut-shop/hero` pattern shows that heading, sentence, one button and picture, with no pill, in place of its placeholders. |
 | `pixonaut_shop_campaign` | An array: `text` and `url`, strings, and `starts` and `ends`, ISO 8601 dates in the site's time zone (`2026-11-27` or `2026-11-27T08:00:00`). | `inc/Campaign/CampaignBand.php` | While `starts <= now < ends`, a band with the text, linked to the address, takes the announcement part's place on every page. An address that is a reduced product's adds its lowest price of the last 30 days. |
 | `pixonaut_shop_header` | `simple` or `mega`; unset is `simple`. | `inc/Header/HeaderVariant.php` | Which header the store shows: `simple`, the menu in the row, or `mega`, the menu button that opens the mega menu's panel. |
+
+### Declared to Pixonaut for WooCommerce
+
+`Pixonaut\ThemeSettings` declares these three options, and the variable
+price choice a store also makes in WooCommerce's product settings, through
+the plugin's `pixonaut_wc_theme_settings` filter, so its `get-theme-settings`
+and `update-theme-settings` abilities read and change them, checking each
+value against its schema with `rest_validate_value_from_schema()`. A value
+set to `null` deletes the option, and the theme shows the default.
+
+| Option | Schema | Default | What it shows |
+| --- | --- | --- | --- |
+| `pixonaut_shop_header` | string, `simple` or `mega` | `simple` | The one-row header, or the one whose menu button opens the mega menu's panel. |
+| `pixonaut_shop_variable_price` | string, `from`, `from_short` or `range` | `from` | A variable product's price before a variation is chosen: "From" and its lowest price, "Fr." and its lowest price, or the range. Also in WooCommerce's product settings and the Customizer. |
+| `pixonaut_shop_hero` | object or null: `heading`, `text`, `button_label`, `button_url` strings and `image_id` an integer of at least 1, all required, no other keys; `heading` and `button_label` not blank, `button_url` not empty | `null` | The front page hero; `null` keeps the pattern's placeholders. |
+| `pixonaut_shop_campaign` | object or null: `text` (not blank), `url`, `starts` and `ends` strings, `text`, `starts` and `ends` required, no other keys; the dates match `CampaignBand::DATE_PATTERN` | `null` | The campaign band while it runs; `null` shows none. |
+
+The schemas refer to the constants of the classes that read the options, so
+an allowed value is written once. The schema checks a value's shape only:
+whether `image_id` is an image in the media library, or whether a date is a
+real one, is checked as the theme reads the option.
 
 The campaign band never shows without dates: a campaign missing either date,
 or holding one that is not a real date, or ending before it starts, is
