@@ -186,6 +186,18 @@ class ClientArchive {
 		this.shown = shownCards( index, this.choice );
 		// The cards the server drew for the address stay as they are.
 		this.feed.adopt( this.shown.length, grid.querySelectorAll( CARD ).length );
+
+		// The archive puts the scroll back itself, once its cards are drawn.
+		window.history.scrollRestoration = 'manual';
+
+		// Back on the archive from a product: as many cards as were drawn, scrolled where it was left.
+		const entry = entryOf( window.history.state );
+
+		if ( entry && entry.drawn > this.feed.drawnCount ) {
+			this.feed.reset( this.shown.length, entry.drawn );
+			window.scrollTo( { top: entry.scroll, behavior: 'instant' } );
+		}
+
 		this.render();
 		this.noteEntry();
 		this.listen( panel );
@@ -318,6 +330,18 @@ class ClientArchive {
 				next.values.delete( filter.key );
 			}
 		}
+	}
+
+	/** Shows the choice of a history entry back or forward stepped to, scrolled where it was left. */
+	restore( state: unknown ): void {
+		const entry = entryOf( state );
+		const next = choiceFrom(
+			new URL( window.location.href ),
+			this.index.filters,
+			this.config.defaultSort,
+		);
+		this.apply( next, 'none', entry?.drawn ?? 0 );
+		window.scrollTo( { top: entry?.scroll ?? 0, behavior: 'instant' } );
 	}
 
 	private setPrice( min: number | null, max: number | null, history: 'push' | 'replace' ): void {
@@ -457,23 +481,6 @@ class ClientArchive {
 			}
 		} ).observe( panel, { attributes: true, attributeFilter: [ 'class' ] } );
 
-		// Before the router, which would load the page again for an entry it did not make.
-		window.addEventListener(
-			'popstate',
-			( event ) => {
-				event.stopImmediatePropagation();
-				const entry = entryOf( event.state );
-				const next = choiceFrom(
-					new URL( window.location.href ),
-					this.index.filters,
-					this.config.defaultSort,
-				);
-				this.apply( next, 'none', entry?.drawn ?? 0 );
-				window.scrollTo( { top: entry?.scroll ?? 0, behavior: 'instant' } );
-			},
-			true,
-		);
-
 		window.addEventListener(
 			'scroll',
 			() => {
@@ -505,8 +512,20 @@ async function start(): Promise< void > {
 	}
 
 	document.documentElement.setAttribute( CLIENT_ARCHIVE_ATTRIBUTE, '' );
-	new ClientArchive( index, config, grid, panel );
+	archive = new ClientArchive( index, config, grid, panel );
 }
+
+let archive: ClientArchive | null = null;
+
+// Before WordPress's router, whose own listener would draw the page it kept
+// for the address, or load it again for an entry it did not make: this one
+// is added first, as the page loads, and the router's later.
+window.addEventListener( 'popstate', ( event ) => {
+	if ( archive ) {
+		event.stopImmediatePropagation();
+		archive.restore( event.state );
+	}
+} );
 
 if ( document.readyState === 'loading' ) {
 	document.addEventListener( 'DOMContentLoaded', () => void start() );

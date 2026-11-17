@@ -83,6 +83,10 @@ export function variationMatches(
 		}
 	}
 
+	return withinPrice( variation, min, max );
+}
+
+function withinPrice( variation: Variation, min: number | null, max: number | null ): boolean {
 	const highest = variation.priceMax ?? variation.price;
 
 	return ( min === null || highest >= min ) && ( max === null || variation.price <= max );
@@ -176,6 +180,53 @@ function changesWaivers( filters: Filter[], filter: Filter, values: Values ): bo
 	return filters.some( ( other ) => other.parent?.key === filter.key && values.has( other.key ) );
 }
 
+/**
+ * For each card's variations, the chosen filters (and the price) each fails,
+ * one bit each, so a count can ask whether a variation passes every filter
+ * but its own at once.
+ */
+interface Fails {
+	bits: Map< string, number >;
+	masks: number[][];
+}
+
+const PRICE_BIT_KEY = '';
+
+function failsOf( index: ArchiveIndex, choice: Choice ): Fails {
+	const bits = new Map< string, number >();
+	const keys = [ ...choice.values.keys() ];
+	keys.forEach( ( key, place ) => {
+		bits.set( key, 1 << place );
+	} );
+	const priceBit = 1 << keys.length;
+	bits.set( PRICE_BIT_KEY, priceBit );
+	const waived = waivers( index.filters, choice.values );
+
+	const masks = index.cards.map( ( card ) =>
+		card.variations.map( ( variation ) => {
+			let mask = 0;
+
+			for ( const [ key, ids ] of choice.values ) {
+				const held = variation.values[ key ];
+				const passes =
+					held !== undefined && ( held.length === 0 ? waived.has( key ) : anyChosen( held, ids ) );
+
+				if ( ! passes ) {
+					mask |= bits.get( key ) ?? 0;
+				}
+			}
+
+			if ( ! withinPrice( variation, choice.min, choice.max ) ) {
+				mask |= priceBit;
+			}
+
+			return mask;
+		} ),
+	);
+
+	return { bits, masks };
+}
+
 /** One value's count: the cards shown with it added. */
 function countOne( index: ArchiveIndex, choice: Choice, key: string, id: string ): number {
 	return shownWith( index, withValue( choice.values, key, id ), choice.min, choice.max ).length;
@@ -187,7 +238,12 @@ function countOne( index: ArchiveIndex, choice: Choice, key: string, id: string 
  * for a value when it passes them and one of the variations that pass them
  * holds the value or one already chosen.
  */
-function countAll( index: ArchiveIndex, choice: Choice, filter: Filter ): Map< string, number > {
+function countAll(
+	index: ArchiveIndex,
+	choice: Choice,
+	filter: Filter,
+	fails: Fails,
+): Map< string, number > {
 	const key = filter.key;
 	const chosen = choice.values.get( key ) ?? new Set< string >();
 	const others = new Map( choice.values );
@@ -200,9 +256,11 @@ function countAll( index: ArchiveIndex, choice: Choice, filter: Filter ): Map< s
 	const perValue = new Map< string, number >();
 	const ids = ( filter.values ?? [] ).map( ( value ) => value.id );
 
-	for ( const card of index.cards ) {
+	const own = fails.bits.get( key ) ?? 0;
+
+	index.cards.forEach( ( card, place ) => {
 		if ( ! card.onlyFiltered.every( ( only ) => only === key || others.has( only ) ) ) {
-			continue;
+			return;
 		}
 
 		const passesOthers = card.listedBy.every( ( listed ) => {
@@ -213,28 +271,31 @@ function countAll( index: ArchiveIndex, choice: Choice, filter: Filter ): Map< s
 		} );
 
 		if ( ! passesOthers ) {
-			continue;
+			return;
 		}
 
 		// The values of the filter the card's passing variations hold, and whether one passes it waived.
 		const held = new Set< string >();
 		let passesWaived = false;
 
-		for ( const variation of card.variations ) {
-			const own = variation.values[ key ];
+		card.variations.forEach( ( variation, at ) => {
+			const values = variation.values[ key ];
 
-			if ( ! own || ( own.length === 0 && ! filterWaived ) ) {
-				continue;
+			// Passes every other filter: it fails none but, perhaps, this one.
+			if (
+				! values ||
+				( values.length === 0 && ! filterWaived ) ||
+				( fails.masks[ place ][ at ] & ~own ) !== 0
+			) {
+				return;
 			}
 
-			if ( variationMatches( variation, others, choice.min, choice.max, waived ) ) {
-				passesWaived ||= own.length === 0;
+			passesWaived ||= values.length === 0;
 
-				for ( const id of own ) {
-					held.add( id );
-				}
+			for ( const id of values ) {
+				held.add( id );
 			}
-		}
+		} );
 
 		const cardHolds = card.listedBy.includes( key ) ? ( card.holds[ key ] ?? [] ) : null;
 		const holdsChosen = passesWaived || [ ...chosen ].some( ( id ) => held.has( id ) );
@@ -250,7 +311,7 @@ function countAll( index: ArchiveIndex, choice: Choice, filter: Filter ): Map< s
 				perValue.set( id, ( perValue.get( id ) ?? 0 ) + 1 );
 			}
 		}
-	}
+	} );
 
 	return perValue;
 }
@@ -261,6 +322,7 @@ export function counts(
 	choice: Choice,
 ): Map< string, Map< string, number > > {
 	const result = new Map< string, Map< string, number > >();
+	const fails = failsOf( index, choice );
 
 	for ( const filter of index.filters ) {
 		if ( filter.type !== 'attribute' ) {
@@ -268,7 +330,7 @@ export function counts(
 		}
 
 		if ( ! changesWaivers( index.filters, filter, choice.values ) ) {
-			result.set( filter.key, countAll( index, choice, filter ) );
+			result.set( filter.key, countAll( index, choice, filter, fails ) );
 			continue;
 		}
 
