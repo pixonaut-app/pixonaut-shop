@@ -697,3 +697,23 @@ add_action(
         ]);
     }
 );
+
+/** The cookie a suite names a card's swatches in, as JSON by product name: what the plugin names for a design shown in several values. */
+const PIXONAUT_SHOP_FAKE_SWATCHES_COOKIE = 'fake_card_swatches';
+
+add_filter(
+    'pixonaut_wc_storefront_card_swatches',
+    static function (mixed $swatches, mixed $product): mixed {
+        $named = $_COOKIE[PIXONAUT_SHOP_FAKE_SWATCHES_COOKIE] ?? null;
+
+        if (! is_string($named) || ! $product instanceof WC_Product || ! pixonaut_shop_fake_is_standing_in()) {
+            return $swatches;
+        }
+
+        $decoded = json_decode(wp_unslash($named), true);
+
+        return is_array($decoded) && is_array($decoded[$product->get_name()] ?? null) ? $decoded[$product->get_name()] : $swatches;
+    },
+    10,
+    2
+);

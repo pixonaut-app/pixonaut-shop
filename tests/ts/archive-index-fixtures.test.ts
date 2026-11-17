@@ -17,6 +17,8 @@ interface Expected {
 	cards: string[];
 	links: string[];
 	images: string[];
+	/** Each card's swatches: the other cards of its design, their links and pictures. */
+	swatches?: { link: string; image: string }[][];
 	counts?: Record< string, Record< string, number > >;
 }
 
@@ -61,6 +63,22 @@ for ( const file of readdirSync( DIRECTORY ).filter( ( name ) => name.endsWith( 
 					shown.map( ( card ) => pictureOf( index, card, choice ).src ),
 					entry.images,
 				);
+
+				if ( entry.swatches ) {
+					assert.deepEqual(
+						shown.map( ( card ) =>
+							card.swatches
+								.filter( ( other ) => other !== card )
+								.map( ( other ) => ( {
+									link: normalised( linkOf( other, base, choice ) ),
+									image: pictureOf( index, other, choice ).src,
+								} ) ),
+						),
+						entry.swatches.map( ( others ) =>
+							others.map( ( other ) => ( { link: normalised( other.link ), image: other.image } ) ),
+						),
+					);
+				}
 
 				const got = counts( index, choice );
 

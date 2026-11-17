@@ -71,7 +71,7 @@ interface Config {
 	prices: PriceTemplates;
 	saleBadge: string;
 	noProducts: string;
-	text: Words & FeedWords & { fetching: string };
+	text: Words & FeedWords & { fetching: string; swatchGroup: string };
 }
 
 /** What the archive keeps in each history entry it makes. */
@@ -217,6 +217,7 @@ class ClientArchive {
 			prices: this.config.prices,
 			saleBadge: this.config.saleBadge,
 			choice: this.choice,
+			swatchGroup: this.config.text.swatchGroup,
 		} );
 	}
 
