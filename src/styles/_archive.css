@@ -62,9 +62,14 @@
 	text-align: center;
 }
 
+/*
+ * At the end of its place, never past it: a long order on a phone shortens
+ * rather than running over the filters' button.
+ */
 .pixonaut-shop-archive-toolbar > .wp-block-woocommerce-catalog-sorting {
+	display: flex;
 	grid-area: sort;
-	justify-self: end;
+	justify-content: flex-end;
 }
 
 /*
@@ -79,6 +84,7 @@
 	position: relative;
 	display: flex;
 	box-sizing: border-box;
+	min-width: 0;
 	max-width: 100%;
 	min-height: var( --ps-field-height );
 	margin: 0;
@@ -100,8 +106,12 @@
 	border-radius: inherit;
 	background: transparent;
 	color: inherit;
-	/* A long order on a phone shortens to one line rather than growing the toolbar. */
-	overflow: hidden;
+	/*
+	 * A long order on a phone shortens to one line rather than growing the
+	 * toolbar, cut before the chevron's room rather than under it.
+	 */
+	overflow: clip;
+	overflow-clip-margin: content-box;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	cursor: pointer;
