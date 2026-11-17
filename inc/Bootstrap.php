@@ -31,6 +31,7 @@ final class Bootstrap
         $this->register_product($lowest_price);
         $this->register_account();
         $this->register_orders();
+        $this->register_cart();
         $this->register_pixonaut();
         $this->register_updates();
     }
@@ -134,6 +135,12 @@ final class Bootstrap
     private function register_orders(): void
     {
         (new Orders\OrderReceivedBand())->register();
+    }
+
+    /** The Cart page's empty cart, drawn as the theme's. */
+    private function register_cart(): void
+    {
+        (new Cart\EmptyCart())->register();
     }
 
     /**

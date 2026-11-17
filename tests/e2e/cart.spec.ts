@@ -55,6 +55,7 @@ async function box(
 	return found as NonNullable< typeof found >;
 }
 const EMPTY_TITLE = '.wc-block-cart__empty-cart__title';
+const EMPTY_PANEL = '.pixonaut-shop-empty-cart';
 
 test( 'the cart has a title row with the way back to the shop', async ( { page, baseURL } ) => {
 	await page.goto( CART_PATH );
@@ -151,6 +152,24 @@ test( 'an empty cart shows its empty state, with the way back to the shop', asyn
 		await title.evaluate( ( heading ) => getComputedStyle( heading, '::before' ).borderRadius ),
 	).toBe( '50%' );
 	// WooCommerce words this link differently from one release to the next; where it leads is what counts.
-	await expect( empty.locator( `a[href="${ baseURL }${ SHOP_PATH }"]` ) ).toBeVisible();
+	const back = empty.locator( `a[href="${ baseURL }${ SHOP_PATH }"]` );
+	await expect( back ).toBeVisible();
 	await expect( empty.locator( LINE ) ).toHaveCount( 0 );
+
+	// The heading and the way back sit inside one panel, nothing crossing its edge.
+	const panel = empty.locator( EMPTY_PANEL );
+	await expect( panel ).toHaveCount( 1 );
+	await expect( panel.locator( EMPTY_TITLE ) ).toBeVisible();
+	await expect( panel.locator( `a[href="${ baseURL }${ SHOP_PATH }"]` ) ).toBeVisible();
+
+	const edge = await box( panel );
+	const link = await box( back );
+
+	expect( link.y + link.height ).toBeLessThanOrEqual( edge.y + edge.height );
+	await expect( empty.locator( '.wp-block-separator' ) ).toHaveCount( 0 );
+	// The newest products are the product grid's cards, not WooCommerce's legacy grid.
+	await expect( empty.locator( '.wp-block-woocommerce-product-new' ) ).toHaveCount( 0 );
+	await expect(
+		empty.locator( '.wc-block-product-template .wc-block-product' ).first(),
+	).toBeVisible();
 } );
