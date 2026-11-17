@@ -10,6 +10,8 @@ export const SWATCH_CLASS = 'pixonaut-shop-card-swatch';
 export const LINK_ATTRIBUTE = 'data-pixonaut-shop-link';
 /** The picture of the design in the swatch's value, as JSON. */
 export const PICTURE_ATTRIBUTE = 'data-pixonaut-shop-picture';
+/** The card's name in the swatch's value, where it has one of its own. */
+export const TITLE_ATTRIBUTE = 'data-pixonaut-shop-title';
 /** The card's price in the swatch's value, as markup; the server's swatches carry none. */
 export const PRICE_ATTRIBUTE = 'data-pixonaut-shop-price';
 
@@ -25,6 +27,8 @@ export interface Swatch {
 	label: string;
 	url: string;
 	picture: SwatchPicture;
+	/** The card's name in the swatch's value, where it is known. */
+	title?: string;
 	/** The card's price markup in the swatch's value, where it is known. */
 	price?: string;
 	current: boolean;
@@ -40,6 +44,7 @@ export function swatchOf( button: Element ): Swatch | null {
 					label: button.textContent ?? '',
 					url,
 					picture: { ...picture, srcset: picture.srcset ?? '', alt: picture.alt ?? '' },
+					title: button.getAttribute( TITLE_ATTRIBUTE ) ?? undefined,
 					price: button.getAttribute( PRICE_ATTRIBUTE ) ?? undefined,
 					current: button.getAttribute( 'aria-pressed' ) === 'true',
 				}
@@ -63,6 +68,10 @@ export function drawSwatches( swatches: Swatch[], groupLabel: string ): HTMLElem
 		button.setAttribute( 'aria-pressed', String( swatch.current ) );
 		button.setAttribute( LINK_ATTRIBUTE, swatch.url );
 		button.setAttribute( PICTURE_ATTRIBUTE, JSON.stringify( swatch.picture ) );
+
+		if ( swatch.title !== undefined ) {
+			button.setAttribute( TITLE_ATTRIBUTE, swatch.title );
+		}
 
 		if ( swatch.price !== undefined ) {
 			button.setAttribute( PRICE_ATTRIBUTE, swatch.price );

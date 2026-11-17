@@ -291,6 +291,18 @@ describe( 'a design shown in several chosen values', () => {
 		assert.equal( swatchLabel( split, shown[ 0 ].swatches[ 1 ].card ), 'Frame' );
 	} );
 
+	it( 'names the card always listed by its value of what the design’s cards differ in', () => {
+		const always = { ...split.cards[ 0 ], onlyFiltered: [] };
+		const design = [ always, split.cards[ 1 ] ];
+
+		assert.equal(
+			swatchLabel( split, always ),
+			always.title,
+			'Alone it has nothing to be named by.',
+		);
+		assert.equal( swatchLabel( split, always, design ), 'No frame' );
+	} );
+
 	it( 'counts once in every value’s count', () => {
 		const result = counts( split, both );
 

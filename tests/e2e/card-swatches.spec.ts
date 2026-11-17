@@ -51,6 +51,7 @@ for ( const viewport of [
 								values: [ { key: 'framing', id: 'frame', label: 'Frame' } ],
 								url: `${ base }/?frame`,
 								image: { src: `${ base }/frame.png`, ...PICTURE, alt: 'Framed print' },
+								title: 'Framed version',
 							},
 						],
 					} ),
@@ -60,7 +61,10 @@ for ( const viewport of [
 		] );
 		await page.goto( fixture.path );
 
-		const card = page.locator( 'main .wc-block-product', { hasText: fixture.framed } );
+		// By its swatches' name, which stays as the card's own name swaps.
+		const card = page.locator( 'main .wc-block-product' ).filter( {
+			has: page.getByRole( 'group', { name: `Versions of ${ fixture.framed }` } ),
+		} );
 		const swatches = card.getByRole( 'group', { name: `Versions of ${ fixture.framed }` } );
 		await expect( swatches.getByRole( 'button', { name: 'Hanger' } ) ).toHaveAttribute(
 			'aria-pressed',
@@ -90,6 +94,18 @@ for ( const viewport of [
 		await expect(
 			card.locator( '.wp-block-woocommerce-product-image img' ).first(),
 		).toHaveAttribute( 'src', `${ base }/frame.png` );
+		await expect(
+			card.locator( '.wp-block-woocommerce-product-image img' ).first(),
+		).toHaveAttribute( 'alt', 'Framed print' );
+		await expect( card.locator( '.wp-block-post-title a' ) ).toHaveText( 'Framed version' );
+
+		// Back to the card's own swatch, which names no other name.
+		await swatches.getByRole( 'button', { name: 'Hanger' } ).click();
+		await expect( card.locator( '.wp-block-post-title a' ) ).toHaveText( fixture.framed );
+		await expect( card.locator( '.wp-block-post-title a' ) ).toHaveAttribute(
+			'href',
+			`${ base }/?hanger`,
+		);
 		expect( made ).toEqual( [] );
 	} );
 }
