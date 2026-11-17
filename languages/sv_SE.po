@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-11-17T17:53:21+00:00\n"
+"POT-Creation-Date: 2026-11-17T17:56:34+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -102,8 +102,12 @@ msgid_plural "%s products"
 msgstr[0] "%s produkt"
 msgstr[1] "%s produkter"
 
+#: inc/Archive/ClientArchive.php:164
+msgid "No products"
+msgstr "Inga produkter"
+
 #. translators: %s: how many products the chosen filters list.
-#: inc/Archive/ClientArchive.php:165 inc/Archive/FilterDrawer.php:203
+#: inc/Archive/ClientArchive.php:166 inc/Archive/FilterDrawer.php:203
 #, php-format
 msgid "Show %s product"
 msgid_plural "Show %s products"
@@ -111,7 +115,7 @@ msgstr[0] "Visa %s produkt"
 msgstr[1] "Visa %s produkter"
 
 #. translators: %s: how many filters the customer has chosen.
-#: inc/Archive/ClientArchive.php:167 inc/Archive/FilterDrawer.php:160
+#: inc/Archive/ClientArchive.php:168 inc/Archive/FilterDrawer.php:160
 #, php-format
 msgid "(%s chosen)"
 msgid_plural "(%s chosen)"
@@ -119,38 +123,38 @@ msgstr[0] "(%s vald)"
 msgstr[1] "(%s valda)"
 
 #. translators: %s: a chosen filter, as "Size: Large".
-#: inc/Archive/ClientArchive.php:169
+#: inc/Archive/ClientArchive.php:170
 #, php-format
 msgid "Remove the filter %s"
 msgstr "Ta bort filtret %s"
 
-#: inc/Archive/ClientArchive.php:170
+#: inc/Archive/ClientArchive.php:171
 msgid "Loading more products…"
 msgstr "Laddar fler produkter…"
 
-#: inc/Archive/ClientArchive.php:171
+#: inc/Archive/ClientArchive.php:172
 msgid "Fetching products…"
 msgstr "Hämtar produkter…"
 
 #. translators: 1: how many products the customer has scrolled past, 2: how many the archive shows.
-#: inc/Archive/ClientArchive.php:173
+#: inc/Archive/ClientArchive.php:174
 #, php-format
 msgid "You have seen %1$s of %2$s products"
 msgstr "Du har sett %1$s av %2$s produkter"
 
 #. translators: %s: how many products the archive shows, all of which the customer has scrolled past.
-#: inc/Archive/ClientArchive.php:175
+#: inc/Archive/ClientArchive.php:176
 #, php-format
 msgid "You have seen %s product"
 msgid_plural "You have seen all %s products"
 msgstr[0] "Du har sett %s produkt"
 msgstr[1] "Du har sett alla %s produkter"
 
-#: inc/Archive/ClientArchive.php:176
+#: inc/Archive/ClientArchive.php:177
 msgid "Show more"
 msgstr "Visa fler"
 
-#: inc/Archive/ClientArchive.php:177
+#: inc/Archive/ClientArchive.php:178
 msgid "Back to top"
 msgstr "Till toppen"
 

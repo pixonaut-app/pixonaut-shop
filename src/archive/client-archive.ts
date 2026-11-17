@@ -256,10 +256,16 @@ class ClientArchive {
 
 	private priceLabel( min: number | null, max: number | null ): string {
 		const filter = this.index.filters.find( ( known ) => known.type === 'price' );
-		const amount = ( n: number ): string =>
-			this.config.prices.amount
-				.replace( '{{a}}', formatAmount( n, this.index.currency ) )
-				.replace( /<[^>]*>/g, '' );
+		// The amount's text as the store prints it, its symbol's entities read.
+		const amount = ( n: number ): string => {
+			const template = document.createElement( 'template' );
+			template.innerHTML = this.config.prices.amount.replace(
+				'{{a}}',
+				formatAmount( n, this.index.currency ),
+			);
+
+			return template.content.textContent?.trim() ?? '';
+		};
 		const range = [ min === null ? '' : amount( min ), max === null ? '' : amount( max ) ].join(
 			' – ',
 		);

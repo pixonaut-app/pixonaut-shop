@@ -52,6 +52,8 @@ const FULL_RANGE_PERCENT = 100;
 
 export interface Words {
 	count: Plural;
+	/** The count of a result with no product. */
+	none: string;
 	showProducts: Plural;
 	chosen: Plural;
 	removeFilter: string;
@@ -583,6 +585,6 @@ export function syncCounts( shown: number, chosen: number, words: Words ): void 
 	const count = document.querySelector( `main ${ RESULT_COUNT }` );
 
 	if ( count ) {
-		count.textContent = plural( words.count, shown );
+		count.textContent = shown === 0 ? words.none : plural( words.count, shown );
 	}
 }

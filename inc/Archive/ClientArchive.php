@@ -161,6 +161,7 @@ final class ClientArchive
         return [
             /* translators: %s: how many products the archive shows. */
             'count' => $plural(static fn (int $n): string => _n('%s product', '%s products', $n, 'pixonaut-shop')),
+            'none' => __('No products', 'pixonaut-shop'),
             /* translators: %s: how many products the chosen filters list. */
             'showProducts' => $plural(static fn (int $n): string => _n('Show %s product', 'Show %s products', $n, 'pixonaut-shop')),
             /* translators: %s: how many filters the customer has chosen. */

@@ -415,6 +415,14 @@
 	background: var( --wp--preset--color--accent );
 }
 
+/* "Show more": an outline button, as the toolbar's "Show filters" is one. */
+.pixonaut-shop-archive-feed__more .wp-element-button {
+	border-color: var( --wp--preset--color--accent );
+	background-color: var( --wp--preset--color--base );
+	color: var( --wp--preset--color--accent );
+	cursor: pointer;
+}
+
 /* "Back to top", as the theme's text links look. */
 .pixonaut-shop-archive-feed__top {
 	padding: 0;

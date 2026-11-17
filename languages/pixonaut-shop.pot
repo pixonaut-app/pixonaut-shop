@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-17T17:53:21+00:00\n"
+"POT-Creation-Date: 2026-11-17T17:56:34+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: pixonaut-shop\n"
@@ -95,8 +95,12 @@ msgid_plural "%s products"
 msgstr[0] ""
 msgstr[1] ""
 
+#: inc/Archive/ClientArchive.php:164
+msgid "No products"
+msgstr ""
+
 #. translators: %s: how many products the chosen filters list.
-#: inc/Archive/ClientArchive.php:165
+#: inc/Archive/ClientArchive.php:166
 #: inc/Archive/FilterDrawer.php:203
 #, php-format
 msgid "Show %s product"
@@ -105,7 +109,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: how many filters the customer has chosen.
-#: inc/Archive/ClientArchive.php:167
+#: inc/Archive/ClientArchive.php:168
 #: inc/Archive/FilterDrawer.php:160
 #, php-format
 msgid "(%s chosen)"
@@ -114,38 +118,38 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. translators: %s: a chosen filter, as "Size: Large".
-#: inc/Archive/ClientArchive.php:169
+#: inc/Archive/ClientArchive.php:170
 #, php-format
 msgid "Remove the filter %s"
 msgstr ""
 
-#: inc/Archive/ClientArchive.php:170
+#: inc/Archive/ClientArchive.php:171
 msgid "Loading more products…"
 msgstr ""
 
-#: inc/Archive/ClientArchive.php:171
+#: inc/Archive/ClientArchive.php:172
 msgid "Fetching products…"
 msgstr ""
 
 #. translators: 1: how many products the customer has scrolled past, 2: how many the archive shows.
-#: inc/Archive/ClientArchive.php:173
+#: inc/Archive/ClientArchive.php:174
 #, php-format
 msgid "You have seen %1$s of %2$s products"
 msgstr ""
 
 #. translators: %s: how many products the archive shows, all of which the customer has scrolled past.
-#: inc/Archive/ClientArchive.php:175
+#: inc/Archive/ClientArchive.php:176
 #, php-format
 msgid "You have seen %s product"
 msgid_plural "You have seen all %s products"
 msgstr[0] ""
 msgstr[1] ""
 
-#: inc/Archive/ClientArchive.php:176
+#: inc/Archive/ClientArchive.php:177
 msgid "Show more"
 msgstr ""
 
-#: inc/Archive/ClientArchive.php:177
+#: inc/Archive/ClientArchive.php:178
 msgid "Back to top"
 msgstr ""
 
