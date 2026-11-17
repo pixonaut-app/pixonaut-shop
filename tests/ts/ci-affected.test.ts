@@ -374,6 +374,16 @@ describe( 'affected', () => {
 		assert.deepEqual( result.unmatched, [] );
 	} );
 
+	it( 'runs the searches, integration and PHP checks for the fake split cards', () => {
+		assert.deepEqual( jobsFor( 'tests/e2e/fake-split-cards.php' ), {
+			...NO_JOBS,
+			php: true,
+			integration: true,
+			specs: [ 'header-search', 'search' ],
+			shards: 1,
+		} );
+	} );
+
 	it( 'runs the PHP checks, integration and the whole e2e suite for the shared fixtures', () => {
 		const result = jobsFor( 'tests/Support/ShopFixtures.php' );
 

@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-11-16T22:09:09+00:00\n"
+"POT-Creation-Date: 2026-11-17T09:44:20+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -192,35 +192,37 @@ msgstr "Installera WooCommerce"
 msgid "Do not show this again"
 msgstr "Visa inte det här igen"
 
-#: inc/Header/HeaderSearch.php:100
+#: inc/Header/HeaderSearch.php:102
 msgid "Search products…"
 msgstr "Sök bland produkter…"
 
-#: inc/Header/HeaderSearch.php:101
+#: inc/Header/HeaderSearch.php:103
 msgid "Search products"
 msgstr "Sök bland produkter"
 
-#: inc/Header/HeaderSearch.php:102
+#: inc/Header/HeaderSearch.php:104
 msgid "Close search"
 msgstr "Stäng sökningen"
 
-#: inc/Header/HeaderSearch.php:144
+#: inc/Header/HeaderSearch.php:146
 msgid "Search"
 msgstr "Sök"
 
-#: inc/Header/HeaderSearch.php:147
+#: inc/Header/HeaderSearch.php:149
 msgid "Type two letters or more to see suggestions."
 msgstr "Skriv minst två bokstäver så visas förslag medan du skriver."
 
-#: inc/Header/HeaderSearch.php:148
+#: inc/Header/HeaderSearch.php:150
 msgid "Suggestions"
 msgstr "Förslag"
 
-#: inc/Header/HeaderSearch.php:149
+#: inc/Header/HeaderSearch.php:151
 msgid ""
 "Check the spelling or try a shorter word. Press Enter to search the whole "
 "store."
-msgstr "Kontrollera stavningen eller prova ett kortare ord. Tryck Enter för att söka i hela butiken."
+msgstr ""
+"Kontrollera stavningen eller prova ett kortare ord. Tryck Enter för att söka "
+"i hela butiken."
 
 #: inc/Header/MegaMenu.php:366
 msgid "Menu"
@@ -764,14 +766,6 @@ msgid "Show the %s result"
 msgid_plural "Show all %s results"
 msgstr[0] "Visa %s resultat"
 msgstr[1] "Visa alla %s resultat"
-
-#: build/header-search.js:4
-msgid "From"
-msgstr "Från"
-
-#: build/header-search.js:4
-msgid "Regular price:"
-msgstr "Ordinarie pris:"
 
 #. translators: %s: how many suggestions the search shows.
 #: build/header-search.js:5

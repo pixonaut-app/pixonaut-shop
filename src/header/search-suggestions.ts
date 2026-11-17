@@ -1,93 +1,67 @@
 /**
  * The header search's suggestions (`src/header/search.ts`), worked out from
- * data alone so they are tested without a page: a product from
- * WooCommerce's Store API as the suggestion the panel lists, its price as
- * the store writes prices, and where the arrow keys move among them.
+ * data alone so they are tested without a page: the results page's answer
+ * for the panel as the suggestions it lists, and where the arrow keys move
+ * among them.
  */
 
-/** How the Store API describes a price's currency, from the store's own settings. */
-export interface StoreApiCurrency {
-	currency_minor_unit: number;
-	currency_decimal_separator: string;
-	currency_thousand_separator: string;
-	currency_prefix: string;
-	currency_suffix: string;
-}
-
-/** The parts of a Store API product (`/wc/store/v1/products`) a suggestion reads. */
-export interface StoreApiProduct {
-	id: number;
-	/** The product's name, with HTML entities, as WordPress stores titles. */
-	name: string;
-	permalink: string;
-	images: { thumbnail: string; alt: string }[];
-	prices: StoreApiCurrency & {
-		/** Amounts in the currency's minor unit, as strings. */
-		price: string;
-		regular_price: string;
-		sale_price: string;
-		price_range: { min_amount: string; max_amount: string } | null;
-	};
-	on_sale: boolean;
-}
-
-/** One suggestion, as the panel shows it. */
+/** One suggestion, as the panel shows it: a product, or one card of a product the results page lists once per card. */
 export interface Suggestion {
 	id: number;
 	name: string;
 	url: string;
 	image: string | null;
+	/** The store's price HTML, as the results page prints it, kept to inline markup by the server. */
 	price: string;
-	/** The price before a sale, struck through beside the price. */
-	regularPrice: string | null;
-	/** Whether the price is the lowest of several, which the panel says. */
-	fromPrice: boolean;
 }
 
-/** Every three digits of the whole part, from the end. */
-const THOUSANDS = /\B(?=(\d{3})+(?!\d))/g;
+/** What the results page's search answers for the panel: its count and its first suggestions. */
+export interface Found {
+	total: number;
+	suggestions: Suggestion[];
+}
 
-const DECIMAL_BASE = 10;
+function isRecord( value: unknown ): value is Record< string, unknown > {
+	return typeof value === 'object' && value !== null;
+}
 
-/** An amount in the currency's minor unit, written as the store writes prices. */
-export function formatAmount( amount: string, currency: StoreApiCurrency ): string {
-	const minor = currency.currency_minor_unit;
-	const digits = String( Math.abs( Number.parseInt( amount, DECIMAL_BASE ) || 0 ) ).padStart(
-		minor + 1,
-		'0',
-	);
-	const whole = digits
-		.slice( 0, digits.length - minor )
-		.replace( THOUSANDS, currency.currency_thousand_separator );
-	const fraction = minor > 0 ? currency.currency_decimal_separator + digits.slice( -minor ) : '';
+function suggestionFrom( value: unknown ): Suggestion | null {
+	if (
+		! isRecord( value ) ||
+		typeof value.id !== 'number' ||
+		typeof value.name !== 'string' ||
+		typeof value.url !== 'string' ||
+		typeof value.price !== 'string'
+	) {
+		return null;
+	}
 
-	return currency.currency_prefix + whole + fraction + currency.currency_suffix;
+	return {
+		id: value.id,
+		name: value.name,
+		url: value.url,
+		image: typeof value.image === 'string' && value.image !== '' ? value.image : null,
+		price: value.price,
+	};
 }
 
 /**
- * A product as a suggestion. `decode` turns the HTML entities in its name
- * into text, which the page does with the browser's own parser.
+ * The search's answer (`inc/Header/SearchSuggestions.php`) as what the panel
+ * shows; null for an answer of any other shape. A suggestion it cannot read
+ * is left out, and the count is never fewer than the suggestions.
  */
-export function suggestionFrom(
-	product: StoreApiProduct,
-	decode: ( text: string ) => string,
-): Suggestion {
-	const { prices } = product;
-	const range = prices.price_range;
-	const fromPrice = range !== null && range.min_amount !== range.max_amount;
+export function foundFrom( answer: unknown ): Found | null {
+	if ( ! isRecord( answer ) || ! Array.isArray( answer.suggestions ) ) {
+		return null;
+	}
 
-	return {
-		id: product.id,
-		name: decode( product.name ),
-		url: product.permalink,
-		image: product.images[ 0 ]?.thumbnail || null,
-		price: formatAmount( fromPrice && range ? range.min_amount : prices.price, prices ),
-		regularPrice:
-			product.on_sale && prices.regular_price !== prices.price
-				? formatAmount( prices.regular_price, prices )
-				: null,
-		fromPrice,
-	};
+	const suggestions = answer.suggestions
+		.map( suggestionFrom )
+		.filter( ( suggestion ): suggestion is Suggestion => suggestion !== null );
+	const total =
+		typeof answer.total === 'number' && Number.isFinite( answer.total ) ? answer.total : 0;
+
+	return { suggestions, total: Math.max( total, suggestions.length ) };
 }
 
 /** The keys that move among the suggestions. */

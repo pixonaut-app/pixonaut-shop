@@ -41,7 +41,6 @@ final class HeaderSearchTest extends TestCase
             return $prefix . $counter[$prefix];
         });
         Functions\when('home_url')->alias(static fn (string $path = ''): string => self::SHOP_URL . $path);
-        Functions\when('rest_url')->alias(static fn (string $path = ''): string => self::SHOP_URL . '/wp-json/' . $path);
         $this->theme(self::UNBUILT_THEME);
     }
 
@@ -106,11 +105,11 @@ final class HeaderSearchTest extends TestCase
         self::assertStringContainsString('role="status"', $html);
     }
 
-    public function testTheSuggestionsComeFromTheStoreApi(): void
+    public function testTheSuggestionsComeFromTheResultsPagesOwnSearch(): void
     {
         $html = (new HeaderSearch())->render(self::CORE_OUTPUT, self::block('button-only'));
 
-        self::assertStringContainsString('data-products="' . self::SHOP_URL . '/wp-json/wc/store/v1/products"', $html);
+        self::assertStringContainsString('data-suggestions="pixonaut_shop_suggestions"', $html);
     }
 
     public function testTakesTheBlocksOwnPlaceholder(): void

@@ -16,10 +16,10 @@ use Pixonaut\Shop\I18n\TextDomain;
  * The panel is a popover the icon opens, so the browser opens and closes it
  * (Escape, a click outside) and moves focus into its field with no script;
  * the field's form searches the store's products, so a search works without
- * script too. `src/header/search.ts` adds the rest: product suggestions from
- * WooCommerce's Store API as the shopper types, picked with the arrow keys,
- * the count and a link to every result, and the panel closing when focus
- * leaves it.
+ * script too. `src/header/search.ts` adds the rest: suggestions as the
+ * shopper types, from the results page's own search (`SearchSuggestions`),
+ * picked with the arrow keys, the count and a link to every result, and the
+ * panel closing when focus leaves it.
  *
  * Only the block in its button-only form that searches the products, as the
  * header holds it: a search that shows its field, such as the one on the
@@ -43,9 +43,6 @@ final class HeaderSearch
 
     /** The post type the search looks among: the store's products. */
     private const PRODUCT = 'product';
-
-    /** WooCommerce's Store API route that lists products, which the suggestions come from. */
-    private const PRODUCTS_ROUTE = 'wc/store/v1/products';
 
     /** Where the script reads its translations from, as `pnpm i18n:mo` writes them. */
     private const LANGUAGES_DIR = 'languages';
@@ -109,7 +106,7 @@ final class HeaderSearch
         return \sprintf(
             '<div class="wp-block-search %1$s">'
             . '<button type="button" class="%1$s__toggle" popovertarget="%2$s" aria-controls="%2$s" aria-label="%3$s">%4$s</button>'
-            . '<div id="%2$s" class="%1$s__panel" popover data-products="%5$s">'
+            . '<div id="%2$s" class="%1$s__panel" popover data-suggestions="%5$s">'
             . '<div class="%1$s__inner">'
             . '<form class="%1$s__form" role="search" method="get" action="%6$s">'
             . '<label class="screen-reader-text" for="%7$s">%3$s</label>'
@@ -138,7 +135,7 @@ final class HeaderSearch
             esc_attr($panel),
             esc_attr($label),
             Icons::svg('search'),
-            esc_url(rest_url(self::PRODUCTS_ROUTE)),
+            esc_attr(SearchSuggestions::QUERY_VAR),
             esc_url(home_url('/')),
             esc_attr($field),
             Icons::svg('search'),

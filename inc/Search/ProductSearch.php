@@ -18,12 +18,12 @@ use wpdb;
  * first, those with it in the name before the rest; then those found by
  * stems, again by name first.
  *
- * Both of the store's searches go through here, so they find the same
- * products: the results page, which is a WordPress search of products, and
- * the header's suggestions, which come from WooCommerce's Store API. The
- * Store API matches its `search` against names and SKUs on its own; its
- * query searches as WordPress does instead, by relevance unless the request
- * asked for an order, and still by SKU.
+ * The results page goes through here, a WordPress search of products, and
+ * the header's suggestions with it, which ask that page's search
+ * (`Header\SearchSuggestions`). So does WooCommerce's Store API, so it finds
+ * the same products: it matches its `search` against names and SKUs on its
+ * own; its query searches as WordPress does instead, by relevance unless the
+ * request asked for an order, and still by SKU.
  *
  * A query that narrows the columns WordPress searches keeps to them, and is
  * then not matched by SKU either.
