@@ -38,13 +38,19 @@ final class PopularProducts
      */
     public static function products(): array
     {
+        // Without WooCommerce there are no products, and pages still render.
+        if (! \function_exists('wc_get_products')) {
+            return [];
+        }
+
         $products = wc_get_products([
             'status'       => self::PUBLISHED,
             'visibility'   => self::CATALOGUE,
             'stock_status' => self::STOCK_STATUSES,
             'limit'        => self::COUNT,
             'meta_key'     => self::SALES_META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- the order the collection's "sales" sorts by.
-            'orderby'      => ['meta_value_num' => 'DESC', 'date' => 'DESC'],
+            // Equal sales, the newest product first, as the collection's "sales" order breaks a tie.
+            'orderby'      => ['meta_value_num' => 'DESC', 'ID' => 'DESC'],
         ]);
 
         return array_values(array_filter(\is_array($products) ? $products : [], static fn (mixed $product): bool => $product instanceof WC_Product));

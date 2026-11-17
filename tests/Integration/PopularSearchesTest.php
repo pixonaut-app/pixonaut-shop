@@ -71,6 +71,41 @@ final class PopularSearchesTest extends TestCase
         self::assertSame([], PopularSearches::shown(self::NOW + PopularSearches::KEPT_FOR));
     }
 
+    public function testANumericSearchCountsUp(): void
+    {
+        PopularSearches::count('2026', self::NOW);
+        PopularSearches::count('2026', self::NOW);
+
+        self::assertSame(['2026'], PopularSearches::shown(self::NOW));
+    }
+
+    /** A search that excludes a word finds products without matching it, so what was typed is never shown. */
+    public function testASearchExcludingAWordIsNotCounted(): void
+    {
+        foreach (['-someone@example.com', 'lantern -mug'] as $search) {
+            PopularSearches::count($search, self::NOW);
+            PopularSearches::count($search, self::NOW);
+        }
+
+        self::assertSame([], PopularSearches::shown(self::NOW));
+    }
+
+    public function testANewSearchCountsUpWhenEveryKeptSearchQualifies(): void
+    {
+        for ($search = 0; $search < PopularSearches::LEADING_POOL; ++$search) {
+            for ($made = 0; $made < PopularSearches::MIN_SEARCHES + 1; ++$made) {
+                PopularSearches::count('kept ' . $search, self::NOW);
+            }
+        }
+
+        // Made as often as the most made, it is among the suggestions.
+        for ($made = 0; $made < PopularSearches::MIN_SEARCHES + 1; ++$made) {
+            PopularSearches::count('newcomer', self::NOW + 1);
+        }
+
+        self::assertContains('newcomer', PopularSearches::shown(self::NOW + 1));
+    }
+
     public function testTooShortOrTooLongIsNotCounted(): void
     {
         foreach (['l', str_repeat('lantern ', PopularSearches::MAX_LENGTH)] as $search) {

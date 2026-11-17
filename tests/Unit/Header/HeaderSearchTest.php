@@ -43,9 +43,9 @@ final class HeaderSearchTest extends TestCase
         Functions\when('home_url')->alias(static fn (string $path = ''): string => self::SHOP_URL . $path);
         Functions\when('add_query_arg')->alias(static fn (array $args, string $url): string => $url . '?' . http_build_query($args));
         Functions\when('wp_strip_all_tags')->returnArg();
-        // No searches counted, and no products to show, unless a test says otherwise.
+        // No searches counted, unless a test says otherwise. WooCommerce is not loaded, so
+        // every render here is also the header's on a site without it: no products, no error.
         Functions\when('get_option')->justReturn([]);
-        Functions\when('wc_get_products')->justReturn([]);
         $this->theme(self::UNBUILT_THEME);
     }
 

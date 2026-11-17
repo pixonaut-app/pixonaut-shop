@@ -24,9 +24,11 @@ final class PopularFixtures
 
     public static function make(): void
     {
-        update_option(PopularSearches::OPTION, [
-            mb_strtolower(self::SEARCH) => ['words' => self::SEARCH, 'count' => PopularSearches::MIN_SEARCHES, 'last' => time()],
-        ]);
+        delete_option(PopularSearches::OPTION);
+
+        for ($made = 0; $made < PopularSearches::MIN_SEARCHES; ++$made) {
+            PopularSearches::count(self::SEARCH, time());
+        }
 
         $product = get_page_by_path(ShopFixtures::SEARCHABLE_PRODUCT_SLUG, OBJECT, 'product');
 

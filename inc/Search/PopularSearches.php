@@ -13,14 +13,16 @@ use WP_Query;
  * A search counts when the results page shows its first page of products:
  * one that found nothing is never counted, so a name typed into a gift
  * shop's search, or a word that matches no product, never becomes a
- * suggestion. The header's suggestions as a shopper types ask the same
+ * suggestion. Nor is a search that excludes a word ("-word"), which finds
+ * products without matching what was typed. The header's suggestions as a shopper types ask the same
  * page for JSON and stop before it is counted, and the store's own staff
  * are not counted, so a search is a shopper's.
  *
  * The counts age: a search not made for `KEPT_FOR` is forgotten, so a
  * season's searches give way to the next season's. More searches are
- * counted (`POOL`) than are shown (`SHOWN`), so a new search can gather the
- * `MIN_SEARCHES` it needs to be shown before it is pushed out.
+ * counted than are shown: the most made (`LEADING_POOL`), and beside them
+ * the latest of the rest (`CANDIDATE_POOL`), so a new search always has
+ * room to count up until it catches up with the most made.
  *
  * Two searches counted at once can lose one of the two counts.
  */
@@ -35,8 +37,20 @@ final class PopularSearches
     /** How often a search must have been made to be suggested. */
     public const MIN_SEARCHES = 2;
 
-    /** How many searches are counted at most; the least made, then the oldest, give way. */
-    public const POOL = 200;
+    /** How many of the most made searches are kept; the least made, then the oldest, give way. */
+    public const LEADING_POOL = 150;
+
+    /** How many of the other searches are kept, still counting up; the oldest give way. */
+    public const CANDIDATE_POOL = 50;
+
+    /**
+     * Before every key, so a key stays a string: PHP turns an array key that
+     * reads as a whole number ("2026", a numeric SKU) into an integer.
+     */
+    private const KEY_PREFIX = 'search:';
+
+    /** WordPress's prefix that excludes a word from a search, unless a filter changes it. */
+    private const DEFAULT_EXCLUSION_PREFIX = '-';
 
     /** How many days a search is remembered after it was last made: a season. */
     public const KEPT_DAYS = 90;
@@ -106,9 +120,7 @@ final class PopularSearches
             'last'  => $now,
         ];
 
-        uasort($counts, [self::class, 'compare']);
-
-        update_option(self::OPTION, \array_slice($counts, 0, self::POOL, true), true);
+        update_option(self::OPTION, self::pooled($counts), true);
     }
 
     /**
@@ -132,11 +144,24 @@ final class PopularSearches
         ));
     }
 
-    /** A search's words as a shopper typed them, spaces tidied; null for one too short or too long to count. */
+    /**
+     * A search's words as a shopper typed them, spaces tidied; null for one
+     * too short or too long to count, or one that excludes a word.
+     */
     private static function words(string $search): ?string
     {
         $words = trim((string) preg_replace('/\s+/u', ' ', wp_strip_all_tags($search)));
         $length = mb_strlen($words);
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress's own filter, read as its search reads it.
+        $exclusion = apply_filters('wp_query_search_exclusion_prefix', self::DEFAULT_EXCLUSION_PREFIX);
+
+        if (\is_string($exclusion) && '' !== $exclusion) {
+            foreach (explode(' ', $words) as $word) {
+                if (str_starts_with($word, $exclusion)) {
+                    return null;
+                }
+            }
+        }
 
         return $length >= self::MIN_LENGTH && $length <= self::MAX_LENGTH ? $words : null;
     }
@@ -144,7 +169,25 @@ final class PopularSearches
     /** One key for every way of typing a search: in lower case. */
     private static function key(string $words): string
     {
-        return mb_strtolower($words);
+        return self::KEY_PREFIX . mb_strtolower($words);
+    }
+
+    /**
+     * The counts to keep: the most made, then the latest of the rest.
+     *
+     * @param array<string, array{words: string, count: int, last: int}> $counts
+     *
+     * @return array<string, array{words: string, count: int, last: int}>
+     */
+    private static function pooled(array $counts): array
+    {
+        uasort($counts, [self::class, 'compare']);
+        $leading = \array_slice($counts, 0, self::LEADING_POOL, true);
+        $candidates = \array_slice($counts, self::LEADING_POOL, null, true);
+
+        uasort($candidates, static fn (array $one, array $other): int => $other['last'] <=> $one['last']);
+
+        return $leading + \array_slice($candidates, 0, self::CANDIDATE_POOL, true);
     }
 
     /**
