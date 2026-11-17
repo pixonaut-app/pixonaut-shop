@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pixonaut\Shop\Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
+use Pixonaut\Shop\Blocks\ThemeBlocks;
 use WC_Product_Simple;
 use WP_Block_Patterns_Registry;
 use WP_Block_Template;
@@ -122,6 +123,8 @@ final class SearchResultsTest extends TestCase
 
         self::assertStringContainsString(self::NO_RESULTS, $results);
         self::assertStringContainsString('No results for “' . self::UNMATCHED_QUERY . '”', $results);
+        // Without the built blocks the pattern falls back to WooCommerce's own list.
+        self::assertTrue(ThemeBlocks::is_registered('product-categories'), 'The product categories block is not registered; run pnpm build.');
         self::assertMatchesRegularExpression(self::CATEGORY_BUTTONS, $results);
         self::assertStringContainsString(self::CATEGORY_NAME, $results);
         self::assertStringContainsString(self::POPULAR_HEADING, $results);
