@@ -47,6 +47,13 @@ final class FilterDrawer
     /** The theme's button look, from `theme.json`'s `styles.elements.button`. */
     private const BUTTON_CLASS = 'wp-element-button';
 
+    /**
+     * WooCommerce's Active Filters module, which adds `actions.removeAll` to
+     * the filters' store; the drawer's "Clear all" needs it whether or not the
+     * page shows the chosen filters' block.
+     */
+    private const REMOVE_ALL_MODULE = 'woocommerce/product-filter-active';
+
     /** The Interactivity API context WooCommerce gives the block, with the chosen filters. */
     private const CONTEXT = 'data-wp-context';
 
@@ -72,6 +79,8 @@ final class FilterDrawer
         foreach (self::SCRIPTS as $handle => $script) {
             BuiltScript::enqueue($handle, $script);
         }
+
+        wp_enqueue_script_module(self::REMOVE_ALL_MODULE);
 
         $markup = new FilterListMarkup($block_content);
         $chosen = $markup->next_tag() ? $this->chosen_count($markup->get_attribute(self::CONTEXT)) : 0;

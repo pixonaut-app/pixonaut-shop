@@ -12,9 +12,10 @@ namespace Pixonaut\Shop\Archive;
  * chose; while nothing is chosen the first one does. The rest stay closed and
  * the drawer shows every group's name at a glance.
  *
- * It wraps a filter that starts with its heading: the groups the panel gets
- * (`AttributeFilterBlock::group()`), the price in `patterns/product-filters.php`
- * and those a store places itself. An attribute nested under a value of
+ * It wraps a filter in the archive's panel that starts with its heading: the
+ * groups the panel gets (`AttributeFilterBlock::group()`), the price in
+ * `patterns/product-filters.php` and those a store places in it itself.
+ * Another Product Filters block keeps its groups as they are. An attribute nested under a value of
  * another has no heading of its own and stays as it is
  * (`NestedAttributeFilters`), as does a filter WooCommerce hid for want of a
  * value. It runs before the nesting, which then finds the values where they
@@ -33,6 +34,8 @@ final class FilterSections
 
     private const PRICE_BLOCK = 'woocommerce/product-filter-price';
 
+    private const FILTERS_BLOCK = 'woocommerce/product-filters';
+
     /** Before `NestedAttributeFilters` adds a dependent's values after the label of the value it shows under. */
     private const BEFORE_NESTING = 5;
 
@@ -50,9 +53,16 @@ final class FilterSections
     /** How many sections the panel has so far, so the first opens while nothing is chosen. */
     private int $sections = 0;
 
+    /** Whether the archive's panel is rendering: another Product Filters block keeps its groups as they are. */
+    private bool $in_the_panel = false;
+
+    /** Before `FilterDrawer` and anything else reads the finished panel. */
+    private const BEFORE_THE_PANEL_IS_READ = 1;
+
     public function register(): void
     {
         add_filter('render_block_data', [$this, 'start']);
+        add_filter('render_block_' . self::FILTERS_BLOCK, [$this, 'finish'], self::BEFORE_THE_PANEL_IS_READ, 2);
         add_filter('render_block_' . AttributeFilterBlock::NAME, [$this, 'attribute'], self::BEFORE_NESTING, 2);
         add_filter('render_block_' . AttributeFilterBlock::NAME, [$this, 'open_on_a_nested_choice'], self::AFTER_NESTING);
         add_filter('render_block_' . self::PRICE_BLOCK, [$this, 'price'], self::BEFORE_NESTING);
@@ -68,10 +78,25 @@ final class FilterSections
     public function start(array $parsed_block): array
     {
         if (ProductFilters::is_the_panel($parsed_block)) {
-            $this->sections = 0;
+            $this->sections     = 0;
+            $this->in_the_panel = true;
         }
 
         return $parsed_block;
+    }
+
+    /**
+     * The panel has rendered its groups.
+     *
+     * @param array<array-key, mixed> $block
+     */
+    public function finish(string $block_content, array $block): string
+    {
+        if (ProductFilters::is_the_panel($block)) {
+            $this->in_the_panel = false;
+        }
+
+        return $block_content;
     }
 
     /**
@@ -95,7 +120,7 @@ final class FilterSections
     {
         $markup = new FilterListMarkup($block_content);
 
-        if (! $markup->next_tag() || ! $markup->has_class(self::SECTION_CLASS) || null !== $markup->get_attribute('open') || ! $this->has_a_chosen_value($block_content)) {
+        if (! $this->in_the_panel || ! $markup->next_tag() || ! $markup->has_class(self::SECTION_CLASS) || null !== $markup->get_attribute('open') || ! $this->has_a_chosen_value($block_content)) {
             return $block_content;
         }
 
@@ -111,7 +136,7 @@ final class FilterSections
 
     private function section(string $block_content, string $key, bool $chosen): string
     {
-        if ($this->shows_nothing($block_content) || 1 !== preg_match(self::HEADING, $block_content, $parts, PREG_OFFSET_CAPTURE)) {
+        if (! $this->in_the_panel || $this->shows_nothing($block_content) || 1 !== preg_match(self::HEADING, $block_content, $parts, PREG_OFFSET_CAPTURE)) {
             return $block_content;
         }
 

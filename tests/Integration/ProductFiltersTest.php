@@ -43,6 +43,21 @@ final class ProductFiltersTest extends TestCase
 
     private const NESTED = '/' . self::NESTED_GROUP . '/';
 
+    /** A Product Filters block of the store's own, outside the archive's panel, with the price under its heading. */
+    private const STORES_OWN_PRICE_FILTER = <<<'HTML'
+        <!-- wp:woocommerce/product-filters {"overlayMode":"off"} -->
+        <div class="wp-block-woocommerce-product-filters"><!-- wp:woocommerce/product-filter-price -->
+        <div class="wp-block-woocommerce-product-filter-price"><!-- wp:heading {"level":3} -->
+        <h3 class="wp-block-heading">Price</h3>
+        <!-- /wp:heading -->
+
+        <!-- wp:woocommerce/product-filter-price-slider -->
+        <div class="wp-block-woocommerce-product-filter-price-slider wc-block-product-filter-price-slider"></div>
+        <!-- /wp:woocommerce/product-filter-price-slider --></div>
+        <!-- /wp:woocommerce/product-filter-price --></div>
+        <!-- /wp:woocommerce/product-filters -->
+        HTML;
+
     /** WooCommerce's attribute filter, as a store places it in the Site Editor. */
     private const ATTRIBUTE_BLOCK = 'woocommerce/product-filter-attribute';
 
@@ -303,6 +318,15 @@ final class ProductFiltersTest extends TestCase
 
         self::assertSame([FilterFixtures::FRAMING, 'Price'], array_keys($this->sections($archive)));
         self::assertMatchesRegularExpression('/<details[^>]*open><summary[^>]*><h3[^>]*>' . FilterFixtures::FRAMING . '<\/h3>.*?' . self::NESTED_GROUP . '.*?<\/details>/s', $archive);
+    }
+
+    public function testAFilterOutsideThePanelIsNoSection(): void
+    {
+        $this->render(FilterFixtures::category());
+        $other = do_blocks(self::STORES_OWN_PRICE_FILTER);
+
+        self::assertStringContainsString(self::PRICE_FILTER, $other);
+        self::assertStringNotContainsString(FilterSections::SECTION_CLASS, $other);
     }
 
     public function testASectionOpensOnAChosenValueNestedInIt(): void

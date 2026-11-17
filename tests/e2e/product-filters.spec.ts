@@ -240,9 +240,19 @@ for ( const viewport of VIEWPORTS ) {
 			await expect( page.locator( `${ CHOSEN } ${ CHIP }` ) ).toHaveCount( 2 );
 
 			await openDrawer( page );
+			await section( page, 'Price' );
 			await drawer( page ).getByRole( 'button', { name: 'Clear all' } ).click();
 
 			await expect( page ).not.toHaveURL( /filter_|min_price/ );
+			// The drawer opens again on the cleared page, as it left it, for new choices.
+			await expect( drawer( page ) ).toBeVisible();
+			await expect( drawer( page ).getByRole( 'button', { name: 'Clear all' } ) ).toBeDisabled();
+			await expect(
+				drawer( page )
+					.locator( SECTION )
+					.filter( { has: page.locator( 'summary', { hasText: 'Price' } ) } ),
+			).toHaveAttribute( 'open', '' );
+			await page.keyboard.press( 'Escape' );
 			await expect( cards( page ) ).toHaveCount( 2 );
 			await expect( page.locator( CHOSEN ) ).toBeHidden();
 		} );

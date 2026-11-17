@@ -12,6 +12,8 @@ import { archivePath } from './archive-path';
 
 const PANEL = '.pixonaut-shop-archive-filters';
 const CHOSEN = '.pixonaut-shop-archive-chosen';
+/** The drawer's "Clear all" (`inc/Archive/FilterDrawer.php`), a button, which loads the page without a `change`. */
+const CLEAR_BUTTON = '.pixonaut-shop-filters-clear';
 const OPEN_BUTTON = '.wc-block-product-filters__open-overlay';
 const DIALOG_CONTENT = '.wc-block-product-filters__overlay-content';
 /** A section of the drawer, named by its key (`inc/Archive/FilterSections.php`). */
@@ -178,10 +180,13 @@ function isAFilter( target: EventTarget | null ): boolean {
 for ( const type of [ 'change', 'input' ] ) {
 	document.addEventListener( type, ( event ) => isAFilter( event.target ) && notePlace(), true );
 }
+// A chip, "Clear all" beside the chips, and the drawer's own "Clear all".
 document.addEventListener(
 	'click',
 	( event ) =>
-		event.target instanceof Element && event.target.closest( CHOSEN ) !== null && notePlace(),
+		event.target instanceof Element &&
+		event.target.closest( `${ CHOSEN }, ${ CLEAR_BUTTON }` ) !== null &&
+		notePlace(),
 	true,
 );
 
