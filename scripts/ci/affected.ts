@@ -343,6 +343,13 @@ const RULES: readonly Rule[] = [
 		integration: true,
 		e2e: PLUGIN_SPECS,
 	} ),
+	// The tests site's plugin that lists a product once per card, as the
+	// plugin lists a split product, for the searches' specs.
+	rule( /^tests\/e2e\/fake-split-cards\.php$/, {
+		php: true,
+		integration: true,
+		e2e: [ 'header-search', 'search' ],
+	} ),
 	// The tests site's plugin that shows the mega header to the mega menu's
 	// spec alone.
 	rule( /^tests\/e2e\/mega-menu\.php$/, {
