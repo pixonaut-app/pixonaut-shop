@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.3](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.14.2...v1.14.3) (2026-11-17)
+
+
+### Bug Fixes
+
+* **archive:** one element per card and picture, whole pictures, and swatches after the price ([#89](https://github.com/pixonaut-app/pixonaut-shop/issues/89)) ([ac41f69](https://github.com/pixonaut-app/pixonaut-shop/commit/ac41f69ff1647e332b900e0509f2be6a87417e06))
+
 ## [1.14.2](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.14.1...v1.14.2) (2026-11-17)
 
 
