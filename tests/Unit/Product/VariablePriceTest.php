@@ -31,13 +31,17 @@ final class VariablePriceTest extends TestCase
     /** The saved choice in a test; `null` while none is saved. */
     private ?string $saved = null;
 
+    /** The choice a store made in the Customizer before it was an option; `null` while it made none. */
+    private ?string $theme_mod = null;
+
     protected function setUp(): void
     {
         parent::setUp();
         Functions\stubTranslationFunctions();
         Functions\stubEscapeFunctions();
         Functions\when('wc_price')->alias(static fn (float $price): string => '<span class="amount">' . $price . '&nbsp;kr</span>');
-        Functions\when('get_theme_mod')->alias(fn (string $name, mixed $fallback = false): mixed => $this->saved ?? $fallback);
+        Functions\when('get_option')->alias(fn (string $name, mixed $fallback = false): mixed => $this->saved ?? $fallback);
+        Functions\when('get_theme_mod')->alias(fn (string $name, mixed $fallback = false): mixed => $this->theme_mod ?? $fallback);
     }
 
     public function testFiltersWooCommercesVariablePriceAndRegistersTheOption(): void
@@ -47,6 +51,56 @@ final class VariablePriceTest extends TestCase
         self::assertNotFalse(has_filter('woocommerce_variable_price_html', 'Pixonaut\Shop\Product\VariablePrice->with_price_html()'));
         self::assertNotFalse(has_filter('woocommerce_get_price_html_from_text', 'Pixonaut\Shop\Product\VariablePrice->from_text()'));
         self::assertNotFalse(has_action('customize_register', 'Pixonaut\Shop\Product\VariablePrice->customize()'));
+        self::assertNotFalse(has_filter('woocommerce_get_settings_products', 'Pixonaut\Shop\Product\VariablePrice->with_product_settings()'));
+        self::assertNotFalse(has_filter('sanitize_option_' . VariablePrice::SETTING, 'Pixonaut\Shop\Product\VariablePrice->sanitize()'));
+        self::assertNotFalse(has_action('init', 'Pixonaut\Shop\Product\VariablePrice->move_customizer_choice()'));
+    }
+
+    public function testAddsTheChoiceToWooCommercesGeneralProductSettings(): void
+    {
+        $existing = [['id' => 'woocommerce_shop_page_id', 'type' => 'single_select_page']];
+
+        $settings = (new VariablePrice())->with_product_settings($existing, '');
+
+        self::assertSame($existing[0], $settings[0]);
+        $fields = array_column(\array_slice($settings, 1), null, 'type');
+        self::assertSame(['title', 'radio', 'sectionend'], array_keys($fields));
+        self::assertSame(VariablePrice::SETTING, $fields['radio']['id']);
+        self::assertSame(VariablePrice::DEFAULT, $fields['radio']['default']);
+        self::assertSame([VariablePrice::FROM, VariablePrice::FROM_SHORT, VariablePrice::RANGE], array_keys($fields['radio']['options']));
+        self::assertSame($fields['title']['id'], $fields['sectionend']['id']);
+    }
+
+    public function testLeavesWooCommercesOtherProductSettingsAsTheyAre(): void
+    {
+        $existing = [['id' => 'woocommerce_manage_stock', 'type' => 'checkbox']];
+
+        self::assertSame($existing, (new VariablePrice())->with_product_settings($existing, 'inventory'));
+        self::assertSame('not settings', (new VariablePrice())->with_product_settings('not settings', ''));
+    }
+
+    /** A store that chose in the Customizer before the choice was an option keeps it, as the option. */
+    public function testMovesAChoiceMadeInTheCustomizerBeforeToTheOption(): void
+    {
+        $this->theme_mod = VariablePrice::RANGE;
+
+        self::assertSame(
+            ['added' => [VariablePrice::SETTING => VariablePrice::RANGE], 'removed' => [VariablePrice::SETTING]],
+            $this->move_customizer_choice()
+        );
+    }
+
+    public function testKeepsAnOptionAlreadySavedOverTheCustomizersChoice(): void
+    {
+        $this->theme_mod = VariablePrice::RANGE;
+        $this->saved = VariablePrice::FROM_SHORT;
+
+        self::assertSame(['added' => [], 'removed' => [VariablePrice::SETTING]], $this->move_customizer_choice());
+    }
+
+    public function testMovesNothingWithoutAChoiceMadeInTheCustomizer(): void
+    {
+        self::assertSame(['added' => [], 'removed' => []], $this->move_customizer_choice());
     }
 
     public function testShowsFromTheLowestPriceInFullByDefault(): void
@@ -137,7 +191,7 @@ final class VariablePriceTest extends TestCase
         $added = $this->customize(new stdClass());
 
         self::assertSame('woocommerce', $added['section'][VariablePrice::SECTION]['panel'] ?? null);
-        self::assertSame('theme_mod', $added['setting'][VariablePrice::SETTING]['type']);
+        self::assertSame('option', $added['setting'][VariablePrice::SETTING]['type']);
         self::assertSame(VariablePrice::FROM, $added['setting'][VariablePrice::SETTING]['default']);
         self::assertIsCallable($added['setting'][VariablePrice::SETTING]['sanitize_callback']);
         self::assertSame(VariablePrice::SECTION, $added['control'][VariablePrice::SETTING]['section']);
@@ -154,6 +208,28 @@ final class VariablePriceTest extends TestCase
 
         self::assertArrayHasKey(VariablePrice::SECTION, $added['section']);
         self::assertArrayNotHasKey('panel', $added['section'][VariablePrice::SECTION]);
+    }
+
+    /**
+     * The options moving the Customizer's choice adds, and the theme mods it removes.
+     *
+     * @return array{added: array<string, mixed>, removed: list<string>}
+     */
+    private function move_customizer_choice(): array
+    {
+        $moved = ['added' => [], 'removed' => []];
+        Functions\when('add_option')->alias(static function (string $name, mixed $value) use (&$moved): bool {
+            $moved['added'][$name] = $value;
+
+            return true;
+        });
+        Functions\when('remove_theme_mod')->alias(static function (string $name) use (&$moved): void {
+            $moved['removed'][] = $name;
+        });
+
+        (new VariablePrice())->move_customizer_choice();
+
+        return $moved;
     }
 
     /**
