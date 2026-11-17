@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.1](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.12.0...v1.12.1) (2026-11-17)
+
+
+### Bug Fixes
+
+* **release:** let the wordpress.org flavor filter another's block registration ([#71](https://github.com/pixonaut-app/pixonaut-shop/issues/71)) ([d993876](https://github.com/pixonaut-app/pixonaut-shop/commit/d993876beba8cad71ac20aa41a774c56266ad9ad))
+
 ## [1.12.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.11.2...v1.12.0) (2026-11-17)
 
 
