@@ -56,6 +56,8 @@ const CHOSEN_CLEAR = `.${ CLIENT_CHOSEN_CLASS } .wc-block-product-filter-clear-b
 /** WooCommerce's class on the filters' panel while its drawer is open. */
 const OPENED_CLASS = 'is-overlay-opened';
 const NO_PRODUCTS_CLASS = 'pixonaut-shop-archive-none';
+/** WooCommerce's class for a card's product, `post-<id>`. */
+const POST_CLASS = /^post-\d+$/;
 /** How often the scroll position is noted for back and forward. */
 const SCROLL_NOTE_MS = 300;
 /** The events WooCommerce's price slider asks for new results on. */
@@ -187,6 +189,11 @@ class ClientArchive {
 		// The cards the server drew for the address stay as they are.
 		this.feed.adopt( this.shown.length, grid.querySelectorAll( CARD ).length );
 
+		// Cards the server drew that are not the ones the index shows for the address are drawn again.
+		if ( ! this.drewTheSame() ) {
+			this.feed.reset( this.shown.length, 0 );
+		}
+
 		// The archive puts the scroll back itself, once its cards are drawn.
 		window.history.scrollRestoration = 'manual';
 
@@ -201,6 +208,17 @@ class ClientArchive {
 		this.render();
 		this.noteEntry();
 		this.listen( panel );
+	}
+
+	/** Whether the server drew the products the index shows first, in its order. */
+	private drewTheSame(): boolean {
+		const drawn = Array.from( this.grid.querySelectorAll( CARD ) ).map( ( card ) =>
+			Array.from( card.classList ).find( ( name ) => POST_CLASS.test( name ) ),
+		);
+
+		return drawn.every(
+			( name, place ) => name === `post-${ this.shown[ place ]?.card.productId }`,
+		);
 	}
 
 	private drawAt( place: number ): HTMLElement {
