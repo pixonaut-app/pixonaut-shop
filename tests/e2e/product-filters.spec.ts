@@ -185,6 +185,8 @@ async function tick( page: Page, group: string, value: string, address: RegExp )
 /** The page's root, which carries the class for results on their way (`src/archive/filters-loading.ts`). */
 const LOADING = /\bis-loading-products\b/;
 const RESULTS = 'main .pixonaut-shop-archive-results';
+/** How long the Interactivity API's router waits before it shows that a page is on its way. */
+const ROUTER_LOADING_DELAY_MS = 400;
 
 /**
  * Holds back the archive's new results that `matches` picks until the
@@ -601,6 +603,52 @@ test( 'a price typed into its field keeps the drawer open', async ( { page } ) =
 	await expect( drawer( page ) ).toBeVisible();
 	await drawer( page ).getByRole( 'button', { name: 'Show 1 product' } ).click();
 	await expect( cards( page ) ).toHaveCount( 1 );
+} );
+
+test( 'a price that asks for the results already shown shows no skeletons', async ( { page } ) => {
+	await page.goto( `${ fixture.path }?min_price=${ fixture.priceBetween }` );
+	await openDrawer( page );
+	const lowest = ( await section( page, 'Price' ) ).locator( 'input[type="text"].min' );
+
+	// Typed again as it is, then left: WooCommerce has nothing to fetch.
+	await lowest.fill( fixture.priceBetween );
+	await lowest.blur();
+
+	// Longer than the router waits before it shows that a page is on its way.
+	await page.waitForTimeout( ROUTER_LOADING_DELAY_MS * 2 );
+	await expect( page.locator( 'html' ) ).not.toHaveClass( LOADING );
+	await expect( page.locator( RESULTS ) ).not.toHaveAttribute( 'aria-busy', /.*/ );
+} );
+
+test( 'sections opened and closed while results are on their way stay so once they are in', async ( {
+	page,
+} ) => {
+	await page.goto( fixture.path );
+	await openDrawer( page );
+	const framing = await section( page, fixture.framing );
+
+	const release = await holdResults( page, ( url ) => url.search.includes( fixture.filter ) );
+	await framing.getByRole( 'checkbox', { name: fixture.frame, exact: true } ).check();
+	await expect( page.locator( 'html' ) ).toHaveClass( LOADING );
+
+	// The framing has a chosen value, so the new drawer opens it; the customer closed it.
+	await framing.locator( 'summary' ).click();
+	await section( page, 'Price' );
+	release();
+
+	await expect( page ).toHaveURL( new RegExp( fixture.filter ) );
+	await expect( page.locator( 'html' ) ).not.toHaveClass( LOADING );
+	await expect( cards( page ) ).toHaveCount( 1 );
+	await expect(
+		drawer( page )
+			.locator( SECTION )
+			.filter( { has: page.locator( 'summary', { hasText: fixture.framing } ) } ),
+	).not.toHaveAttribute( 'open', /.*/ );
+	await expect(
+		drawer( page )
+			.locator( SECTION )
+			.filter( { has: page.locator( 'summary', { hasText: 'Price' } ) } ),
+	).toHaveAttribute( 'open', '' );
 } );
 
 test.describe( 'with an attribute that applies under a value of another', () => {

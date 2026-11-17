@@ -541,9 +541,10 @@ main:has(
 /*
  * A picture still on its way shows the skeleton's colour in its box, which
  * its size holds open, never the card's white. The picture covers it as it
- * loads.
+ * loads. The second picture over it stays clear, so while it loads the
+ * first shows through.
  */
-.wc-block-product .wc-block-components-product-image img {
+.wc-block-product .wc-block-components-product-image img:not( .pixonaut-shop-second-picture ) {
 	background-color: var( --ps-skeleton );
 }
 
