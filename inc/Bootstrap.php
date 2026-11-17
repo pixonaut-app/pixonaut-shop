@@ -113,6 +113,7 @@ final class Bootstrap
         (new Archive\FilterSections())->register();
         (new Archive\FilterDrawer())->register();
         (new Search\ProductSearch())->register();
+        (new Search\PopularSearches())->register();
     }
 
     private function register_front_page(): void

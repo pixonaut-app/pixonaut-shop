@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-11-17T10:05:28+00:00\n"
+"POT-Creation-Date: 2026-11-17T10:38:26+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -67,7 +67,7 @@ msgid "Recent orders"
 msgstr "Senaste beställningar"
 
 #: inc/Account/Dashboard.php:137 patterns/front-page.php:61
-#: patterns/popular-products.php:27
+#: patterns/popular-products.php:29
 msgid "View all"
 msgstr "Visa alla"
 
@@ -91,32 +91,32 @@ msgstr "Totalt"
 msgid "Status"
 msgstr "Status"
 
-#: inc/Archive/FilterDrawer.php:106
+#: inc/Archive/FilterDrawer.php:115
 msgid "Show filters"
 msgstr "Visa filter"
 
 #. translators: %s: how many filters the customer has chosen.
-#: inc/Archive/FilterDrawer.php:145
+#: inc/Archive/FilterDrawer.php:154
 #, php-format
 msgid "(%s chosen)"
 msgid_plural "(%s chosen)"
 msgstr[0] "(%s vald)"
 msgstr[1] "(%s valda)"
 
-#: inc/Archive/FilterDrawer.php:154
+#: inc/Archive/FilterDrawer.php:163
 msgid "Filters"
 msgstr "Filter"
 
-#: inc/Archive/FilterDrawer.php:171 patterns/chosen-filters.php:31
+#: inc/Archive/FilterDrawer.php:180 patterns/chosen-filters.php:31
 msgid "Clear all"
 msgstr "Rensa alla"
 
-#: inc/Archive/FilterDrawer.php:181
+#: inc/Archive/FilterDrawer.php:190
 msgid "Show products"
 msgstr "Visa produkter"
 
 #. translators: %s: how many products the chosen filters list.
-#: inc/Archive/FilterDrawer.php:187
+#: inc/Archive/FilterDrawer.php:196
 #, php-format
 msgid "Show %s product"
 msgid_plural "Show %s products"
@@ -220,37 +220,45 @@ msgstr "Installera WooCommerce"
 msgid "Do not show this again"
 msgstr "Visa inte det här igen"
 
-#: inc/Header/HeaderSearch.php:102
+#: inc/Header/HeaderSearch.php:107
 msgid "Search products…"
 msgstr "Sök bland produkter…"
 
-#: inc/Header/HeaderSearch.php:103
+#: inc/Header/HeaderSearch.php:108
 msgid "Search products"
 msgstr "Sök bland produkter"
 
-#: inc/Header/HeaderSearch.php:104
+#: inc/Header/HeaderSearch.php:109
 msgid "Close search"
 msgstr "Stäng sökningen"
 
-#: inc/Header/HeaderSearch.php:146
+#: inc/Header/HeaderSearch.php:151
 msgid "Search"
 msgstr "Sök"
 
-#: inc/Header/HeaderSearch.php:149
+#: inc/Header/HeaderSearch.php:154
 msgid "Type two letters or more to see suggestions."
 msgstr "Skriv minst två bokstäver så visas förslag medan du skriver."
 
-#: inc/Header/HeaderSearch.php:150
+#: inc/Header/HeaderSearch.php:155
 msgid "Suggestions"
 msgstr "Förslag"
 
-#: inc/Header/HeaderSearch.php:151
+#: inc/Header/HeaderSearch.php:156
 msgid ""
 "Check the spelling or try a shorter word. Press Enter to search the whole "
 "store."
 msgstr ""
 "Kontrollera stavningen eller prova ett kortare ord. Tryck Enter för att söka "
 "i hela butiken."
+
+#: inc/Header/HeaderSearch.php:207
+msgid "Popular searches"
+msgstr "Populära sökningar"
+
+#: inc/Header/HeaderSearch.php:208
+msgid "Popular products"
+msgstr "Populära produkter"
 
 #: inc/Header/MegaMenu.php:366
 msgid "Menu"
@@ -282,34 +290,34 @@ msgstr "Order %s är mottagen"
 msgid "Lowest price in the last %d days"
 msgstr "Lägsta pris senaste %d dagarna"
 
-#: inc/Product/VariablePrice.php:97
+#: inc/Product/VariablePrice.php:110
 msgid "Prices"
 msgstr "Priser"
 
-#: inc/Product/VariablePrice.php:113
+#: inc/Product/VariablePrice.php:126
 msgid "A variable product's price before a variation is chosen"
 msgstr "En variabel produkts pris innan en variant har valts"
 
-#: inc/Product/VariablePrice.php:115
+#: inc/Product/VariablePrice.php:128
 msgid "\"From\" the lowest price"
 msgstr "”Från” lägsta priset"
 
-#: inc/Product/VariablePrice.php:116
+#: inc/Product/VariablePrice.php:129
 msgid "\"Fr.\" the lowest price"
 msgstr "”Fr.” lägsta priset"
 
-#: inc/Product/VariablePrice.php:117
+#: inc/Product/VariablePrice.php:130
 msgid "The range from the lowest price to the highest"
 msgstr "Spannet från lägsta till högsta priset"
 
 #. translators: Before a product's lowest price, as in "From 299 kr". The short form of "From".
-#: inc/Product/VariablePrice.php
+#: inc/Product/VariablePrice.php:145
 msgctxt "price from its lowest amount, short"
 msgid "Fr."
 msgstr "Fr."
 
 #. translators: Before a product's lowest price, as in "From 299 kr".
-#: inc/Product/VariablePrice.php
+#: inc/Product/VariablePrice.php:147
 msgctxt "price from its lowest amount"
 msgid "From"
 msgstr "Från"
@@ -403,7 +411,7 @@ msgstr "Handla efter kategori"
 msgid "All categories"
 msgstr "Alla kategorier"
 
-#: patterns/front-page.php:57 patterns/popular-products.php:23
+#: patterns/front-page.php:57 patterns/popular-products.php:25
 msgid "Popular right now"
 msgstr "Populärt just nu"
 

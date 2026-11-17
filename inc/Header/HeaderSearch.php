@@ -7,6 +7,8 @@ namespace Pixonaut\Shop\Header;
 use Pixonaut\Shop\Assets\BuiltScript;
 use Pixonaut\Shop\Blocks\Icons;
 use Pixonaut\Shop\I18n\TextDomain;
+use Pixonaut\Shop\Product\PopularProducts;
+use Pixonaut\Shop\Search\PopularSearches;
 
 /**
  * The header's search: the search block that is only its button, as the
@@ -16,8 +18,11 @@ use Pixonaut\Shop\I18n\TextDomain;
  * The panel is a popover the icon opens, so the browser opens and closes it
  * (Escape, a click outside) and moves focus into its field with no script;
  * the field's form searches the store's products, so a search works without
- * script too. `src/header/search.ts` adds the rest: suggestions as the
- * shopper types, from the results page's own search (`SearchSuggestions`),
+ * script too. Before a shopper types, the panel offers where to start: the
+ * searches shoppers make most (`PopularSearches`) and the popular products
+ * (`PopularProducts`), printed with the page, so nothing moves when the
+ * panel opens. `src/header/search.ts` adds the rest: it shows them, and
+ * suggestions as the shopper types, from the results page's own search (`SearchSuggestions`),
  * picked with the arrow keys, the count and a link to every result, and the
  * panel closing when focus leaves it.
  *
@@ -125,7 +130,7 @@ final class HeaderSearch
             . '<a class="%1$s__all" href="%6$s" hidden></a>'
             . '<p class="%1$s__none" hidden></p>'
             . '</div>'
-            . '<ul id="%10$s" class="%1$s__list" role="listbox" aria-label="%17$s" hidden></ul>'
+            . '<ul id="%10$s" class="%1$s__list" role="listbox" aria-label="%17$s" hidden>%19$s</ul>'
             . '<p class="%1$s__help" hidden>%18$s</p>'
             . '<p class="screen-reader-text %1$s__announce" role="status"></p>'
             . '</div>'
@@ -148,7 +153,82 @@ final class HeaderSearch
             Icons::svg('close'),
             esc_html__('Type two letters or more to see suggestions.', 'pixonaut-shop'),
             esc_attr__('Suggestions', 'pixonaut-shop'),
-            esc_html__('Check the spelling or try a shorter word. Press Enter to search the whole store.', 'pixonaut-shop')
+            esc_html__('Check the spelling or try a shorter word. Press Enter to search the whole store.', 'pixonaut-shop'),
+            self::start($list)
+        );
+    }
+
+    /**
+     * Where a shopper can start before typing, as the list's options in two
+     * groups: the popular searches, each running its search, and the popular
+     * products, each opening its page. A group with nothing in it is left
+     * out. The script shows them while the field holds less than a search.
+     */
+    private static function start(string $list_id): string
+    {
+        $shown = PopularSearches::shown(time());
+        $searches = array_map(
+            static fn (string $words, int $index): string => \sprintf(
+                '<li id="%1$s" class="%2$s__option %2$s__search" role="option" aria-selected="false" data-url="%3$s">%4$s<span>%5$s</span></li>',
+                esc_attr($list_id . '-search-' . $index),
+                self::CLASS_NAME,
+                esc_url(add_query_arg(['s' => $words, 'post_type' => self::PRODUCT], home_url('/'))),
+                Icons::svg('search'),
+                esc_html($words)
+            ),
+            $shown,
+            array_keys($shown)
+        );
+
+        $cards = [];
+
+        foreach (PopularProducts::products() as $product) {
+            $card = SearchSuggestions::of_product($product);
+
+            if (null === $card) {
+                continue;
+            }
+
+            $cards[] = \sprintf(
+                '<li id="%1$s" class="%2$s__option %2$s__card" role="option" aria-selected="false" data-url="%3$s">'
+                . '<span class="%2$s__picture">%4$s</span>'
+                . '<span class="%2$s__name">%5$s</span>'
+                . '<span class="%2$s__price">%6$s</span>'
+                . '</li>',
+                esc_attr($list_id . '-product-' . \count($cards)),
+                self::CLASS_NAME,
+                esc_url($card['url']),
+                null === $card['image'] ? '' : '<img src="' . esc_url($card['image']) . '" alt="" loading="lazy" decoding="async">',
+                esc_html($card['name']),
+                $card['price']
+            );
+        }
+
+        return self::group($list_id . '-searches', 'searches', __('Popular searches', 'pixonaut-shop'), $searches)
+            . self::group($list_id . '-products', 'products', __('Popular products', 'pixonaut-shop'), $cards);
+    }
+
+    /**
+     * One labelled group of options; nothing for a group with no options.
+     *
+     * @param list<string> $options
+     */
+    private static function group(string $id, string $name, string $label, array $options): string
+    {
+        if ([] === $options) {
+            return '';
+        }
+
+        return \sprintf(
+            '<li class="%1$s__group %1$s__group--%2$s" role="group" aria-labelledby="%3$s">'
+            . '<span id="%3$s" class="%1$s__heading">%4$s</span>'
+            . '<ul class="%1$s__options" role="presentation">%5$s</ul>'
+            . '</li>',
+            self::CLASS_NAME,
+            esc_attr($name),
+            esc_attr($id),
+            esc_html($label),
+            implode('', $options)
         );
     }
 }

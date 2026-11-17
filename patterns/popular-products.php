@@ -14,6 +14,8 @@
 
 declare(strict_types=1);
 
+use Pixonaut\Shop\Product\PopularProducts;
+
 ?>
 <!-- wp:group {"align":"wide","className":"pixonaut-shop-popular-products","layout":{"type":"default"}} -->
 <div class="wp-block-group alignwide pixonaut-shop-popular-products">
@@ -29,7 +31,7 @@ declare(strict_types=1);
 	</div>
 	<!-- /wp:group -->
 
-	<!-- wp:woocommerce/product-collection {"queryId":1,"query":{"woocommerceAttributes":[],"woocommerceStockStatus":["instock","onbackorder"],"taxQuery":{},"isProductCollectionBlock":true,"perPage":4,"pages":1,"offset":0,"postType":"product","order":"desc","orderBy":"sales","author":"","search":"","exclude":[],"sticky":"","inherit":false},"tagName":"div","displayLayout":{"type":"flex","columns":4,"shrinkColumns":false},"dimensions":{"widthType":"fill"},"collection":"woocommerce/product-collection/best-sellers","hideControls":["inherit","order","filterable"],"queryContextIncludes":["collection"],"align":"wide"} -->
+	<!-- wp:woocommerce/product-collection {"queryId":1,"query":{"woocommerceAttributes":[],"woocommerceStockStatus":<?php echo wp_json_encode( PopularProducts::STOCK_STATUSES ); ?>,"taxQuery":{},"isProductCollectionBlock":true,"perPage":<?php echo (int) PopularProducts::COUNT; ?>,"pages":1,"offset":0,"postType":"product","order":"desc","orderBy":"<?php echo esc_attr( PopularProducts::COLLECTION_ORDER ); ?>","author":"","search":"","exclude":[],"sticky":"","inherit":false},"tagName":"div","displayLayout":{"type":"flex","columns":<?php echo (int) PopularProducts::COUNT; ?>,"shrinkColumns":false},"dimensions":{"widthType":"fill"},"collection":"woocommerce/product-collection/best-sellers","hideControls":["inherit","order","filterable"],"queryContextIncludes":["collection"],"align":"wide"} -->
 	<div class="wp-block-woocommerce-product-collection alignwide">
 		<!-- wp:woocommerce/product-template -->
 			<!-- wp:woocommerce/product-image {"showSaleBadge":false,"isDescendentOfQueryLoop":true} -->

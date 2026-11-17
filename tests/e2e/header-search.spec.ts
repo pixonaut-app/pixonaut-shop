@@ -13,7 +13,9 @@ import { TEST_SUPPORT, wpEval } from './support/wp-cli';
  * Nothing on the page moves while the panel opens, suggests and closes. The
  * fixture's products have a picture each, in a category of their own
  * (`ShopFixtures::searchable_products()`); another fixture's has a card per
- * value (`SplitCardFixtures`, `fake-split-cards.php`).
+ * value (`SplitCardFixtures`, `fake-split-cards.php`). Before typing, the
+ * panel offers the searches shoppers make most and the popular products:
+ * the fixture's word counted as searched twice, its product the best seller.
  */
 
 const TOGGLE = '.pixonaut-shop-header .pixonaut-shop-header-search__toggle';
@@ -23,6 +25,9 @@ const OPTION = '.pixonaut-shop-header-search__option';
 const ALL = '.pixonaut-shop-header-search__all';
 const NONE = '.pixonaut-shop-header-search__none';
 const COUNT = '.pixonaut-shop-header-search__count';
+const LIST = '.pixonaut-shop-header-search__list';
+const SEARCH = '.pixonaut-shop-header-search__search';
+const CARD = '.pixonaut-shop-header-search__card';
 
 /** The address the panel asks the results page's search for its suggestions at. */
 const SUGGESTIONS = '**/?*pixonaut_shop_suggestions=*';
@@ -62,9 +67,13 @@ test.beforeAll( () => {
 		`${ fixtures }::make(); echo ${ fixtures }::QUERY, "\\n", ${ fixtures }::SPLIT_NAME, "\\n", implode( ",", ${ fixtures }::CARDS ), "\\n";`,
 	).split( '\n' );
 	split = { query, name: splitName, cards: cards.split( ',' ) };
+
+	// A search shoppers made often enough to be suggested, and the fixture's product the best seller.
+	wpEval( `${ TEST_SUPPORT }PopularFixtures::make();` );
 } );
 
 test.afterAll( () => {
+	wpEval( `${ TEST_SUPPORT }PopularFixtures::forget();` );
 	wpEval( `${ TEST_SUPPORT }ShopFixtures::forget_searchable_products();` );
 	wpEval( `${ TEST_SUPPORT }SplitCardFixtures::forget();` );
 } );
@@ -77,6 +86,8 @@ async function open( page: Page ): Promise< void > {
 
 async function suggest( page: Page, query: string ): Promise< void > {
 	await page.locator( FIELD ).pressSequentially( query );
+	// The suggestions have replaced where to start.
+	await expect( page.locator( LIST ) ).not.toHaveClass( /is-start/ );
 	await expect( page.locator( OPTION ).first() ).toBeVisible();
 }
 
@@ -86,6 +97,64 @@ test( 'opening the search focuses its field', async ( { page } ) => {
 	await expect( page.locator( PANEL ) ).toBeVisible();
 	await expect( page.locator( TOGGLE ) ).toHaveAttribute( 'aria-expanded', 'true' );
 	await expect( page.getByRole( 'combobox', { name: 'Search products' } ) ).toBeFocused();
+} );
+
+test( 'before typing, the search offers the popular searches and products', async ( { page } ) => {
+	await open( page );
+
+	await expect( page.getByRole( 'group', { name: 'Popular searches' } ) ).toBeVisible();
+	await expect( page.getByRole( 'group', { name: 'Popular products' } ) ).toBeVisible();
+	await expect( page.getByRole( 'option', { name: SHARED_WORD, exact: true } ) ).toBeVisible();
+	const card = page.locator( CARD ).first();
+	await expect( card ).toContainText( product.name );
+	await expect( card.locator( 'img' ) ).toHaveAttribute( 'src', /\.(png|jpe?g|webp)/ );
+	await expect( card.locator( '.pixonaut-shop-header-search__price' ) ).toContainText( /\d/ );
+	await expect( page.locator( FIELD ) ).toHaveAttribute( 'aria-expanded', 'true' );
+} );
+
+test( 'a popular search runs its search', async ( { page } ) => {
+	await open( page );
+	await page.getByRole( 'option', { name: SHARED_WORD, exact: true } ).click();
+
+	await expect.poll( () => new URL( page.url() ).searchParams.get( 's' ) ).toBe( SHARED_WORD );
+	expect( new URL( page.url() ).searchParams.get( 'post_type' ) ).toBe( 'product' );
+} );
+
+test( 'a popular product opens its page', async ( { page } ) => {
+	await open( page );
+	await page.locator( CARD ).first().click();
+
+	await expect( page ).toHaveURL( new RegExp( `/${ product.slug }/` ) );
+} );
+
+test( 'the arrow keys move through the searches, then the products', async ( { page } ) => {
+	await open( page );
+	const field = page.locator( FIELD );
+	const searches = await page.locator( SEARCH ).count();
+
+	await field.press( 'ArrowDown' );
+	await expect( page.locator( SEARCH ).first() ).toHaveAttribute( 'aria-selected', 'true' );
+	for ( let step = 0; step < searches; step++ ) {
+		await field.press( 'ArrowDown' );
+	}
+	await expect( page.locator( CARD ).first() ).toHaveAttribute( 'aria-selected', 'true' );
+	await field.press( 'Enter' );
+
+	await expect( page ).toHaveURL( new RegExp( `/${ product.slug }/` ) );
+} );
+
+test( 'typing replaces them with suggestions, and emptying the field brings them back', async ( {
+	page,
+} ) => {
+	await open( page );
+	await suggest( page, product.name );
+
+	await expect( page.locator( SEARCH ) ).toHaveCount( 0 );
+	await expect( page.locator( CARD ) ).toHaveCount( 0 );
+
+	await page.locator( FIELD ).fill( '' );
+	await expect( page.locator( LIST ) ).toHaveClass( /is-start/ );
+	await expect( page.getByRole( 'option', { name: SHARED_WORD, exact: true } ) ).toBeVisible();
 } );
 
 test( 'typing a product’s name lists it with its picture and price', async ( { page } ) => {
@@ -253,6 +322,11 @@ for ( const viewport of VIEWPORTS ) {
 
 		await page.locator( TOGGLE ).click();
 		await expect( page.locator( FIELD ) ).toBeFocused();
+		// Where to start, with the popular products' pictures loaded in their places.
+		await expect( page.locator( CARD ).first().locator( 'img' ) ).toHaveJSProperty(
+			'complete',
+			true,
+		);
 		await suggest( page, product.name );
 		// From suggestions to none, and the list gives way to the "nothing found" line.
 		await page.locator( FIELD ).pressSequentially( ` ${ UNMATCHED }` );
@@ -266,6 +340,19 @@ for ( const viewport of VIEWPORTS ) {
 		expect( shifts ).toEqual( [] );
 	} );
 }
+
+test( 'the open search passes the accessibility check before typing', async ( { page } ) => {
+	await open( page );
+	await expect( page.locator( CARD ).first() ).toBeVisible();
+	await page.locator( FIELD ).press( 'ArrowDown' );
+
+	const results = await new AxeBuilder( { page } )
+		.include( '.pixonaut-shop-header-search' )
+		.withTags( WCAG )
+		.analyze();
+
+	expect( results.violations ).toEqual( [] );
+} );
 
 test( 'the open search passes the accessibility check', async ( { page } ) => {
 	await open( page );
