@@ -45,13 +45,14 @@ final class VariablePriceTest extends TestCase
         (new VariablePrice())->register();
 
         self::assertNotFalse(has_filter('woocommerce_variable_price_html', 'Pixonaut\Shop\Product\VariablePrice->with_price_html()'));
+        self::assertNotFalse(has_filter('woocommerce_get_price_html_from_text', 'Pixonaut\Shop\Product\VariablePrice->from_text()'));
         self::assertNotFalse(has_action('customize_register', 'Pixonaut\Shop\Product\VariablePrice->customize()'));
     }
 
     public function testShowsFromTheLowestPriceInFullByDefault(): void
     {
         self::assertSame(
-            'From <span class="amount">299&nbsp;kr</span>' . self::SUFFIX,
+            '<span class="from">From </span><span class="amount">299&nbsp;kr</span>' . self::SUFFIX,
             (new VariablePrice())->with_price_html(self::RANGE_HTML, self::product(self::PRICES))
         );
     }
@@ -61,9 +62,28 @@ final class VariablePriceTest extends TestCase
         $this->saved = VariablePrice::FROM_SHORT;
 
         self::assertSame(
-            'Fr. <span class="amount">299&nbsp;kr</span>' . self::SUFFIX,
+            '<span class="from">Fr. </span><span class="amount">299&nbsp;kr</span>' . self::SUFFIX,
             (new VariablePrice())->with_price_html(self::RANGE_HTML, self::product(self::PRICES))
         );
+    }
+
+    /** WooCommerce's own "From:", as a grouped product or a plugin's card prints it, says what the store chose. */
+    #[DataProvider('fromWords')]
+    public function testWooCommercesFromTextSaysTheChosenWord(?string $choice, string $text): void
+    {
+        $this->saved = $choice;
+
+        self::assertSame($text, (new VariablePrice())->from_text());
+    }
+
+    /** @return array<string, array{?string, string}> */
+    public static function fromWords(): array
+    {
+        return [
+            'by default'            => [null, '<span class="from">From </span>'],
+            'short'                 => [VariablePrice::FROM_SHORT, '<span class="from">Fr. </span>'],
+            'in full for the range' => [VariablePrice::RANGE, '<span class="from">From </span>'],
+        ];
     }
 
     public function testLeavesTheRangeWhenChosen(): void

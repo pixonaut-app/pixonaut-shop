@@ -45,9 +45,10 @@ const SAME_BOX_TOLERANCE = 1;
 
 /**
  * How much of its width text may change when the typeface replaces its
- * fallback. A price sets this: Arial's digits are the furthest from Inter's.
+ * fallback. A whole price sets this: digits alone, with no separator to even
+ * them out, and Arial's digits are the furthest from Inter's.
  */
-const SWAP_WIDTH_TOLERANCE = 0.075;
+const SWAP_WIDTH_TOLERANCE = 0.085;
 
 type Box = NonNullable< Awaited< ReturnType< Locator[ 'boundingBox' ] > > >;
 

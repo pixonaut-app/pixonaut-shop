@@ -210,6 +210,9 @@ final class ShopArchiveTest extends TestCase
         $template  = resolve_block_template('taxonomy', $hierarchy, '');
         self::assertNotNull($template);
 
-        return do_blocks($template->content);
+        // The archive itself: the header's search lists popular products of its own.
+        self::assertSame(1, preg_match('/<main\b.*<\/main>/s', do_blocks($template->content), $main));
+
+        return $main[0];
     }
 }

@@ -4,13 +4,17 @@
  * panel is a popover the icon opens, so the browser opens and closes it,
  * Escape and a click outside included, and focuses its field.
  *
- * This script adds the rest. From two letters on, the panel lists the
+ * This script adds the rest. Before a shopper types, the panel offers
+ * where to start, as the server printed it in the list: the searches
+ * shoppers make most, each running its search, and the popular products,
+ * each opening its page. From two letters on, the panel lists the
  * first five products the results page lists for the query, asked of that
  * page's own search (`inc/Header/SearchSuggestions.php`), with their picture
  * and price, the page's count and a link to it. A product the page lists
  * once per card is suggested and counted once per card, each with the
- * card's own picture, name, price and link. The field is a combobox: the arrow keys move among the
- * suggestions, Enter opens the active one, or the results page when none is
+ * card's own picture, name, price and link, in their place. The field is a combobox: the arrow
+ * keys move among the options, searches then products before typing, Enter or a click opens the
+ * active one, or the results page when none is
  * active. An empty search keeps the panel open. When focus leaves the panel
  * it closes, and when it closes, focus goes back to the icon if it was in
  * the panel. Counts and "nothing found" are announced.
@@ -46,6 +50,12 @@ const TYPING_PAUSE_MS = 200;
 /** The value of the query variable that asks the results page for its suggestions. */
 const ASKS_FOR_SUGGESTIONS = '1';
 
+/** An option, and the address it opens. */
+const OPTION = '[role="option"]';
+
+/** The list's class while it holds where to start, before the shopper types. */
+const START_CLASS = 'is-start';
+
 /** The active suggestion's class, and no suggestion's index. */
 const ACTIVE_CLASS = 'is-active';
 const NO_OPTION = -1;
@@ -71,8 +81,8 @@ function part< T extends Element >( root: ParentNode, name: string ): T | null {
 
 /**
  * A suggestion's row: its picture, its name and its price. An option holds
- * no link, which a screen reader would not reach inside a listbox; a click
- * on it opens the product, as Enter does.
+ * no link, which a screen reader would not reach inside a listbox; it keeps
+ * its address, which a click or Enter opens.
  */
 function optionFor( suggestion: Suggestion, id: string ): HTMLLIElement {
 	const option = document.createElement( 'li' );
@@ -100,8 +110,8 @@ function optionFor( suggestion: Suggestion, id: string ): HTMLLIElement {
 	price.className = `${ CLASS }__price`;
 	appendPrice( price, suggestion.price );
 
+	option.dataset.url = suggestion.url;
 	option.append( picture, name, price );
-	option.addEventListener( 'click', () => window.location.assign( suggestion.url ) );
 
 	return option;
 }
@@ -138,7 +148,10 @@ function setUp( root: HTMLElement ): void {
 	}
 
 	const found = new Map< string, Found >();
-	let shown: Suggestion[] = [];
+	// Where to start, as the server printed it: shown again whenever the field holds less than a search.
+	const start = [ ...list.children ];
+	// Whether the options in view belong to what is in the field, so the arrow keys can pick them.
+	let pickable = false;
 	let active = NO_OPTION;
 	let pending: AbortController | null = null;
 	let timer: ReturnType< typeof setTimeout > | undefined;
@@ -154,10 +167,12 @@ function setUp( root: HTMLElement ): void {
 		return url.toString();
 	};
 
+	const options = (): HTMLElement[] => [ ...list.querySelectorAll< HTMLElement >( OPTION ) ];
+
 	const setActive = ( index: number ): void => {
 		active = index;
-		const options = [ ...list.children ] as HTMLElement[];
-		options.forEach( ( option, position ) => {
+		const all = options();
+		all.forEach( ( option, position ) => {
 			const isActive = position === index;
 			option.classList.toggle( ACTIVE_CLASS, isActive );
 			option.setAttribute( 'aria-selected', String( isActive ) );
@@ -165,7 +180,7 @@ function setUp( root: HTMLElement ): void {
 				option.scrollIntoView( { block: 'nearest' } );
 			}
 		} );
-		const option = options[ index ];
+		const option = all[ index ];
 		if ( option ) {
 			field.setAttribute( 'aria-activedescendant', option.id );
 		} else {
@@ -173,20 +188,27 @@ function setUp( root: HTMLElement ): void {
 		}
 	};
 
-	/** Shows one of the status row's lines (or the hint), and the list or the help under it. */
+	/**
+	 * Shows one of the status row's lines (or the hint), and under it the list (where to start,
+	 * with the hint, or the suggestions) or the help.
+	 */
 	const showState = ( state: 'hint' | 'found' | 'none' ): void => {
+		const listed = state === 'found' || ( state === 'hint' && start.length > 0 );
 		hint.hidden = state !== 'hint';
 		count.hidden = state !== 'found';
 		all.hidden = state !== 'found';
 		none.hidden = state !== 'none';
-		list.hidden = state !== 'found';
+		list.hidden = ! listed;
 		help.hidden = state !== 'none';
-		field.setAttribute( 'aria-expanded', String( state === 'found' ) );
-		if ( state !== 'found' ) {
+		list.classList.toggle( START_CLASS, state === 'hint' );
+		field.setAttribute( 'aria-expanded', String( listed ) );
+		if ( state === 'hint' ) {
+			list.replaceChildren( ...start );
+		} else if ( state === 'none' ) {
 			list.replaceChildren();
-			shown = [];
-			setActive( NO_OPTION );
 		}
+		pickable = listed;
+		setActive( NO_OPTION );
 	};
 
 	const show = ( query: string, { suggestions, total }: Found ): void => {
@@ -213,14 +235,12 @@ function setUp( root: HTMLElement ): void {
 		);
 		all.href = resultsUrl( query );
 
-		shown = suggestions;
 		list.replaceChildren(
 			...suggestions.map( ( suggestion, index ) =>
 				optionFor( suggestion, `${ list.id }-${ index }` ),
 			),
 		);
 		showState( 'found' );
-		setActive( NO_OPTION );
 		announce.textContent = sprintf(
 			/* translators: %s: how many suggestions the search shows. */
 			_n(
@@ -277,9 +297,9 @@ function setUp( root: HTMLElement ): void {
 	field.addEventListener( 'input', () => {
 		clearTimeout( timer );
 		const query = field.value.trim();
-		// What is listed belongs to the query before this one: it stays in view until the new
-		// suggestions replace it, but none can be picked, and "show all" searches the new query.
-		shown = [];
+		// What is listed belongs to the query before this one, or to none: it stays in view until
+		// the new suggestions replace it, but none can be picked, and "show all" searches the new query.
+		pickable = false;
 		setActive( NO_OPTION );
 		all.href = resultsUrl( query );
 		if ( query.length < MIN_LETTERS ) {
@@ -293,10 +313,10 @@ function setUp( root: HTMLElement ): void {
 
 	field.addEventListener( 'keydown', ( event ) => {
 		if ( event.key === ENTER && active !== NO_OPTION ) {
-			const suggestion = shown[ active ];
-			if ( suggestion ) {
+			const url = options()[ active ]?.dataset.url;
+			if ( url ) {
 				event.preventDefault();
-				window.location.assign( suggestion.url );
+				window.location.assign( url );
 			}
 			return;
 		}
@@ -308,10 +328,19 @@ function setUp( root: HTMLElement ): void {
 			return;
 		}
 
-		const target = optionStep( event.key, active, shown.length );
+		const target = optionStep( event.key, active, pickable ? options().length : 0 );
 		if ( target !== null ) {
 			event.preventDefault();
 			setActive( target );
+		}
+	} );
+
+	// A click on an option opens it, as Enter does.
+	list.addEventListener( 'click', ( event ) => {
+		const option =
+			event.target instanceof Element ? event.target.closest< HTMLElement >( OPTION ) : null;
+		if ( option?.dataset.url ) {
+			window.location.assign( option.dataset.url );
 		}
 	} );
 
@@ -363,6 +392,7 @@ function setUp( root: HTMLElement ): void {
 	);
 
 	toggle.setAttribute( 'aria-expanded', 'false' );
+	showState( 'hint' );
 
 	// Placed before the browser shows it, so it never shows at the window's top first.
 	panel.addEventListener( 'beforetoggle', ( event ) => {

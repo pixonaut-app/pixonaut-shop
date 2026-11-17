@@ -41,6 +41,11 @@ final class HeaderSearchTest extends TestCase
             return $prefix . $counter[$prefix];
         });
         Functions\when('home_url')->alias(static fn (string $path = ''): string => self::SHOP_URL . $path);
+        Functions\when('add_query_arg')->alias(static fn (array $args, string $url): string => $url . '?' . http_build_query($args));
+        Functions\when('wp_strip_all_tags')->returnArg();
+        // No searches counted, unless a test says otherwise. WooCommerce is not loaded, so
+        // every render here is also the header's on a site without it: no products, no error.
+        Functions\when('get_option')->justReturn([]);
         $this->theme(self::UNBUILT_THEME);
     }
 
@@ -101,8 +106,35 @@ final class HeaderSearchTest extends TestCase
             '/<input id="' . $field . '"[^>]* placeholder="Search products…"[^>]* role="combobox" aria-expanded="false" aria-controls="pixonaut-shop-header-search-1-list" aria-autocomplete="list"/',
             $html
         );
+        // Nothing to offer before typing: the list is empty until the shopper types.
         self::assertStringContainsString('<ul id="pixonaut-shop-header-search-1-list" class="pixonaut-shop-header-search__list" role="listbox" aria-label="Suggestions" hidden></ul>', $html);
         self::assertStringContainsString('role="status"', $html);
+    }
+
+    public function testBeforeTypingTheListOffersThePopularSearches(): void
+    {
+        $now = time();
+        Functions\when('get_option')->justReturn([
+            'lanterns' => ['words' => 'Lanterns', 'count' => 3, 'last' => $now],
+            'mugs'     => ['words' => 'mugs', 'count' => 2, 'last' => $now],
+            'once'     => ['words' => 'once', 'count' => 1, 'last' => $now],
+        ]);
+
+        $html = (new HeaderSearch())->render(self::CORE_OUTPUT, self::block('button-only'));
+
+        self::assertMatchesRegularExpression(
+            '/<li class="pixonaut-shop-header-search__group pixonaut-shop-header-search__group--searches" role="group" aria-labelledby="pixonaut-shop-header-search-1-list-searches">'
+            . '<span id="pixonaut-shop-header-search-1-list-searches" class="pixonaut-shop-header-search__heading">Popular searches<\/span>/',
+            $html
+        );
+        self::assertMatchesRegularExpression(
+            '/<li id="pixonaut-shop-header-search-1-list-search-0" class="[^"]*__search" role="option" aria-selected="false" data-url="https:\/\/shop.test\/\?s=Lanterns&(amp;)?post_type=product">.*?<span>Lanterns<\/span><\/li>'
+            . '<li id="pixonaut-shop-header-search-1-list-search-1"[^>]*>.*?<span>mugs<\/span>/',
+            $html
+        );
+        self::assertStringNotContainsString('once', $html);
+        // No products to show: no group for them.
+        self::assertStringNotContainsString('Popular products', $html);
     }
 
     public function testTheSuggestionsComeFromTheResultsPagesOwnSearch(): void

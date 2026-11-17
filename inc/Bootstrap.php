@@ -113,6 +113,7 @@ final class Bootstrap
         (new Archive\FilterSections())->register();
         (new Archive\FilterDrawer())->register();
         (new Search\ProductSearch())->register();
+        (new Search\PopularSearches())->register();
     }
 
     private function register_front_page(): void
@@ -150,6 +151,7 @@ final class Bootstrap
         (new Product\PreviewFrame(new Blocks\AspectRatios()))->register();
         (new Product\PriceRow())->register();
         (new Product\VariablePrice())->register();
+        (new Product\WholeAmounts())->register();
         (new Product\VariationSwatches())->register();
         (new Product\SecondPicture())->register();
         $lowest_price->register();

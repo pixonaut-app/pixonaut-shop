@@ -3,8 +3,9 @@
  * header's row and the panel it opens, a band under the header across the
  * window, over the page, with a scrim behind it. In the band: the field, the
  * search button and the close button, then one status row (the hint, the
- * count and the link to every result, or "nothing found"), then the
- * suggestions. The panel is a popover in the top layer, so opening it, typing
+ * count and the link to every result, or "nothing found"), then the list:
+ * where to start before the shopper types (the popular searches beside the
+ * popular products' cards), or the suggestions. The panel is a popover in the top layer, so opening it, typing
  * and closing it move nothing on the page.
  */
 
@@ -13,6 +14,12 @@
 	--pixonaut-shop-header-search-picture: 3.5rem;
 	/* The status row is one line of small text tall, empty or not, so the list under it never moves. */
 	--pixonaut-shop-header-search-status-height: 1.75rem;
+	/* The popular searches' column beside the popular products, before typing. */
+	--pixonaut-shop-header-search-searches-width: 11rem;
+	/* The popular products in a row: as many as the server prints (`Product\PopularProducts::COUNT`). */
+	--pixonaut-shop-header-search-cards: 4;
+	/* On a phone, two by two. */
+	--pixonaut-shop-header-search-cards-phone: 2;
 }
 
 .pixonaut-shop-header-search__toggle svg,
@@ -283,6 +290,116 @@
 	white-space: normal;
 }
 
+/*
+ * Before typing: the popular searches in a column beside the popular
+ * products, four cards in a row. Each group's heading sits over its options.
+ */
+.pixonaut-shop-header-search__list.is-start {
+	flex-direction: row;
+	align-items: flex-start;
+	gap: var( --wp--preset--spacing--50 );
+}
+
+.pixonaut-shop-header-search__group {
+	display: flex;
+	flex-direction: column;
+	gap: var( --wp--preset--spacing--20 );
+	min-width: 0;
+}
+
+.pixonaut-shop-header-search__group--searches {
+	flex: none;
+	width: var( --pixonaut-shop-header-search-searches-width );
+}
+
+.pixonaut-shop-header-search__group--products {
+	flex: 1 1 0;
+}
+
+.pixonaut-shop-header-search__heading {
+	color: var( --wp--preset--color--muted );
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 700;
+}
+
+.pixonaut-shop-header-search__options {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.pixonaut-shop-header-search__group--products .pixonaut-shop-header-search__options {
+	display: grid;
+	grid-template-columns: repeat( var( --pixonaut-shop-header-search-cards ), minmax( 0, 1fr ) );
+	gap: var( --wp--preset--spacing--30 );
+}
+
+.pixonaut-shop-header-search__search {
+	gap: var( --wp--preset--spacing--30 );
+	/* A fingertip's height. */
+	min-height: 2.75rem;
+	padding-block: 0;
+}
+
+.pixonaut-shop-header-search__search svg {
+	flex: none;
+	width: 1rem;
+	height: 1rem;
+	color: var( --wp--preset--color--muted );
+}
+
+/* A popular product: the product grid's card, smaller. */
+.pixonaut-shop-header-search__card {
+	flex-direction: column;
+	align-items: stretch;
+	gap: var( --wp--preset--spacing--20 );
+	padding: 0 0 var( --wp--preset--spacing--30 );
+	overflow: hidden;
+	border: 1px solid var( --wp--preset--color--border );
+	border-radius: var( --wp--custom--radius--large );
+	background: var( --wp--preset--color--base );
+}
+
+.pixonaut-shop-header-search__card .pixonaut-shop-header-search__picture {
+	width: 100%;
+	height: auto;
+	/* Square, so a picture arriving moves nothing. */
+	aspect-ratio: 1;
+	border-radius: 0;
+}
+
+.pixonaut-shop-header-search__card .pixonaut-shop-header-search__name,
+.pixonaut-shop-header-search__card .pixonaut-shop-header-search__price {
+	flex: none;
+	padding-inline: var( --wp--preset--spacing--30 );
+	text-align: start;
+}
+
+.pixonaut-shop-header-search__card .pixonaut-shop-header-search__name {
+	font-family: var( --wp--preset--font-family--heading );
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 700;
+	line-height: 1.3;
+	/* Words break between them, unless one is wider than the card. */
+	overflow-wrap: break-word;
+	/* A narrow card: up to three lines, so the cards of one product, whose names differ at their end, stay told apart. */
+	-webkit-line-clamp: 3;
+	line-clamp: 3;
+}
+
+.pixonaut-shop-header-search__card .pixonaut-shop-header-search__price {
+	white-space: normal;
+}
+
+.pixonaut-shop-header-search__card .pixonaut-shop-header-search__price .pixonaut-shop-lowest-price {
+	max-width: none;
+	margin-inline-start: 0;
+	text-align: start;
+}
+
 /* Phones, from WordPress's own 782px breakpoint: the keyboard's search key submits, so the button gives way. */
 @media ( max-width: 781px ) {
 	.pixonaut-shop-header-search__panel {
@@ -301,5 +418,62 @@
 
 	.pixonaut-shop-header-search__price .pixonaut-shop-lowest-price {
 		max-width: 9em;
+	}
+
+	/* A suggestion's price under its name, so the name has the row's width for both its lines. */
+	.pixonaut-shop-header-search__list:not( .is-start ) .pixonaut-shop-header-search__option {
+		display: grid;
+		grid-template-columns: var( --pixonaut-shop-header-search-picture ) minmax( 0, 1fr );
+		align-content: center;
+		column-gap: var( --wp--preset--spacing--40 );
+		row-gap: 0.125rem;
+	}
+
+	.pixonaut-shop-header-search__list:not( .is-start ) .pixonaut-shop-header-search__picture {
+		grid-row: span 2;
+	}
+
+	.pixonaut-shop-header-search__list:not( .is-start ) .pixonaut-shop-header-search__price {
+		text-align: start;
+	}
+
+	.pixonaut-shop-header-search__list:not( .is-start ) .pixonaut-shop-header-search__price del {
+		display: inline;
+	}
+
+	.pixonaut-shop-header-search__list:not( .is-start ) .pixonaut-shop-lowest-price {
+		max-width: none;
+		margin-inline-start: 0;
+		text-align: start;
+	}
+
+	/* Before typing, the searches first, as chips that wrap, then the products two by two. */
+	.pixonaut-shop-header-search__list.is-start {
+		flex-direction: column;
+		align-items: stretch;
+		gap: var( --wp--preset--spacing--40 );
+	}
+
+	.pixonaut-shop-header-search__group--searches {
+		width: auto;
+	}
+
+	.pixonaut-shop-header-search__group--searches .pixonaut-shop-header-search__options {
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: var( --wp--preset--spacing--20 );
+	}
+
+	.pixonaut-shop-header-search__search {
+		border: 1px solid var( --wp--preset--color--border );
+		/* A pill. */
+		border-radius: 999px;
+	}
+
+	.pixonaut-shop-header-search__group--products .pixonaut-shop-header-search__options {
+		grid-template-columns: repeat(
+				var( --pixonaut-shop-header-search-cards-phone ),
+				minmax( 0, 1fr )
+			);
 	}
 }

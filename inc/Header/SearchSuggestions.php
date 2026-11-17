@@ -133,6 +133,20 @@ final class SearchSuggestions
     }
 
     /**
+     * A product as the panel shows it outside a search: one of the popular
+     * products it shows before a shopper types. Null for a product with no
+     * post.
+     *
+     * @return array{id: int, name: string, url: string, image: string|null, price: string}|null
+     */
+    public static function of_product(WC_Product $product): ?array
+    {
+        $post = get_post($product->get_id());
+
+        return $post instanceof WP_Post ? self::suggestion($post, $product) : null;
+    }
+
+    /**
      * @return array{id: int, name: string, url: string, image: string|null, price: string}
      */
     private static function suggestion(WP_Post $post, WC_Product $product): array
