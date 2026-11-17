@@ -173,6 +173,8 @@ export const E2E_OWNERS: Readonly< Record< string, SpecSelection > > = {
 	// price on the product page, its card and its cart line. A card's second
 	// picture.
 	'inc/Product': [ 'buy-row', 'lowest-price', 'product-options', 'product-page', 'second-picture' ],
+	// What a product search finds and in which order: the results page and the header's suggestions.
+	'inc/Search': [ 'header-search', 'search' ],
 	'inc/Support': 'all',
 	// The update checker makes no request without a token, which no site the
 	// suite visits has; the integration suite tests it against a fake GitHub.

@@ -109,6 +109,7 @@ final class Bootstrap
         (new Archive\NoResultsTitle())->register();
         (new Archive\ProductFilters())->register();
         (new Archive\NestedAttributeFilters())->register();
+        (new Search\ProductSearch())->register();
     }
 
     private function register_front_page(): void
