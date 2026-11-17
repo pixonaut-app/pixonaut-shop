@@ -7,10 +7,10 @@
  *
  * @package Pixonaut\Shop
  *
- * The filters a customer has chosen, above an archive's product grid: each
- * one a chip that takes it away again, and a link that clears them all.
- * WooCommerce prints nothing here while no filter is chosen. It stays on the
- * page on a phone, where the filters themselves open in a dialog.
+ * The filters a customer has chosen, under an archive's toolbar and above its
+ * grid: each one a chip that takes it away again, and a link that clears them
+ * all. WooCommerce prints nothing here while no filter is chosen. The filters
+ * themselves open in a drawer from the toolbar (`product-filters.php`).
  */
 
 declare(strict_types=1);

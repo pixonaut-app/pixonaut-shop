@@ -7,18 +7,21 @@ namespace Pixonaut\Shop\Tests\Integration;
 use Automattic\WooCommerce\Internal\ProductFilters\Params;
 use PHPUnit\Framework\TestCase;
 use Pixonaut\Shop\Archive\AttributeDependencies;
+use Pixonaut\Shop\Archive\FilterDrawer;
+use Pixonaut\Shop\Archive\FilterSections;
 use Pixonaut\Shop\Archive\NestedAttributeFilters;
 use Pixonaut\Shop\Archive\ProductFilters;
 use Pixonaut\Shop\Tests\Support\FilterFixtures;
 use ReflectionProperty;
 use WC_Query;
+use WP_HTML_Tag_Processor;
 use WP_Query;
 use WP_Term;
 
 /**
- * The filters beside an archive's product grid, as WordPress renders the
- * shop template for a category whose products are sold in variations of the
- * store's product attributes (`FilterFixtures`).
+ * The filters in the drawer an archive's toolbar opens, as WordPress renders
+ * the shop template for a category whose products are sold in variations of
+ * the store's product attributes (`FilterFixtures`).
  */
 final class ProductFiltersTest extends TestCase
 {
@@ -39,6 +42,21 @@ final class ProductFiltersTest extends TestCase
     private const NESTED_GROUP = '<div class="' . NestedAttributeFilters::NESTED_CLASS . '"><p class="' . NestedAttributeFilters::NESTED_CLASS . '__label"[^>]*>';
 
     private const NESTED = '/' . self::NESTED_GROUP . '/';
+
+    /** A Product Filters block of the store's own, outside the archive's panel, with the price under its heading. */
+    private const STORES_OWN_PRICE_FILTER = <<<'HTML'
+        <!-- wp:woocommerce/product-filters {"overlayMode":"off"} -->
+        <div class="wp-block-woocommerce-product-filters"><!-- wp:woocommerce/product-filter-price -->
+        <div class="wp-block-woocommerce-product-filter-price"><!-- wp:heading {"level":3} -->
+        <h3 class="wp-block-heading">Price</h3>
+        <!-- /wp:heading -->
+
+        <!-- wp:woocommerce/product-filter-price-slider -->
+        <div class="wp-block-woocommerce-product-filter-price-slider wc-block-product-filter-price-slider"></div>
+        <!-- /wp:woocommerce/product-filter-price-slider --></div>
+        <!-- /wp:woocommerce/product-filter-price --></div>
+        <!-- /wp:woocommerce/product-filters -->
+        HTML;
 
     /** WooCommerce's attribute filter, as a store places it in the Site Editor. */
     private const ATTRIBUTE_BLOCK = 'woocommerce/product-filter-attribute';
@@ -235,11 +253,88 @@ final class ProductFiltersTest extends TestCase
         self::assertMatchesRegularExpression(self::RENDERED_CHIP, $archive);
     }
 
-    public function testTheDialogsButtonSaysWhatItShows(): void
+    public function testTheDrawersButtonSaysHowManyProductsTheFiltersList(): void
+    {
+        self::assertMatchesRegularExpression(self::apply_button('Show 2 products'), $this->render(FilterFixtures::category()));
+
+        $this->forget_chosen_filters();
+        $filtered = $this->render(FilterFixtures::category(), ['filter_' . FilterFixtures::FRAMING_SLUG => FilterFixtures::FRAME_SLUG]);
+
+        self::assertMatchesRegularExpression(self::apply_button('Show 1 product'), $filtered);
+    }
+
+    public function testTheToolbarsButtonOpensADialogAndCountsTheChosenFilters(): void
     {
         $archive = $this->render(FilterFixtures::category());
 
-        self::assertMatchesRegularExpression('/wc-block-product-filters__apply[^>]*>\s*<span>Show products<\/span>/s', $archive);
+        self::assertMatchesRegularExpression('/<button[^>]*aria-haspopup="dialog"[^>]*wc-block-product-filters__open-overlay[^>]*>.*?<span>Show filters<\/span>\s*<\/button>/s', $archive);
+        self::assertStringNotContainsString(FilterDrawer::COUNT_CLASS, $archive, 'Nothing chosen, nothing counted.');
+
+        $filtered = $this->render(FilterFixtures::category(), ['filter_' . FilterFixtures::FRAMING_SLUG => FilterFixtures::FRAME_SLUG]);
+
+        self::assertMatchesRegularExpression('/<span>Show filters<\/span><span class="' . FilterDrawer::COUNT_CLASS . '"><span aria-hidden="true">1<\/span><span class="screen-reader-text">\(1 chosen\)<\/span><\/span>/', $filtered);
+    }
+
+    public function testTheDrawerIsAModalDialogNamedByItsHeading(): void
+    {
+        $archive = $this->render(FilterFixtures::category());
+
+        self::assertMatchesRegularExpression('/<section[^>]*aria-labelledby="' . FilterDrawer::TITLE_ID . '"[^>]*aria-modal="true"[^>]*role="dialog"/s', $archive);
+        self::assertMatchesRegularExpression('/<h2 id="' . FilterDrawer::TITLE_ID . '"[^>]*>Filters<\/h2>/', $archive);
+    }
+
+    public function testClearAllIsGreyedOutWhileNoFilterIsChosen(): void
+    {
+        self::assertTrue($this->clear_button_is_disabled($this->render(FilterFixtures::category())));
+
+        $filtered = $this->render(FilterFixtures::category(), ['filter_' . FilterFixtures::FRAMING_SLUG => FilterFixtures::FRAME_SLUG]);
+
+        self::assertFalse($this->clear_button_is_disabled($filtered));
+    }
+
+    public function testEachGroupIsASectionAndTheFirstIsOpenWhileNothingIsChosen(): void
+    {
+        $archive = $this->render(FilterFixtures::category());
+
+        self::assertSame([FilterFixtures::FRAME_COLOUR], $this->open_sections($archive));
+        self::assertCount(3, $this->sections($archive), 'Each attribute and the price is a section.');
+    }
+
+    public function testASectionWithAChosenValueIsOpenAndTheOthersAreClosed(): void
+    {
+        $archive = $this->render(FilterFixtures::category(), ['filter_' . FilterFixtures::FRAMING_SLUG => FilterFixtures::FRAME_SLUG]);
+
+        self::assertSame([FilterFixtures::FRAMING], $this->open_sections($archive));
+
+        $priced = $this->render(FilterFixtures::category(), ['min_price' => FilterFixtures::PRICE_BETWEEN]);
+
+        self::assertSame(['Price'], $this->open_sections($priced));
+    }
+
+    public function testANestedAttributeIsNoSectionOfItsOwn(): void
+    {
+        $this->frame_colour_depends_on_a_frame_or_a_hanger();
+        $archive = $this->render(FilterFixtures::category(), ['filter_' . FilterFixtures::FRAMING_SLUG => FilterFixtures::FRAME_SLUG]);
+
+        self::assertSame([FilterFixtures::FRAMING, 'Price'], array_keys($this->sections($archive)));
+        self::assertMatchesRegularExpression('/<details[^>]*open><summary[^>]*><h3[^>]*>' . FilterFixtures::FRAMING . '<\/h3>.*?' . self::NESTED_GROUP . '.*?<\/details>/s', $archive);
+    }
+
+    public function testAFilterOutsideThePanelIsNoSection(): void
+    {
+        $this->render(FilterFixtures::category());
+        $other = do_blocks(self::STORES_OWN_PRICE_FILTER);
+
+        self::assertStringContainsString(self::PRICE_FILTER, $other);
+        self::assertStringNotContainsString(FilterSections::SECTION_CLASS, $other);
+    }
+
+    public function testASectionOpensOnAChosenValueNestedInIt(): void
+    {
+        $this->frame_colour_depends_on_a_frame_or_a_hanger();
+        $archive = $this->render(FilterFixtures::category(), ['filter_' . sanitize_title(FilterFixtures::FRAME_COLOUR) => sanitize_title(FilterFixtures::OAK)]);
+
+        self::assertSame([FilterFixtures::FRAMING], $this->open_sections($archive), 'Oak shows under a framing value, so it can be cleared.');
     }
 
     public function testAPanelWithTheStoresOwnAttributeFiltersKeepsExactlyThose(): void
@@ -297,9 +392,40 @@ final class ProductFiltersTest extends TestCase
      */
     private function group_headings(string $archive): array
     {
-        preg_match_all('/<div(?![^>]*\bhidden\b)[^>]*class="[^"]*wp-block-woocommerce-product-filter-(?:attribute|price)[^"]*"[^>]*>\s*<h3[^>]*>([^<]+)<\/h3>/s', $archive, $found);
+        return array_keys($this->sections($archive));
+    }
 
-        return $found[1];
+    /**
+     * The drawer's sections, by their heading, each with whether it is open.
+     *
+     * @return array<string, bool>
+     */
+    private function sections(string $archive): array
+    {
+        preg_match_all('/<details([^>]*\bclass="' . FilterSections::SECTION_CLASS . '"[^>]*)><summary[^>]*><h3[^>]*>([^<]+)<\/h3>/', $archive, $found, PREG_SET_ORDER);
+
+        return array_combine(array_column($found, 2), array_map(static fn (array $section): bool => 1 === preg_match('/\sopen(?:[\s=]|$)/', $section[1]), $found));
+    }
+
+    /** @return list<string> */
+    private function open_sections(string $archive): array
+    {
+        return array_keys(array_filter($this->sections($archive)));
+    }
+
+    private static function apply_button(string $text): string
+    {
+        return '/wc-block-product-filters__apply[^>]*>\s*<span>' . $text . '<\/span>/s';
+    }
+
+    /** Whether the drawer's "Clear all", which clears with WooCommerce's own action, is greyed out. */
+    private function clear_button_is_disabled(string $archive): bool
+    {
+        $tags = new WP_HTML_Tag_Processor($archive);
+        self::assertTrue($tags->next_tag(['tag_name' => 'BUTTON', 'class_name' => FilterDrawer::CLEAR_CLASS]), 'The drawer has no "Clear all".');
+        self::assertSame('actions.removeAll', $tags->get_attribute('data-wp-on--click'));
+
+        return null !== $tags->get_attribute('disabled');
     }
 
     /** How many products the filters say have this value. */
