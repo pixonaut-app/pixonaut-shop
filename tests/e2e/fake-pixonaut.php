@@ -648,6 +648,10 @@ add_action(
                         'holds' => new stdClass(),
                         'listedBy' => [],
                         'onlyFiltered' => [],
+                        'choices' => array_values(array_map(
+                            static fn (WC_Product_Attribute $attribute): string => wc_attribute_taxonomy_slug($attribute->get_name()),
+                            array_filter($product->get_attributes(), static fn (mixed $attribute): bool => $attribute instanceof WC_Product_Attribute && $attribute->is_taxonomy() && $attribute->get_variation())
+                        )),
                         'variations' => $rows,
                     ], $product);
                 }

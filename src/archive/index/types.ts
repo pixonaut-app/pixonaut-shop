@@ -69,8 +69,10 @@ export interface Variation {
 	priceMax?: number;
 	/** The lowest price in the 30 days before a reduction, where the shop shows one. */
 	lowestPrice?: number;
-	/** The picture of this combination, an index into `images`. */
+	/** The picture of the filtered combination, an index into `images`. */
 	image?: number;
+	/** The picture a card opening on this variation shows otherwise while a filter is on, an index into `images`. */
+	openImage?: number;
 }
 
 export interface Card {
@@ -91,6 +93,8 @@ export interface Card {
 	listedBy: string[];
 	/** The attributes the card holds that list it only while a filter is on them. */
 	onlyFiltered: string[];
+	/** The attributes the product's page lets a shopper choose: its variation attributes. */
+	choices: string[];
 	/** What the card sells, in the order the server prefers to open it on. */
 	variations: Variation[];
 }

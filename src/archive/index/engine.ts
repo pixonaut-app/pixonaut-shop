@@ -152,7 +152,7 @@ function shownWith(
 export function shownCards( index: ArchiveIndex, choice: Choice ): Shown[] {
 	const shown = shownWith( index, choice.values, choice.min, choice.max );
 
-	if ( ! index.sorts.some( ( sort ) => sort.key === choice.sort ) ) {
+	if ( ! index.cards.some( ( card ) => choice.sort in card.sort ) ) {
 		return shown;
 	}
 
@@ -358,16 +358,26 @@ export function priceRange( variations: Variation[] ): { min: number; max: numbe
 	};
 }
 
-/**
- * The link a shown card opens: its own, naming each value its first
- * matching variation holds alone that the link does not name already.
- */
-export function linkOf( entry: Shown, base: string ): string {
-	const url = new URL( entry.card.url, base );
-	const first = entry.variations[ 0 ];
+/** Whether any filter is on: a card then opens on its first matching variation. */
+export function isChoosing( choice: Choice ): boolean {
+	return isFiltered( choice.values, choice.min, choice.max );
+}
 
-	for ( const [ key, held ] of Object.entries( first?.values ?? {} ) ) {
-		if ( held.length === 1 && ! url.searchParams.has( key ) ) {
+/**
+ * The link a shown card opens: its own, and while a filter is on, its first
+ * matching variation's value of each attribute the product's page lets the
+ * shopper choose, where the variation holds just one and the link names none.
+ */
+export function linkOf( entry: Shown, base: string, choice: Choice ): string {
+	const url = new URL( entry.card.url, base );
+	const opened = isChoosing( choice ) ? entry.variations[ 0 ] : undefined;
+
+	for ( const [ key, held ] of Object.entries( opened?.values ?? {} ) ) {
+		if (
+			entry.card.choices.includes( key ) &&
+			held.length === 1 &&
+			! url.searchParams.has( key )
+		) {
 			url.searchParams.set( key, held[ 0 ] );
 		}
 	}
@@ -376,29 +386,45 @@ export function linkOf( entry: Shown, base: string ): string {
 }
 
 /**
- * The picture a shown card shows: its first matching variation's, while a
- * filter chooses values of an attribute the card holds none of (nor any
- * value that filter is waived under), else the card's own.
+ * The picture a shown card shows. With no filter on, its own. Else, its
+ * first matching variation's picture of the filtered combination while a
+ * filter on an attribute the shopper chooses picks values the card holds
+ * none of (and, while that filter is waived, the card holds none of the
+ * parent's values that waive it); else that variation's opening picture;
+ * else its own.
  */
 export function pictureOf(
 	index: ArchiveIndex,
 	entry: Shown,
 	choice: Choice,
 ): Picture & { alt: string } {
-	const own = entry.variations[ 0 ]?.image;
-	const picture = own === undefined ? undefined : index.images[ own ];
+	const { card } = entry;
+	const opened = isChoosing( choice ) ? entry.variations[ 0 ] : undefined;
 
-	if ( ! picture ) {
-		return entry.card.image;
+	if ( ! opened ) {
+		return card.image;
+	}
+
+	const openPicture = opened.openImage === undefined ? undefined : index.images[ opened.openImage ];
+	const open = openPicture ? { ...openPicture, alt: card.image.alt } : card.image;
+	const combination = opened.image === undefined ? undefined : index.images[ opened.image ];
+
+	if ( ! combination ) {
+		return open;
 	}
 
 	const waived = waivers( index.filters, choice.values );
-	const heldValues = new Set( Object.values( entry.card.holds ).flat() );
-	const choosesUnheld = [ ...choice.values.keys() ].some(
-		( key ) =>
-			( entry.card.holds[ key ] ?? [] ).length === 0 &&
-			! [ ...( waived.get( key ) ?? [] ) ].some( ( id ) => heldValues.has( id ) ),
-	);
+	const picksUnheld = [ ...choice.values ].some( ( [ key, ids ] ) => {
+		if ( ! card.choices.includes( key ) || anyChosen( card.holds[ key ], ids ) ) {
+			return false;
+		}
 
-	return choosesUnheld ? { ...picture, alt: entry.card.image.alt } : entry.card.image;
+		const parent = waived.has( key )
+			? index.filters.find( ( filter ) => filter.key === key )?.parent
+			: undefined;
+
+		return ! ( parent && anyChosen( card.holds[ parent.key ], waived.get( key ) ?? new Set() ) );
+	} );
+
+	return picksUnheld ? { ...combination, alt: card.image.alt } : open;
 }

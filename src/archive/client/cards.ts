@@ -80,7 +80,7 @@ function fromMarkup( markup: string ): DocumentFragment {
 export function drawCard( model: HTMLElement, entry: Shown, look: CardLook ): HTMLElement {
 	const card = model.cloneNode( true ) as HTMLElement;
 	const { index, choice } = look;
-	const link = linkOf( entry, window.location.href );
+	const link = linkOf( entry, window.location.href, choice );
 	const picture = pictureOf( index, entry, choice );
 	const onSale = entry.card.variations.some(
 		( variation ) => variation.price < variation.regularPrice,

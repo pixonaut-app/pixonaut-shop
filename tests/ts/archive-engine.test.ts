@@ -31,6 +31,7 @@ function card( id: string, variations: Variation[], extra: Partial< Card > = {} 
 		holds: {},
 		listedBy: [],
 		onlyFiltered: [],
+		choices: [ 'framing', 'colour', 'size' ],
 		variations,
 		...extra,
 	};
@@ -229,17 +230,15 @@ describe( 'a shown card', () => {
 		assert.deepEqual( priceRange( p1.variations ), { min: 300, max: 400 } );
 	} );
 
-	it( 'links to its first matching variation’s single values', () => {
+	it( 'links to its first matching variation’s single values while a filter is on', () => {
 		const [ p1 ] = shownCards( index, choice( { colour: [ 'black' ] } ) );
 		assert.equal(
-			linkOf( p1, 'https://shop.test/' ),
+			linkOf( p1, 'https://shop.test/', choice( { colour: [ 'black' ] } ) ),
 			'https://shop.test/product/p1/?framing=frame&colour=black&size=l',
 		);
+		// With no filter on, a card opens on no variation in particular.
 		const [ , p2 ] = shownCards( index, choice() );
-		assert.equal(
-			linkOf( p2, 'https://shop.test/' ),
-			'https://shop.test/product/p2/?framing=none',
-		);
+		assert.equal( linkOf( p2, 'https://shop.test/', choice() ), 'https://shop.test/product/p2/' );
 	} );
 
 	it( 'shows the combination’s picture while a filter chooses what the card does not hold', () => {

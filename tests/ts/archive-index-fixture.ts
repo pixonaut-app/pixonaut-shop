@@ -25,6 +25,7 @@ export function generatedIndex( cards: number, variations: number ): ArchiveInde
 		holds: {},
 		listedBy: [],
 		onlyFiltered: [],
+		choices: [ 'size', 'framing', 'colour' ],
 		variations: Array.from( { length: variations }, ( __, v ) => {
 			const framing = framings[ v % framings.length ];
 
