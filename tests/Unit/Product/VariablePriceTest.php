@@ -53,7 +53,7 @@ final class VariablePriceTest extends TestCase
         self::assertNotFalse(has_action('customize_register', 'Pixonaut\Shop\Product\VariablePrice->customize()'));
         self::assertNotFalse(has_filter('woocommerce_get_settings_products', 'Pixonaut\Shop\Product\VariablePrice->with_product_settings()'));
         self::assertNotFalse(has_filter('sanitize_option_' . VariablePrice::SETTING, 'Pixonaut\Shop\Product\VariablePrice->sanitize()'));
-        self::assertNotFalse(has_filter('default_option_' . VariablePrice::SETTING, 'Pixonaut\Shop\Product\VariablePrice->unsaved()'));
+        self::assertNotFalse(has_action('init', 'Pixonaut\Shop\Product\VariablePrice->move_customizer_choice()'));
     }
 
     public function testAddsTheChoiceToWooCommercesGeneralProductSettings(): void
@@ -79,16 +79,28 @@ final class VariablePriceTest extends TestCase
         self::assertSame('not settings', (new VariablePrice())->with_product_settings('not settings', ''));
     }
 
-    /** A store that chose in the Customizer before the choice was an option keeps it until it chooses again. */
-    public function testAnUnsavedChoiceIsTheOneMadeInTheCustomizerBefore(): void
+    /** A store that chose in the Customizer before the choice was an option keeps it, as the option. */
+    public function testMovesAChoiceMadeInTheCustomizerBeforeToTheOption(): void
     {
-        self::assertSame(VariablePrice::FROM, (new VariablePrice())->unsaved(VariablePrice::FROM));
-        self::assertFalse((new VariablePrice())->unsaved(false));
-
         $this->theme_mod = VariablePrice::RANGE;
 
-        self::assertSame(VariablePrice::RANGE, (new VariablePrice())->unsaved(VariablePrice::FROM));
-        self::assertSame(VariablePrice::RANGE, (new VariablePrice())->unsaved(false));
+        self::assertSame(
+            ['added' => [VariablePrice::SETTING => VariablePrice::RANGE], 'removed' => [VariablePrice::SETTING]],
+            $this->move_customizer_choice()
+        );
+    }
+
+    public function testKeepsAnOptionAlreadySavedOverTheCustomizersChoice(): void
+    {
+        $this->theme_mod = VariablePrice::RANGE;
+        $this->saved = VariablePrice::FROM_SHORT;
+
+        self::assertSame(['added' => [], 'removed' => [VariablePrice::SETTING]], $this->move_customizer_choice());
+    }
+
+    public function testMovesNothingWithoutAChoiceMadeInTheCustomizer(): void
+    {
+        self::assertSame(['added' => [], 'removed' => []], $this->move_customizer_choice());
     }
 
     public function testShowsFromTheLowestPriceInFullByDefault(): void
@@ -196,6 +208,28 @@ final class VariablePriceTest extends TestCase
 
         self::assertArrayHasKey(VariablePrice::SECTION, $added['section']);
         self::assertArrayNotHasKey('panel', $added['section'][VariablePrice::SECTION]);
+    }
+
+    /**
+     * The options moving the Customizer's choice adds, and the theme mods it removes.
+     *
+     * @return array{added: array<string, mixed>, removed: list<string>}
+     */
+    private function move_customizer_choice(): array
+    {
+        $moved = ['added' => [], 'removed' => []];
+        Functions\when('add_option')->alias(static function (string $name, mixed $value) use (&$moved): bool {
+            $moved['added'][$name] = $value;
+
+            return true;
+        });
+        Functions\when('remove_theme_mod')->alias(static function (string $name) use (&$moved): void {
+            $moved['removed'][] = $name;
+        });
+
+        (new VariablePrice())->move_customizer_choice();
+
+        return $moved;
     }
 
     /**

@@ -20,7 +20,7 @@ use WP_REST_Response;
  * renders it with the theme's templates: "from" its lowest price by
  * default, on its page and in the product grid, or the range or the short
  * form when the store picks them, in WooCommerce's product settings, through
- * their REST API, or in the Customizer before the choice was an option.
+ * their REST API, or in the Customizer, before the choice was an option too.
  */
 final class VariablePriceTest extends TestCase
 {
@@ -41,6 +41,13 @@ final class VariablePriceTest extends TestCase
 
     /** @var list<int> */
     private array $product_ids = [];
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        delete_option(VariablePrice::SETTING);
+        remove_theme_mod(VariablePrice::SETTING);
+    }
 
     protected function tearDown(): void
     {
@@ -87,11 +94,14 @@ final class VariablePriceTest extends TestCase
     {
         set_theme_mod(VariablePrice::SETTING, VariablePrice::RANGE);
 
+        (new VariablePrice())->move_customizer_choice();
+
         self::assertSame(VariablePrice::RANGE, VariablePrice::current());
+        self::assertFalse(get_theme_mod(VariablePrice::SETTING));
 
-        update_option(VariablePrice::SETTING, VariablePrice::FROM_SHORT);
-
-        self::assertSame(VariablePrice::FROM_SHORT, VariablePrice::current());
+        // Saving the same choice again keeps the option, as any other save.
+        update_option(VariablePrice::SETTING, VariablePrice::RANGE);
+        self::assertSame(VariablePrice::RANGE, get_option(VariablePrice::SETTING));
     }
 
     public function testSavesOnlyAChoiceItKnows(): void

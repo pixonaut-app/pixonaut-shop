@@ -16,8 +16,9 @@ use WP_Customize_Manager;
  *
  * The choice is an option among WooCommerce's settings, so its settings
  * REST API (`wc/v3/settings/products`), and every tool built on it, reads
- * and changes it as it does the store's other settings. A store that chose
- * in the Customizer before keeps that choice until it chooses again.
+ * and changes it as it does the store's other settings. A choice a store
+ * made in the Customizer before, saved as a theme mod, becomes the option
+ * once.
  *
  * Only the price WooCommerce prints for the variable product itself changes,
  * on its page and in every listing; a chosen variation shows its own price.
@@ -68,7 +69,7 @@ final class VariablePrice
         add_action('customize_register', [$this, 'customize']);
         add_filter('woocommerce_get_settings_products', [$this, 'with_product_settings'], 10, 2);
         add_filter('sanitize_option_' . self::SETTING, [$this, 'sanitize']);
-        add_filter('default_option_' . self::SETTING, [$this, 'unsaved']);
+        add_action('init', [$this, 'move_customizer_choice']);
     }
 
     /** The store's choice, the default while none it knows is saved. */
@@ -78,13 +79,23 @@ final class VariablePrice
     }
 
     /**
-     * The option's value while it is unsaved: the choice the store made in
-     * the Customizer before the choice was an option, or else the default
-     * the caller passed.
+     * Saves the choice a store made in the Customizer before the choice was
+     * an option as the option, once, and forgets the theme mod. A saved
+     * option stays as it is.
      */
-    public function unsaved(mixed $fallback): mixed
+    public function move_customizer_choice(): void
     {
-        return get_theme_mod(self::SETTING, $fallback);
+        $chosen = get_theme_mod(self::SETTING);
+
+        if (false === $chosen) {
+            return;
+        }
+
+        if (false === get_option(self::SETTING)) {
+            add_option(self::SETTING, self::known($chosen));
+        }
+
+        remove_theme_mod(self::SETTING);
     }
 
     /**
