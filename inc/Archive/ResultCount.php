@@ -20,8 +20,11 @@ final class ResultCount
 {
     private const BLOCK = 'woocommerce/product-results-count';
 
-    /** WooCommerce's paragraph and its text, which may hold the sorting for screen readers. */
-    private const PARAGRAPH = '/(<p\b[^>]*\bclass="woocommerce-result-count"[^>]*>).*?(<\/p>)/s';
+    /**
+     * WooCommerce's paragraph: its text, then, on a sorted archive, the
+     * sorting for screen readers, which stays.
+     */
+    private const PARAGRAPH = '/(<p\b[^>]*\bclass="woocommerce-result-count"[^>]*>)[^<]*((?:<span class="screen-reader-text">[^<]*<\/span>)?\s*<\/p>)/s';
 
     public function register(): void
     {

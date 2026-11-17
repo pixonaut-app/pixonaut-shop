@@ -65,6 +65,9 @@ final class ShopArchiveTest extends TestCase
 
     private const PAGED_PRODUCTS = ['Archive product A', 'Archive product B', 'Archive product C'];
 
+    /** A sorting other than the default, which WooCommerce names in the count for screen readers. */
+    private const PRICE_SORT = 'price';
+
     /** The results count's text, as the archive filtered in the browser writes it too. */
     private const COUNT_TEXT = '/<p class="woocommerce-result-count"[^>]*>(.*?)<\/p>/s';
 
@@ -225,6 +228,22 @@ final class ShopArchiveTest extends TestCase
         $this->product(self::PRODUCT, $category);
 
         self::assertSame('1 product', $this->count_text($this->render($category)));
+    }
+
+    public function testASortedArchiveKeepsTheSortingForScreenReaders(): void
+    {
+        $category = $this->category(self::FULL_CATEGORY);
+        $this->product(self::PRODUCT, $category);
+        $this->product(self::PAGED_PRODUCTS[0], $category);
+        $_GET['orderby'] = self::PRICE_SORT;
+
+        try {
+            $count = $this->count_text($this->render($category));
+        } finally {
+            unset($_GET['orderby']);
+        }
+
+        self::assertMatchesRegularExpression('/^2 products<span class="screen-reader-text">[^<]+<\/span>\s*$/', $count);
     }
 
     public function testThePopularProductsLeaveOutWhatIsOutOfStock(): void
