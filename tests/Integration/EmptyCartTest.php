@@ -156,6 +156,21 @@ HTML;
         self::assertStringNotContainsString(self::LEGACY_GRID, $html);
     }
 
+    public function testANewInStoreHeadingTheStoreAlignedOrLinkedKeepsTheSection(): void
+    {
+        $aligned = str_replace(['"textAlign":"center"}', 'has-text-align-center">New'], ['"textAlign":"left"}', 'has-text-align-left">New'], self::IN_PLACE);
+        $linked  = str_replace('>New in store<', '><a href="/new/">New in store</a><', self::IN_PLACE);
+
+        foreach ([$aligned, $linked] as $own) {
+            $html = do_blocks($own);
+
+            self::assertStringContainsString(EmptyCart::NEW_IN_STORE, $html);
+            self::assertStringNotContainsString(self::POPULAR, $html);
+        }
+
+        self::assertStringContainsString('<a href="/new/">', do_blocks($linked));
+    }
+
     public function testNewestProductsWithTheStoresOwnChoicesAreKept(): void
     {
         $html = do_blocks(str_replace('{"columns":2,"rows":1}', '{"columns":2,"rows":1,"stockStatus":["instock"]}', self::IN_PLACE));

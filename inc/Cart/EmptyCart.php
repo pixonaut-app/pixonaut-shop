@@ -91,7 +91,10 @@ final class EmptyCart
     private const DEFAULT_NEWEST_ATTRIBUTES = ['columns', 'rows'];
 
     /** The heading's attributes WooCommerce saves above its Newest Products block. */
-    private const DEFAULT_HEADING_ATTRIBUTES = ['textAlign'];
+    private const DEFAULT_HEADING_ATTRIBUTES = ['textAlign' => 'center'];
+
+    /** A heading holding plain text only, which it captures: no link or formatting of the store's. */
+    private const PLAIN_HEADING = '#^\s*<h2\b[^>]*>([^<]*)</h2>\s*$#';
 
     /** Blocks that belong to the message when they follow its heading. */
     private const MESSAGE_BLOCKS = ['core/paragraph', 'core/buttons'];
@@ -227,8 +230,8 @@ final class EmptyCart
     /**
      * Whether the blocks are WooCommerce's own "New in store" heading and
      * Newest Products block, as it saves them into a Cart page: the
-     * heading in the site's language or in English, with no choice of the
-     * store's in either block.
+     * centred heading's plain text in the site's language or in English,
+     * with no choice of the store's in either block.
      *
      * @param list<ParsedBlock> $blocks
      */
@@ -240,12 +243,15 @@ final class EmptyCart
 
         [$heading, $newest] = $blocks;
 
-        $text = trim(wp_strip_all_tags($heading['innerHTML']));
+        if (self::HEADING !== $heading['blockName'] || self::DEFAULT_HEADING_ATTRIBUTES !== $heading['attrs']
+            || 1 !== preg_match(self::PLAIN_HEADING, $heading['innerHTML'], $plain)) {
+            return false;
+        }
 
-        return self::HEADING === $heading['blockName']
-            && [] === array_diff(array_keys($heading['attrs']), self::DEFAULT_HEADING_ATTRIBUTES)
-            // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- WooCommerce's own heading, in the words it saved.
-            && \in_array($text, [self::NEW_IN_STORE, __('New in store', 'woocommerce')], true)
+        $text = trim(html_entity_decode($plain[1], ENT_QUOTES | ENT_HTML5));
+
+        // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- WooCommerce's own heading, in the words it saved.
+        return \in_array($text, [self::NEW_IN_STORE, __('New in store', 'woocommerce')], true)
             && self::NEWEST_PRODUCTS === $newest['blockName']
             && [] === array_diff(array_keys($newest['attrs']), self::DEFAULT_NEWEST_ATTRIBUTES);
     }
