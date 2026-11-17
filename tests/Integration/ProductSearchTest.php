@@ -146,6 +146,60 @@ final class ProductSearchTest extends TestCase
         );
     }
 
+    public function testTheSuggestionsKeepAnOrderByDateTheRequestAsksFor(): void
+    {
+        $this->dated(self::POSTER, '2020-01-01 00:00:00');
+        $this->dated(self::PANDOR, '2021-01-01 00:00:00');
+        $this->dated(self::PANDA_MUG, '2022-01-01 00:00:00');
+
+        self::assertSame(
+            [self::POSTER, self::PANDOR, self::PANDA_MUG],
+            $this->suggestions('panda', ['orderby' => 'date', 'order' => 'asc'])
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function exclusionsOnly(): iterable
+    {
+        yield 'one excluded word' => ['-panda'];
+        yield 'two excluded words' => ['-panda -uggla'];
+    }
+
+    #[DataProvider('exclusionsOnly')]
+    public function testTheSuggestionsListWhatASearchOfExclusionsOnlyLeaves(string $search): void
+    {
+        $names = $this->suggestions($search);
+
+        self::assertContains(self::KANINER, $names);
+        self::assertNotContains(self::PANDA_MUG, $names);
+    }
+
+    public function testTheSuggestionsFindAProductByAnotherFormWhenNarrowedBySlug(): void
+    {
+        $slug = get_post_field('post_name', $this->ids[self::PANDOR]);
+        self::assertIsString($slug);
+
+        self::assertSame([self::PANDOR], $this->suggestions('panda', ['slug' => $slug]));
+    }
+
+    public function testAQueryNarrowedToNamesSearchesNamesOnly(): void
+    {
+        $query = new WP_Query([
+            's'              => 'panda',
+            'post_type'      => 'product',
+            'search_columns' => ['post_title'],
+            'orderby'        => 'relevance',
+            'post__in'       => array_values($this->ids),
+        ]);
+
+        self::assertSame(
+            [self::PANDA_MUG, self::PANDOR],
+            array_map(static fn (WP_Post|int $post): string => get_the_title($post), $query->posts)
+        );
+    }
+
     public function testASearchOfOtherContentMatchesAsWordPressDoes(): void
     {
         global $wpdb;
@@ -203,6 +257,11 @@ final class ProductSearchTest extends TestCase
             static fn (array $product): string => html_entity_decode((string) $product['name'], \ENT_QUOTES),
             $data
         ));
+    }
+
+    private function dated(string $name, string $date): void
+    {
+        wp_update_post(['ID' => $this->ids[$name], 'post_date' => $date, 'post_date_gmt' => $date]);
     }
 
     private function product(string $name, string $description = '', string $sku = ''): void

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pixonaut\Shop\Search;
 
 use WP_Query;
+use WP_REST_Request;
 use wpdb;
 
 /**
@@ -22,18 +23,36 @@ use wpdb;
  * the header's suggestions, which come from WooCommerce's Store API. The
  * Store API matches its `search` against names and SKUs on its own; its
  * query searches as WordPress does instead, by relevance unless the request
- * asked for another order, and still by SKU.
+ * asked for an order, and still by SKU.
+ *
+ * A query that narrows the columns WordPress searches keeps to them, and is
+ * then not matched by SKU either.
  */
 final class ProductSearch
 {
     /** The post type the search looks among: the store's products. */
     private const PRODUCT = 'product';
 
+    /**
+     * The post types a Store API listing looks among when it is narrowed by
+     * SKU or slug, which may name a variation.
+     */
+    private const PRODUCT_TYPES = [self::PRODUCT, 'product_variation'];
+
+    /** The Store API's product listing, whose search this reads as WordPress's. */
+    private const STORE_API_PRODUCTS_ROUTE = '/wc/store/v1/products';
+
+    /** The listing's parameter for its order. */
+    private const ORDER_PARAM = 'orderby';
+
     /** The Store API's own search text, which its query holds apart from WordPress's `s`. */
     private const STORE_API_SEARCH = 'search';
 
-    /** How the Store API orders a listing by default: newest first. */
-    private const STORE_API_DEFAULT_ORDER = 'date ID';
+    /** How the Store API orders a listing by default, or when asked for by date: newest first. */
+    private const STORE_API_DATE_ORDER = 'date ID';
+
+    /** How WordPress splits a search into terms, as `WP_Query::parse_search()` does. */
+    private const TERM_SEPARATORS = '/[\t ",+]+/';
 
     /** WordPress's order of search results by how well they match. */
     private const RELEVANCE = 'relevance';
@@ -65,11 +84,43 @@ final class ProductSearch
 
     private const RANK_STEM = 3;
 
+    /**
+     * Whether the Store API request being served lists products without
+     * asking for an order, so its search may be ordered by relevance.
+     */
+    private bool $store_api_order_free = false;
+
     public function register(): void
     {
+        add_filter('rest_request_before_callbacks', [$this, 'note_store_api_order'], 10, 3);
+        add_filter('rest_request_after_callbacks', [$this, 'forget_store_api_order']);
         add_action('pre_get_posts', [$this, 'search_store_api_as_wordpress']);
         add_filter('posts_search', [$this, 'where'], 10, 2);
         add_filter('posts_search_orderby', [$this, 'order'], 10, 2);
+    }
+
+    /**
+     * Notes whether a Store API product listing asks for an order: its
+     * query cannot tell, since WooCommerce turns both the default and an
+     * order by date into the same `date ID`.
+     *
+     * @param WP_REST_Request<array<string, mixed>> $request
+     */
+    public function note_store_api_order(mixed $response, mixed $handler, WP_REST_Request $request): mixed
+    {
+        $this->store_api_order_free = self::STORE_API_PRODUCTS_ROUTE === $request->get_route()
+            && ! \array_key_exists(self::ORDER_PARAM, $request->get_query_params())
+            && ! \array_key_exists(self::ORDER_PARAM, $request->get_body_params())
+            && ! \array_key_exists(self::ORDER_PARAM, $request->get_json_params() ?? []);
+
+        return $response;
+    }
+
+    public function forget_store_api_order(mixed $response): mixed
+    {
+        $this->store_api_order_free = false;
+
+        return $response;
     }
 
     /**
@@ -80,14 +131,15 @@ final class ProductSearch
     {
         $search = $query->get(self::STORE_API_SEARCH);
 
-        if (! \is_string($search) || '' === trim($search) || '' !== $query->get('s') || self::PRODUCT !== $query->get('post_type')) {
+        if (! \is_string($search) || '' === trim($search) || '' !== $query->get('s') || ! self::looks_among_products($query)) {
             return;
         }
 
         $query->set('s', $search);
         $query->set(self::STORE_API_SEARCH, '');
 
-        if (self::STORE_API_DEFAULT_ORDER === $query->get('orderby')) {
+        // Relevance needs a term to match: WordPress cannot rank a search that only excludes.
+        if ($this->store_api_order_free && self::STORE_API_DATE_ORDER === $query->get('orderby') && self::has_positive_term($search)) {
             $query->set('orderby', self::RELEVANCE);
         }
     }
@@ -104,18 +156,19 @@ final class ProductSearch
             return $search;
         }
 
-        $parts = [];
+        $columns = self::columns($query);
+        $parts   = [];
 
         foreach ($terms['excluded'] as $term) {
-            $parts[] = $this->none_of($term);
+            $parts[] = $this->none_of($term, $columns);
         }
 
-        $matches = array_map(fn (string $term): string => $this->any_column($term, self::COLUMNS, true), $terms['positive']);
+        $matches = array_map(fn (string $term): string => $this->any_column($term, $columns, true), $terms['positive']);
 
         if ([] !== $matches) {
             $match   = implode(' AND ', $matches);
             $text    = $query->get('s');
-            $sku     = $this->sku(\is_string($text) ? $text : '');
+            $sku     = self::COLUMNS === $columns ? $this->sku(\is_string($text) ? $text : '') : '';
             $parts[] = '' === $sku ? "({$match})" : "(({$match}) OR {$sku})";
         }
 
@@ -140,15 +193,20 @@ final class ProductSearch
     {
         $terms = $this->terms($query);
 
-        if ('' === trim($search_orderby) || null === $terms || [] === $terms['positive']) {
+        if (null === $terms) {
             return $search_orderby;
+        }
+
+        // WordPress ranks by the terms to match; with none, its ranking is not valid SQL.
+        if ([] === $terms['positive'] || '' === trim($search_orderby)) {
+            return '';
         }
 
         $rank = \sprintf(
             '(CASE WHEN %s THEN %d WHEN %s THEN %d WHEN %s THEN %d ELSE %d END)',
             $this->every($terms['positive'], [self::TITLE], false),
             self::RANK_EXACT_IN_NAME,
-            $this->every($terms['positive'], self::COLUMNS, false),
+            $this->every($terms['positive'], self::columns($query), false),
             self::RANK_EXACT,
             $this->every($terms['positive'], [self::TITLE], true),
             self::RANK_STEM_IN_NAME,
@@ -169,14 +227,12 @@ final class ProductSearch
     {
         $terms = $query->get('search_terms');
 
-        if (is_admin() || self::PRODUCT !== $query->get('post_type') || '' === $query->get('s') || ! \is_array($terms)
+        if (is_admin() || ! self::looks_among_products($query) || '' === $query->get('s') || ! \is_array($terms)
             || ! empty($query->get('exact')) || ! empty($query->get('sentence'))) {
             return null;
         }
 
-        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress's own filter, read as its search reads it.
-        $prefix = apply_filters('wp_query_search_exclusion_prefix', self::DEFAULT_EXCLUSION_PREFIX);
-        $prefix = \is_string($prefix) ? $prefix : '';
+        $prefix = self::exclusion_prefix();
         $sorted = ['positive' => [], 'excluded' => []];
 
         foreach ($terms as $term) {
@@ -192,6 +248,75 @@ final class ProductSearch
         }
 
         return $sorted;
+    }
+
+    /**
+     * Whether the query looks among products: the store's products alone,
+     * or, narrowed by SKU or slug, its products and their variations.
+     */
+    private static function looks_among_products(WP_Query $query): bool
+    {
+        $post_type = $query->get('post_type');
+
+        if (self::PRODUCT === $post_type) {
+            return true;
+        }
+
+        if (! \is_array($post_type) || ! \in_array(self::PRODUCT, $post_type, true)) {
+            return false;
+        }
+
+        foreach ($post_type as $type) {
+            if (! \in_array($type, self::PRODUCT_TYPES, true)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /** Whether a search holds a term that is not excluded, as WordPress splits it into terms. */
+    private static function has_positive_term(string $search): bool
+    {
+        $prefix = self::exclusion_prefix();
+
+        $terms  = preg_split(self::TERM_SEPARATORS, $search, -1, \PREG_SPLIT_NO_EMPTY);
+
+        foreach (false === $terms ? [] : $terms as $term) {
+            if ('' === $prefix || ! str_starts_with($term, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** The prefix that excludes a term from a search, as WordPress filters it; empty when exclusions are off. */
+    private static function exclusion_prefix(): string
+    {
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress's own filter, read as its search reads it.
+        $prefix = apply_filters('wp_query_search_exclusion_prefix', self::DEFAULT_EXCLUSION_PREFIX);
+
+        return \is_string($prefix) ? $prefix : '';
+    }
+
+    /**
+     * The columns the query searches, as `WP_Query::parse_search()` works
+     * them out: its own, as WordPress filters them, of those it supports;
+     * all of them when none is left.
+     *
+     * @return list<string>
+     */
+    private static function columns(WP_Query $query): array
+    {
+        $asked   = $query->get('search_columns');
+        $asked   = [] !== $asked && '' !== $asked && null !== $asked ? (array) $asked : self::COLUMNS;
+        $text    = $query->get('s');
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress's own filter, read as its search reads it.
+        $columns = (array) apply_filters('post_search_columns', $asked, \is_string($text) ? $text : '', $query);
+        $columns = array_values(array_filter(self::COLUMNS, static fn (string $column): bool => \in_array($column, $columns, true)));
+
+        return [] === $columns ? self::COLUMNS : $columns;
     }
 
     /**
@@ -236,14 +361,18 @@ final class ProductSearch
         return '(' . implode(' OR ', $likes) . ')';
     }
 
-    /** The excluded term in none of the columns, as WordPress excludes it. */
-    private function none_of(string $term): string
+    /**
+     * The excluded term in none of the columns, as WordPress excludes it.
+     *
+     * @param list<string> $columns
+     */
+    private function none_of(string $term, array $columns): string
     {
         $db    = self::db();
         $like  = '%' . $db->esc_like($term) . '%';
         $parts = array_map(
             static fn (string $column): string => (string) $db->prepare('%i.%i NOT LIKE %s', $db->posts, $column, $like),
-            self::COLUMNS
+            $columns
         );
 
         return '(' . implode(' AND ', $parts) . ')';
