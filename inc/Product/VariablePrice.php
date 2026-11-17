@@ -9,9 +9,15 @@ use WP_Customize_Manager;
 
 /**
  * How a variable product's price shows before a variation is chosen, which
- * a store picks in the Customizer: "from" its lowest price, with the word in
- * full ("From 299 kr", the default) or short ("Fr. 299 kr"), or the range
- * WooCommerce prints ("299 kr – 749 kr").
+ * a store picks in WooCommerce's product settings or in the Customizer:
+ * "from" its lowest price, with the word in full ("From 299 kr", the
+ * default) or short ("Fr. 299 kr"), or the range WooCommerce prints
+ * ("299 kr – 749 kr").
+ *
+ * The choice is an option among WooCommerce's settings, so its settings
+ * REST API (`wc/v3/settings/products`), and every tool built on it, reads
+ * and changes it as it does the store's other settings. A store that chose
+ * in the Customizer before keeps that choice until it chooses again.
  *
  * Only the price WooCommerce prints for the variable product itself changes,
  * on its page and in every listing; a chosen variation shows its own price.
@@ -27,10 +33,10 @@ use WP_Customize_Manager;
  */
 final class VariablePrice
 {
-    /** The theme mod the store's choice is saved in. */
+    /** The option the store's choice is saved in; the theme mod it was saved in before has the same name. */
     public const SETTING = 'pixonaut_shop_variable_price';
 
-    /** The Customizer section the choice is made in. */
+    /** The Customizer section, and the part of WooCommerce's product settings, the choice is made in. */
     public const SECTION = 'pixonaut_shop_prices';
 
     /** "From" the lowest price, the word in full. */
@@ -47,6 +53,9 @@ final class VariablePrice
     /** WooCommerce's Customizer panel, which holds its store settings when it is active. */
     private const WOOCOMMERCE_PANEL = 'woocommerce';
 
+    /** The section of WooCommerce's product settings the choice is added to: General, which has no ID. */
+    private const GENERAL_PRODUCT_SETTINGS = '';
+
     private const VARIABLE_TYPE = 'variable';
 
     /** Asks WooCommerce for the variation prices as it displays them, with or without tax as the store shows prices. */
@@ -57,12 +66,55 @@ final class VariablePrice
         add_filter('woocommerce_variable_price_html', [$this, 'with_price_html'], 10, 2);
         add_filter('woocommerce_get_price_html_from_text', [$this, 'from_text']);
         add_action('customize_register', [$this, 'customize']);
+        add_filter('woocommerce_get_settings_products', [$this, 'with_product_settings'], 10, 2);
+        add_filter('sanitize_option_' . self::SETTING, [$this, 'sanitize']);
+        add_filter('default_option_' . self::SETTING, [$this, 'unsaved']);
     }
 
     /** The store's choice, the default while none it knows is saved. */
     public static function current(): string
     {
-        return self::known(get_theme_mod(self::SETTING, self::DEFAULT));
+        return self::known(get_option(self::SETTING, self::DEFAULT));
+    }
+
+    /**
+     * The option's value while it is unsaved: the choice the store made in
+     * the Customizer before the choice was an option, or else the default
+     * the caller passed.
+     */
+    public function unsaved(mixed $fallback): mixed
+    {
+        return get_theme_mod(self::SETTING, $fallback);
+    }
+
+    /**
+     * WooCommerce's general product settings with the choice after them,
+     * in a part of its own; any other section's settings as they are.
+     */
+    public function with_product_settings(mixed $settings, mixed $section = self::GENERAL_PRODUCT_SETTINGS): mixed
+    {
+        if (! \is_array($settings) || self::GENERAL_PRODUCT_SETTINGS !== $section) {
+            return $settings;
+        }
+
+        $settings[] = [
+            'title' => __('Prices', 'pixonaut-shop'),
+            'type' => 'title',
+            'id' => self::SECTION,
+        ];
+        $settings[] = [
+            'title' => self::label(),
+            'id' => self::SETTING,
+            'type' => 'radio',
+            'default' => self::DEFAULT,
+            'options' => self::choices(),
+        ];
+        $settings[] = [
+            'type' => 'sectionend',
+            'id' => self::SECTION,
+        ];
+
+        return $settings;
     }
 
     /** A saved choice, or the default when it is none the theme knows. */
@@ -116,20 +168,31 @@ final class VariablePrice
 
         $manager->add_section(self::SECTION, $section);
         $manager->add_setting(self::SETTING, [
-            'type' => 'theme_mod',
+            'type' => 'option',
             'default' => self::DEFAULT,
             'sanitize_callback' => [$this, 'sanitize'],
         ]);
         $manager->add_control(self::SETTING, [
             'type' => 'radio',
             'section' => self::SECTION,
-            'label' => __('A variable product\'s price before a variation is chosen', 'pixonaut-shop'),
-            'choices' => [
-                self::FROM => __('"From" the lowest price', 'pixonaut-shop'),
-                self::FROM_SHORT => __('"Fr." the lowest price', 'pixonaut-shop'),
-                self::RANGE => __('The range from the lowest price to the highest', 'pixonaut-shop'),
-            ],
+            'label' => self::label(),
+            'choices' => self::choices(),
         ]);
+    }
+
+    private static function label(): string
+    {
+        return __('A variable product\'s price before a variation is chosen', 'pixonaut-shop');
+    }
+
+    /** @return array<string, string> Each choice's label, by its value. */
+    private static function choices(): array
+    {
+        return [
+            self::FROM => __('"From" the lowest price', 'pixonaut-shop'),
+            self::FROM_SHORT => __('"Fr." the lowest price', 'pixonaut-shop'),
+            self::RANGE => __('The range from the lowest price to the highest', 'pixonaut-shop'),
+        ];
     }
 
     private static function known(mixed $value): string
