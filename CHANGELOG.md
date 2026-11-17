@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.13.0...v1.14.0) (2026-11-17)
+
+
+### Features
+
+* **archive:** show a design once when several values are chosen, with a swatch for each value ([#81](https://github.com/pixonaut-app/pixonaut-shop/issues/81)) ([fada4e4](https://github.com/pixonaut-app/pixonaut-shop/commit/fada4e4cbfdaa93ac2d9b0f45efc279977ded6ef))
+
 ## [1.13.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.12.3...v1.13.0) (2026-11-17)
 
 
