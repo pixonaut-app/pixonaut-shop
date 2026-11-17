@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.8.0...v1.9.0) (2026-11-17)
+
+
+### Features
+
+* **search:** offer popular searches and products before the shopper types ([#52](https://github.com/pixonaut-app/pixonaut-shop/issues/52)) ([2a68df4](https://github.com/pixonaut-app/pixonaut-shop/commit/2a68df4db52050386e9f8f89a1e7c0a22b5eba14))
+
 ## [1.8.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.7.4...v1.8.0) (2026-11-17)
 
 
