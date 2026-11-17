@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.10.0...v1.11.0) (2026-11-17)
+
+
+### Features
+
+* **settings:** declare the store's theme settings for tools to read and change ([#60](https://github.com/pixonaut-app/pixonaut-shop/issues/60)) ([73cee31](https://github.com/pixonaut-app/pixonaut-shop/commit/73cee31bad1a5ffdbc276e18dd4e5146a8fb0a20)), closes [#59](https://github.com/pixonaut-app/pixonaut-shop/issues/59)
+
 ## [1.10.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.9.0...v1.10.0) (2026-11-17)
 
 
