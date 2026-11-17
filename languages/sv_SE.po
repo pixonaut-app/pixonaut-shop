@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-11-17T10:38:26+00:00\n"
+"POT-Creation-Date: 2026-11-17T11:43:15+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -284,40 +284,92 @@ msgstr "Allt i %s"
 msgid "Order %s received"
 msgstr "Order %s är mottagen"
 
+#: inc/Pixonaut/ThemeSettings.php:50
+msgid "Header"
+msgstr "Sidhuvud"
+
+#: inc/Pixonaut/ThemeSettings.php:51
+msgid ""
+"Which header the store shows: \"simple\", one row with the logo, menu, "
+"search, account and cart, or \"mega\", whose menu button opens a panel of "
+"the store's categories."
+msgstr ""
+"Vilket sidhuvud butiken visar: \"simple\", en rad med logotyp, meny, sök, "
+"konto och varukorg, eller \"mega\", vars menyknapp öppnar en panel med "
+"butikens kategorier."
+
+#: inc/Pixonaut/ThemeSettings.php:57
+msgid ""
+"How a product with variations shows its price until one is chosen: \"from\", "
+"\"From\" and its lowest price; \"from_short\", \"Fr.\" and its lowest price; "
+"or \"range\", its lowest price to its highest."
+msgstr ""
+"Hur en produkt med varianter visar sitt pris tills en har valts: \"from\", "
+"”Från” och dess lägsta pris; \"from_short\", ”Fr.” och dess lägsta pris; "
+"eller \"range\", dess lägsta pris till dess högsta."
+
+#: inc/Pixonaut/ThemeSettings.php:62
+msgid "Front page hero"
+msgstr "Startsidans hero"
+
+#: inc/Pixonaut/ThemeSettings.php:63
+msgid ""
+"The hero at the top of the front page: a heading, a sentence, a button's "
+"label and the address it links to, and the ID of a picture in the media "
+"library. Without one, the front page shows its placeholders."
+msgstr ""
+"Herosektionen överst på startsidan: en rubrik, en mening, en knapps text och "
+"adressen den länkar till, och id:t för en bild i mediebiblioteket. Utan den "
+"visar startsidan sina platshållare."
+
+#: inc/Pixonaut/ThemeSettings.php:68
+msgid "Campaign band"
+msgstr "Kampanjband"
+
+#: inc/Pixonaut/ThemeSettings.php:69
+msgid ""
+"A line of text above the header on every page, linked to an address if it "
+"has one, shown from its start to its end: each a date, or a date and time, "
+"in the site's time zone. Without one, no band shows."
+msgstr ""
+"En textrad ovanför sidhuvudet på varje sida, länkad till en adress om den har "
+"en, som visas från sin start till sitt slut: vart och ett ett datum, eller "
+"ett datum och en tid, i webbplatsens tidszon. Utan den visas inget band."
+
 #. translators: %d: the number of days before a price reduction the lowest price is looked for.
 #: inc/Product/LowestPrice.php:453
 #, php-format
 msgid "Lowest price in the last %d days"
 msgstr "Lägsta pris senaste %d dagarna"
 
-#: inc/Product/VariablePrice.php:110
+#: inc/Product/VariablePrice.php:115 inc/Product/VariablePrice.php:176
 msgid "Prices"
 msgstr "Priser"
 
-#: inc/Product/VariablePrice.php:126
+#: inc/Product/VariablePrice.php:200
 msgid "A variable product's price before a variation is chosen"
 msgstr "En variabel produkts pris innan en variant har valts"
 
-#: inc/Product/VariablePrice.php:128
+#: inc/Product/VariablePrice.php:207
 msgid "\"From\" the lowest price"
 msgstr "”Från” lägsta priset"
 
-#: inc/Product/VariablePrice.php:129
+#: inc/Product/VariablePrice.php:208
 msgid "\"Fr.\" the lowest price"
 msgstr "”Fr.” lägsta priset"
 
-#: inc/Product/VariablePrice.php:130
+#: inc/Product/VariablePrice.php:209
 msgid "The range from the lowest price to the highest"
 msgstr "Spannet från lägsta till högsta priset"
 
 #. translators: Before a product's lowest price, as in "From 299 kr". The short form of "From".
-#: inc/Product/VariablePrice.php:145
+#: inc/Product/VariablePrice.php:223
 msgctxt "price from its lowest amount, short"
 msgid "Fr."
 msgstr "Fr."
 
 #. translators: Before a product's lowest price, as in "From 299 kr".
-#: inc/Product/VariablePrice.php:147
+#: inc/Product/VariablePrice.php:225
 msgctxt "price from its lowest amount"
 msgid "From"
 msgstr "Från"

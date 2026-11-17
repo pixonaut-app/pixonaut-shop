@@ -23,13 +23,21 @@ final class Hero
     /** The attachment size the picture is shown at, which core/media-text names in its image's class. */
     public const IMAGE_SIZE = 'full';
 
+    public const HEADING_KEY = 'heading';
+
+    public const TEXT_KEY = 'text';
+
+    public const BUTTON_LABEL_KEY = 'button_label';
+
+    public const BUTTON_URL_KEY = 'button_url';
+
+    public const IMAGE_ID_KEY = 'image_id';
+
     /** The keys of the option that hold text. */
-    private const TEXT_KEYS = ['heading', 'text', 'button_label', 'button_url'];
+    public const TEXT_KEYS = [self::HEADING_KEY, self::TEXT_KEY, self::BUTTON_LABEL_KEY, self::BUTTON_URL_KEY];
 
     /** The keys of the option without whose text the hero shows nothing worth showing. */
-    private const REQUIRED_TEXT_KEYS = ['heading', 'button_label'];
-
-    private const IMAGE_ID_KEY = 'image_id';
+    public const REQUIRED_TEXT_KEYS = [self::HEADING_KEY, self::BUTTON_LABEL_KEY];
 
     /** Where WordPress keeps an attachment's alt text. */
     private const ALT_META = '_wp_attachment_image_alt';
@@ -67,7 +75,7 @@ final class Hero
         }
 
         // An address WordPress would not link to, a `javascript:` one among them, is none.
-        if ('' === esc_url_raw($option['button_url'])) {
+        if ('' === esc_url_raw($option[self::BUTTON_URL_KEY])) {
             return null;
         }
 
@@ -86,10 +94,10 @@ final class Hero
         $alt = get_post_meta($image_id, self::ALT_META, true);
 
         return new self(
-            $option['heading'],
-            $option['text'],
-            $option['button_label'],
-            $option['button_url'],
+            $option[self::HEADING_KEY],
+            $option[self::TEXT_KEY],
+            $option[self::BUTTON_LABEL_KEY],
+            $option[self::BUTTON_URL_KEY],
             $image_id,
             $image_url,
             \is_string($alt) ? $alt : '',

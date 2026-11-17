@@ -171,11 +171,13 @@ final class Bootstrap
 
     /**
      * Callbacks on Pixonaut for WooCommerce's documented hooks, which run only
-     * when the plugin fires them.
+     * when the plugin fires them: its cart and order rows, and the theme's
+     * settings its tools read and change.
      */
     private function register_pixonaut(): void
     {
         (new Pixonaut\Integration())->register();
+        (new Pixonaut\ThemeSettings())->register();
     }
 
     /**

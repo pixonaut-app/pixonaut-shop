@@ -49,6 +49,9 @@ final class VariablePrice
     /** The range from the lowest price to the highest, as WooCommerce prints it. */
     public const RANGE = 'range';
 
+    /** The choices a store has. */
+    public const CHOICES = [self::FROM, self::FROM_SHORT, self::RANGE];
+
     public const DEFAULT = self::FROM;
 
     /** WooCommerce's Customizer panel, which holds its store settings when it is active. */
@@ -191,7 +194,8 @@ final class VariablePrice
         ]);
     }
 
-    private static function label(): string
+    /** The choice's label, wherever a store or a tool is shown it. */
+    public static function label(): string
     {
         return __('A variable product\'s price before a variation is chosen', 'pixonaut-shop');
     }
@@ -208,7 +212,7 @@ final class VariablePrice
 
     private static function known(mixed $value): string
     {
-        return \is_string($value) && \in_array($value, [self::FROM, self::FROM_SHORT, self::RANGE], true) ? $value : self::DEFAULT;
+        return \is_string($value) && \in_array($value, self::CHOICES, true) ? $value : self::DEFAULT;
     }
 
     /** The word for a choice, escaped: short when the store picks it, else in full. */

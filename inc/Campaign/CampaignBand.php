@@ -35,16 +35,23 @@ final class CampaignBand
     /** The slug of the template part the band is shown in. */
     private const PART_SLUG = 'announcement';
 
-    private const TEXT_KEY = 'text';
+    public const TEXT_KEY = 'text';
 
-    private const URL_KEY = 'url';
+    public const URL_KEY = 'url';
 
-    private const STARTS_KEY = 'starts';
+    public const STARTS_KEY = 'starts';
 
-    private const ENDS_KEY = 'ends';
+    public const ENDS_KEY = 'ends';
 
-    /** A date, or a date and a time with an optional offset, as ISO 8601 writes them. */
-    private const DATE_PATTERN = '/^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:?\d{2})?)?$/';
+    /**
+     * A date, or a date and a time with an optional offset, as ISO 8601
+     * writes them: a regular expression without delimiters, as JSON Schema's
+     * `pattern` holds one.
+     */
+    public const DATE_PATTERN = '^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:?\d{2})?)?$';
+
+    /** The delimiter `DATE_PATTERN` is matched between in PHP, a character the pattern does not hold. */
+    private const PATTERN_DELIMITER = '/';
 
     /**
      * The band's markup: the announcement pattern's group, on the `highlight`
@@ -134,7 +141,7 @@ final class CampaignBand
     /** The moment an ISO 8601 date in the site's time zone names, or null when it is not one. */
     private static function date(mixed $value): ?DateTimeImmutable
     {
-        if (! \is_string($value) || 1 !== preg_match(self::DATE_PATTERN, $value)) {
+        if (! \is_string($value) || 1 !== preg_match(self::PATTERN_DELIMITER . self::DATE_PATTERN . self::PATTERN_DELIMITER, $value)) {
             return null;
         }
 

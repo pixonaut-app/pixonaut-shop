@@ -21,13 +21,13 @@ final class HeaderVariant
     public const MEGA = 'mega';
 
     /** The variants the theme has a header for. */
-    private const BUILT = [self::SIMPLE, self::MEGA];
+    public const VARIANTS = [self::SIMPLE, self::MEGA];
 
     /** The header the store shows. */
     public static function current(): string
     {
         $variant = get_option(self::OPTION);
 
-        return \is_string($variant) && \in_array($variant, self::BUILT, true) ? $variant : self::SIMPLE;
+        return \is_string($variant) && \in_array($variant, self::VARIANTS, true) ? $variant : self::SIMPLE;
     }
 }
