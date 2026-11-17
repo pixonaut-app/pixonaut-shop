@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.2](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.12.1...v1.12.2) (2026-11-17)
+
+
+### Bug Fixes
+
+* **archive:** keep a long sort order clear of the filters' button on a phone ([#73](https://github.com/pixonaut-app/pixonaut-shop/issues/73)) ([e62b995](https://github.com/pixonaut-app/pixonaut-shop/commit/e62b995a9f3b6b290c13eba8d42520597ccc0f19))
+
 ## [1.12.1](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.12.0...v1.12.1) (2026-11-17)
 
 
