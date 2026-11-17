@@ -159,6 +159,9 @@ export const E2E_OWNERS: Readonly< Record< string, SpecSelection > > = {
 	'inc/Campaign': [ 'header' ],
 	'inc/Content': [],
 	'inc/Dependencies': 'all',
+	// The fallback faces named in every family's stack, and the title's
+	// preloaded face: every page's typography.
+	'inc/Fonts': 'all',
 	// Which template the homepage renders: the front page, or the posts list.
 	'inc/FrontPage': [ 'front-page' ],
 	// What loads the header search's script, and the mega header's menu.

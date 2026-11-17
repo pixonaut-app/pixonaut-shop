@@ -51,6 +51,7 @@
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install chromium",
     "test:ts": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test 'tests/ts/*.test.ts'",
+    "fonts:metrics": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/fonts/metrics-cli.ts",
     "ci:affected": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/ci/affected-cli.ts",
     "ci:affected:local": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/ci/affected-local-cli.ts",
     "plugin:use": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/plugin/use-cli.ts",
@@ -60,6 +61,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
     "@biomejs/biome": "^2.5.12",
+    "@capsizecss/metrics": "4.4.0",
     "@playwright/test": "^1.63.0",
     "@types/node": "^26.6.0",
     "@types/react": "^19.3.0",
