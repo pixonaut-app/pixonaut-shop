@@ -16,7 +16,9 @@
  * WooCommerce filters the archive on the server, as it always has.
  */
 
-import { CARD, drawCard, modelOf } from './client/cards.ts';
+import { CARD_SWATCH, KEPT_ATTRIBUTE } from './card-swatch.ts';
+import { CardNodes } from './client/card-nodes.ts';
+import { CARD, type CardLook, modelOf } from './client/cards.ts';
 import {
 	CHIP_FILTER,
 	CHIP_VALUE,
@@ -133,7 +135,7 @@ class ClientArchive {
 	private readonly drawer: DrawerState;
 	private readonly chips: ChipsState | null;
 	private readonly none: HTMLElement;
-	private readonly model: HTMLElement;
+	private readonly nodes: CardNodes;
 	/** Whether a choice made in the drawer since it opened has its own history entry yet. */
 	private drawerEntry = false;
 	private scrollTimer = 0;
@@ -145,7 +147,9 @@ class ClientArchive {
 		this.index = index;
 		this.config = config;
 		this.grid = grid;
-		this.model = modelOf( grid.querySelector( CARD ) as Element );
+		this.nodes = new CardNodes( modelOf( grid.querySelector( CARD ) as Element ), grid, () =>
+			this.look(),
+		);
 		this.choice = choiceFrom( new URL( window.location.href ), index.filters, config.defaultSort );
 		this.drawer = drawerOf( panel, index );
 		const chosen = document.querySelector( `main ${ CHOSEN }` );
@@ -167,7 +171,8 @@ class ClientArchive {
 			pageSize: config.pageSize,
 			autoLoads: config.autoLoads,
 			words: config.text,
-			draw: ( place ) => this.drawAt( place ),
+			draw: ( place ) => this.nodes.nodeOf( this.shown[ place ] ),
+			ready: ( cards ) => this.nodes.whenLoaded( cards ),
 			onDrawn: () => this.noteEntry(),
 		} );
 		grid.parentElement?.append( this.none );
@@ -177,8 +182,14 @@ class ClientArchive {
 		this.feed.adopt( this.shown.length, grid.querySelectorAll( CARD ).length );
 
 		// Cards the server drew that are not the ones the index shows for the address are drawn again.
-		if ( ! this.drewTheSame() ) {
-			this.feed.reset( this.shown.length, 0 );
+		if ( this.drewTheSame() ) {
+			for ( const [ place, card ] of Array.from(
+				grid.querySelectorAll< HTMLElement >( CARD ),
+			).entries() ) {
+				this.nodes.adopt( card, this.shown[ place ] );
+			}
+		} else {
+			void this.feed.reset( this.shown.length, 0 );
 		}
 
 		// The archive puts the scroll back itself, once its cards are drawn.
@@ -189,10 +200,12 @@ class ClientArchive {
 
 		if ( entry ) {
 			if ( entry.drawn > this.feed.drawnCount ) {
-				this.feed.reset( this.shown.length, entry.drawn );
+				void this.feed
+					.reset( this.shown.length, entry.drawn )
+					.then( () => window.scrollTo( { top: entry.scroll, behavior: 'instant' } ) );
+			} else {
+				window.scrollTo( { top: entry.scroll, behavior: 'instant' } );
 			}
-
-			window.scrollTo( { top: entry.scroll, behavior: 'instant' } );
 		}
 
 		this.render();
@@ -211,14 +224,15 @@ class ClientArchive {
 		);
 	}
 
-	private drawAt( place: number ): HTMLElement {
-		return drawCard( this.model, this.shown[ place ], {
+	/** How the cards are drawn for the current choice. */
+	private look(): CardLook {
+		return {
 			index: this.index,
 			prices: this.config.prices,
 			saleBadge: this.config.saleBadge,
 			choice: this.choice,
 			swatchGroup: this.config.text.swatchGroup,
-		} );
+		};
 	}
 
 	/** The drawer, the chips and the counts for the current choice. */
@@ -264,15 +278,18 @@ class ClientArchive {
 		return `${ filter?.label ?? '' }: ${ range }`.trim();
 	}
 
-	/** Shows a new choice, from its first cards (or as many as `keep`), and notes it in the address. */
-	private apply( next: Choice, history: 'push' | 'replace' | 'none', keep = 0 ): void {
+	/**
+	 * Shows a new choice, from its first cards (or as many as `keep`), and
+	 * notes it in the address. Resolves once its cards are in.
+	 */
+	private apply( next: Choice, history: 'push' | 'replace' | 'none', keep = 0 ): Promise< void > {
 		this.choice = next;
 		this.shown = shownCards( this.index, next );
-		this.feed.reset( this.shown.length, keep );
+		const drawn = this.feed.reset( this.shown.length, keep );
 		this.render();
 
 		if ( history === 'none' ) {
-			return;
+			return drawn;
 		}
 
 		const url = addressOf(
@@ -288,6 +305,8 @@ class ClientArchive {
 		} else {
 			window.history.replaceState( state, '', url );
 		}
+
+		return drawn;
 	}
 
 	/** The history mode for a change made in the drawer while it is open, or elsewhere. */
@@ -329,7 +348,7 @@ class ClientArchive {
 			next.values.delete( key );
 		}
 
-		this.apply( next, this.historyMode() );
+		void this.apply( next, this.historyMode() );
 	}
 
 	/** Clears the values of each dependent attribute no chosen value of its parent opens any more. */
@@ -355,15 +374,16 @@ class ClientArchive {
 			this.index.filters,
 			this.config.defaultSort,
 		);
-		this.apply( next, 'none', entry?.drawn ?? 0 );
-		window.scrollTo( { top: entry?.scroll ?? 0, behavior: 'instant' } );
+		void this.apply( next, 'none', entry?.drawn ?? 0 ).then( () =>
+			window.scrollTo( { top: entry?.scroll ?? 0, behavior: 'instant' } ),
+		);
 	}
 
 	private setPrice( min: number | null, max: number | null, history: 'push' | 'replace' ): void {
 		const next = copyOf( this.choice );
 		next.min = min;
 		next.max = max;
-		this.apply( next, history );
+		void this.apply( next, history );
 	}
 
 	/** Reads the price slider: an end at its limit chooses nothing. */
@@ -408,7 +428,7 @@ class ClientArchive {
 					}
 				} else if ( target instanceof HTMLSelectElement && target.closest( SORTING ) ) {
 					event.stopPropagation();
-					this.apply( { ...copyOf( this.choice ), sort: target.value }, 'push' );
+					void this.apply( { ...copyOf( this.choice ), sort: target.value }, 'push' );
 				} else if ( inPanel( target ) ) {
 					event.stopPropagation();
 				}
@@ -453,6 +473,14 @@ class ClientArchive {
 			( event ) => {
 				const target = event.target instanceof Element ? event.target : null;
 				const chip = target?.closest( `[${ CHIP_FILTER }]` );
+				const swatch = target?.closest( `[${ KEPT_ATTRIBUTE }] ${ CARD_SWATCH }` );
+
+				if ( swatch instanceof HTMLButtonElement ) {
+					void this.nodes.choose( swatch );
+
+					return;
+				}
+
 				const clear = target?.closest( `${ DRAWER_CLEAR }, ${ CHOSEN_CLEAR }` );
 
 				if ( chip ) {
@@ -468,7 +496,7 @@ class ClientArchive {
 				} else if ( clear ) {
 					event.preventDefault();
 					event.stopPropagation();
-					this.apply(
+					void this.apply(
 						{ values: new Map(), min: null, max: null, sort: this.choice.sort },
 						this.historyMode(),
 					);

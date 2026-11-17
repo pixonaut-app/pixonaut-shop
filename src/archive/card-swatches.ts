@@ -8,7 +8,7 @@
  * second picture on hover, which would cover the one chosen (`_archive.css`).
  */
 
-import { CARD_SWATCH, swatchOf } from './card-swatch.ts';
+import { CARD_SWATCH, KEPT_ATTRIBUTE, swatchOf } from './card-swatch.ts';
 
 const CARD = 'li.wc-block-product';
 const FIRST_PICTURE = '.wp-block-woocommerce-product-image img:not(.pixonaut-shop-second-picture)';
@@ -20,7 +20,7 @@ function choose( button: HTMLButtonElement ): void {
 	const card = button.closest( CARD );
 	const swatch = swatchOf( button );
 
-	if ( ! card || ! swatch ) {
+	if ( ! card || ! swatch || card.hasAttribute( KEPT_ATTRIBUTE ) ) {
 		return;
 	}
 

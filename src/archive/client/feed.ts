@@ -4,7 +4,8 @@
  * skeleton cards where the next ones come, so nothing moves as they do.
  * After a few loads on its own it asks first, with "Show more" and how far
  * the shopper has come, so the footer can be reached; at the end it says
- * that every product has been seen.
+ * that every product has been seen. A new list of cards comes in at once,
+ * once the pictures of the cards new to it are loaded.
  */
 
 import { CARD } from './cards.ts';
@@ -33,6 +34,8 @@ export interface FeedOptions {
 	words: FeedWords;
 	/** Draws the card at a place in the shown list. */
 	draw: ( place: number ) => HTMLElement;
+	/** Resolves once the cards' pictures are loaded (or given up on). */
+	ready: ( cards: HTMLElement[] ) => Promise< void >;
 	/** Says how many cards are drawn now, for the address's history. */
 	onDrawn: ( drawn: number ) => void;
 }
@@ -45,6 +48,10 @@ export class Feed {
 	private total = 0;
 	private drawn = 0;
 	private autoLoaded = 0;
+	/** Counts the lists drawn, so a list whose pictures came in late never covers a newer one. */
+	private generation = 0;
+	/** Whether a new list waits for its pictures. */
+	private pending = false;
 	private readonly footer: HTMLElement;
 	private readonly skeletons: HTMLElement;
 	private readonly status: HTMLElement;
@@ -127,15 +134,30 @@ export class Feed {
 		this.update();
 	}
 
-	/** Draws a new list's first cards: a page's worth, or as many as `keep`. */
-	reset( total: number, keep: number ): void {
+	/**
+	 * Draws a new list's first cards: a page's worth, or as many as `keep`.
+	 * They replace the grid's in one go once their pictures are in; resolves
+	 * then, or never for a list a newer one replaced first.
+	 */
+	reset( total: number, keep: number ): Promise< void > {
 		this.total = total;
 		this.drawn = Math.min( Math.max( keep, this.options.pageSize ), total );
 		this.autoLoaded = 0;
-		this.options.grid.replaceChildren(
-			...Array.from( { length: this.drawn }, ( _, place ) => this.options.draw( place ) ),
-		);
-		this.update();
+		const cards = Array.from( { length: this.drawn }, ( _, place ) => this.options.draw( place ) );
+		this.generation += 1;
+		const generation = this.generation;
+		this.pending = true;
+
+		return this.options.ready( cards ).then( () => {
+			if ( generation !== this.generation ) {
+				return new Promise< void >( () => undefined );
+			}
+
+			this.pending = false;
+			this.options.grid.replaceChildren( ...cards );
+			this.update();
+			window.requestAnimationFrame( () => this.loadWhileInReach() );
+		} );
 	}
 
 	get drawnCount(): number {
@@ -143,7 +165,11 @@ export class Feed {
 	}
 
 	private load( auto: boolean ): void {
-		if ( this.drawn >= this.total || ( auto && this.autoLoaded >= this.options.autoLoads ) ) {
+		if (
+			this.pending ||
+			this.drawn >= this.total ||
+			( auto && this.autoLoaded >= this.options.autoLoads )
+		) {
 			return;
 		}
 

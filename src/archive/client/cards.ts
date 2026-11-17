@@ -2,7 +2,10 @@
  * The cards of the archive filtered in the browser, drawn from one the
  * server rendered: a copy of it keeps every block and setting a store gave
  * the grid's cards in the Site Editor, with the name, link, pictures,
- * summary, sale badge and price of another card in it.
+ * summary, sale badge and price of another card in it. A card's picture is
+ * set once, as it is drawn (`card-nodes.ts` keeps each drawn card); what a
+ * choice changes on a card shown again, its link, price and swatches, is
+ * set by `refreshCard`.
  */
 
 import { drawSwatches, SWATCHES_CLASS } from '../card-swatch.ts';
@@ -13,7 +16,8 @@ import type { ArchiveIndex, Picture } from '../index/types.ts';
 export const CARD = 'li.wc-block-product';
 const IMAGE_BLOCK = '.wp-block-woocommerce-product-image';
 const IMAGE_LINK = `${ IMAGE_BLOCK } a`;
-const FIRST_PICTURE = '.wp-block-woocommerce-product-image img:not(.pixonaut-shop-second-picture)';
+export const FIRST_PICTURE =
+	'.wp-block-woocommerce-product-image img:not(.pixonaut-shop-second-picture)';
 const SECOND_PICTURE = 'img.pixonaut-shop-second-picture';
 const SECOND_PICTURE_CLASS = 'pixonaut-shop-second-picture';
 const PICTURE_INNER = '.wc-block-components-product-image__inner-container';
@@ -21,6 +25,7 @@ const SALE_BADGE = '.wp-block-woocommerce-product-sale-badge';
 const TITLE_LINK = '.wp-block-post-title a';
 const SUMMARY = '.wc-block-components-product-summary';
 const PRICE = '.wc-block-components-product-price';
+const PRICE_BLOCK = '.wp-block-woocommerce-product-price';
 /** WooCommerce's classes for a product's id and for a product on sale, on the card. */
 const POST_CLASS = /^post-\d+$/;
 const SALE_CLASS = 'sale';
@@ -55,10 +60,15 @@ export function modelOf( card: Element ): HTMLElement {
 	model.querySelector( SALE_BADGE )?.remove();
 	model.querySelector( `.${ SWATCHES_CLASS }` )?.remove();
 
+	// A copy never shows the model's picture while its own is on its way.
+	const first = model.querySelector( FIRST_PICTURE );
+	first?.removeAttribute( 'src' );
+	first?.removeAttribute( 'srcset' );
+
 	return model;
 }
 
-function setPicture( image: HTMLImageElement, picture: Picture, alt: string ): void {
+export function setPicture( image: HTMLImageElement, picture: Picture, alt: string ): void {
 	image.src = picture.src;
 	image.width = picture.width;
 	image.height = picture.height;
@@ -81,11 +91,19 @@ function fromMarkup( markup: string ): DocumentFragment {
 	return template.content;
 }
 
-/** A card for one shown entry, drawn on a copy of the model. */
-export function drawCard( model: HTMLElement, entry: Shown, look: CardLook ): HTMLElement {
+/**
+ * A card for one shown entry, drawn on a copy of the model. `sizes` is how
+ * wide its picture is shown, so the picture it loads is the one loaded
+ * ahead of it (`card-nodes.ts`); empty keeps the model's.
+ */
+export function drawCard(
+	model: HTMLElement,
+	entry: Shown,
+	look: CardLook,
+	sizes: string,
+): HTMLElement {
 	const card = model.cloneNode( true ) as HTMLElement;
 	const { index, choice } = look;
-	const link = linkOf( entry, window.location.href, choice );
 	const picture = pictureOf( index, entry, choice );
 	const onSale = entry.card.variations.some(
 		( variation ) => variation.price < variation.regularPrice,
@@ -100,12 +118,6 @@ export function drawCard( model: HTMLElement, entry: Shown, look: CardLook ): HT
 	card.classList.add( `post-${ entry.card.productId }` );
 	card.classList.toggle( SALE_CLASS, onSale );
 
-	for ( const anchor of card.querySelectorAll< HTMLAnchorElement >(
-		`${ IMAGE_LINK }, ${ TITLE_LINK }`,
-	) ) {
-		anchor.href = link;
-	}
-
 	const title = card.querySelector( TITLE_LINK );
 
 	if ( title ) {
@@ -117,6 +129,10 @@ export function drawCard( model: HTMLElement, entry: Shown, look: CardLook ): HT
 	if ( first ) {
 		setPicture( first, picture, picture.alt );
 		first.loading = 'lazy';
+
+		if ( sizes !== '' ) {
+			first.sizes = sizes;
+		}
 
 		// A card with swatches shows no second picture, which would cover the one chosen.
 		if ( entry.card.secondImage && entry.swatches.length < 2 ) {
@@ -140,7 +156,37 @@ export function drawCard( model: HTMLElement, entry: Shown, look: CardLook ): HT
 		summary.replaceChildren( ...( entry.card.summary === '' ? [] : [ paragraph ] ) );
 	}
 
-	// A design shown in several of the chosen values: a swatch for each, this one pressed.
+	refreshCard( card, entry, look );
+
+	return card;
+}
+
+/**
+ * What a choice changes on a card that keeps its picture: the link it
+ * opens, its price from the variations the choice matches, and its
+ * swatches, one for each card of its design the choice shows, its own
+ * pressed.
+ */
+export function refreshCard( card: HTMLElement, entry: Shown, look: CardLook ): void {
+	const { index, choice } = look;
+	const link = linkOf( entry, window.location.href, choice );
+
+	for ( const anchor of card.querySelectorAll< HTMLAnchorElement >(
+		`${ IMAGE_LINK }, ${ TITLE_LINK }`,
+	) ) {
+		anchor.href = link;
+	}
+
+	card.querySelector( `.${ SWATCHES_CLASS }` )?.remove();
+
+	const price = card.querySelector( PRICE );
+
+	if ( price ) {
+		price.replaceChildren(
+			fromMarkup( priceMarkup( entry.variations, look.prices, index.currency ) ),
+		);
+	}
+
 	if ( entry.swatches.length > 1 ) {
 		const swatches = entry.swatches.map( ( member ) => {
 			const memberPicture = pictureOf( index, member, choice );
@@ -160,23 +206,18 @@ export function drawCard( model: HTMLElement, entry: Shown, look: CardLook ): HT
 					height: memberPicture.height,
 					alt: memberPicture.alt,
 				},
-				price: priceMarkup( member.variations, look.prices, index.currency ),
-				current: member === entry,
+				current: member.card.id === entry.card.id,
 			};
 		} );
 
-		card
-			.querySelector( IMAGE_BLOCK )
-			?.after( drawSwatches( swatches, look.swatchGroup.replace( '%s', entry.card.title ) ) );
+		const group = drawSwatches( swatches, look.swatchGroup.replace( '%s', entry.card.title ) );
+		// After the price, as the server prints them (`CardSwatches.php`); a card without one ends with them.
+		const priceBlock = card.querySelector( PRICE_BLOCK );
+
+		if ( priceBlock ) {
+			priceBlock.after( group );
+		} else {
+			card.append( group );
+		}
 	}
-
-	const price = card.querySelector( PRICE );
-
-	if ( price ) {
-		price.replaceChildren(
-			fromMarkup( priceMarkup( entry.variations, look.prices, index.currency ) ),
-		);
-	}
-
-	return card;
 }

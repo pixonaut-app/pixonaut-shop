@@ -14,6 +14,12 @@ export const PICTURE_ATTRIBUTE = 'data-pixonaut-shop-picture';
 export const TITLE_ATTRIBUTE = 'data-pixonaut-shop-title';
 /** The card's price in the swatch's value, as markup; the server's swatches carry none. */
 export const PRICE_ATTRIBUTE = 'data-pixonaut-shop-price';
+/**
+ * On a card the archive filtered in the browser keeps (`client/card-nodes.ts`):
+ * its swatches show the other cards of its design in its place, each with
+ * its own picture, rather than change this card's.
+ */
+export const KEPT_ATTRIBUTE = 'data-pixonaut-shop-kept';
 
 export interface SwatchPicture {
 	src: string;

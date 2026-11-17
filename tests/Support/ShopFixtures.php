@@ -713,6 +713,12 @@ final class ShopFixtures
         }
     }
 
+    /** The picture the pictured products' cards show, sized as an upload is, for other fixtures' products. */
+    public static function card_picture(): int
+    {
+        return self::image(self::CARD_IMAGE_SLUG, true);
+    }
+
     /** The pictured products and their category gone again, so no other spec's lists show them. */
     public static function forget_pictured_products(): void
     {
