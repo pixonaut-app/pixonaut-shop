@@ -39,8 +39,9 @@ import { Feed, type FeedWords } from './client/feed.ts';
 import { CLIENT_ARCHIVE_ATTRIBUTE } from './client-archive-flag.ts';
 import { addressOf, choiceFrom } from './index/address.ts';
 import { type Choice, counts, type Shown, shownCards } from './index/engine.ts';
-import { formatAmount, type PriceTemplates } from './index/price-markup.ts';
+import { formatAmount, type PriceTemplates, parseAmount } from './index/price-markup.ts';
 import type { ArchiveIndex, IndexPointer } from './index/types.ts';
+import { isArchiveIndex } from './index/validate.ts';
 
 const POINTER_ID = 'pixonaut-archive-index';
 const CONFIG_ID = 'pixonaut-shop-archive-config';
@@ -91,20 +92,6 @@ function readJson< T >( id: string ): T | null {
 	}
 }
 
-function isIndex( data: unknown ): data is ArchiveIndex {
-	const index = data as Partial< ArchiveIndex > | null;
-
-	return (
-		typeof index === 'object' &&
-		index !== null &&
-		Array.isArray( index.cards ) &&
-		Array.isArray( index.filters ) &&
-		Array.isArray( index.sorts ) &&
-		Array.isArray( index.images ) &&
-		typeof index.currency === 'object'
-	);
-}
-
 async function loadIndex( pointer: IndexPointer ): Promise< ArchiveIndex | null > {
 	const controller = new AbortController();
 	const timer = window.setTimeout( () => controller.abort(), INDEX_TIMEOUT_MS );
@@ -116,7 +103,7 @@ async function loadIndex( pointer: IndexPointer ): Promise< ArchiveIndex | null 
 		} );
 		const data: unknown = response.ok ? await response.json() : null;
 
-		return isIndex( data ) ? data : null;
+		return isArchiveIndex( data ) ? data : null;
 	} catch {
 		return null;
 	} finally {
@@ -200,8 +187,11 @@ class ClientArchive {
 		// Back on the archive from a product: as many cards as were drawn, scrolled where it was left.
 		const entry = entryOf( window.history.state );
 
-		if ( entry && entry.drawn > this.feed.drawnCount ) {
-			this.feed.reset( this.shown.length, entry.drawn );
+		if ( entry ) {
+			if ( entry.drawn > this.feed.drawnCount ) {
+				this.feed.reset( this.shown.length, entry.drawn );
+			}
+
 			window.scrollTo( { top: entry.scroll, behavior: 'instant' } );
 		}
 
@@ -407,9 +397,8 @@ class ClientArchive {
 					event.stopPropagation();
 
 					if ( target.type === 'text' ) {
-						const amount = Number( target.value.replace( /[^\d.,]/g, '' ).replace( ',', '.' ) );
+						const valid = parseAmount( target.value, this.index.currency );
 						const { min, max } = this.choice;
-						const valid = Number.isFinite( amount ) ? amount : null;
 						this.setPrice(
 							target.classList.contains( 'min' ) ? valid : min,
 							target.classList.contains( 'max' ) ? valid : max,
@@ -532,6 +521,20 @@ async function start(): Promise< void > {
 
 	// The shopper changed the archive on the server meanwhile: the page is no longer the one it renders.
 	if ( ! index || window.location.href !== from || ! document.contains( grid ) ) {
+		return;
+	}
+
+	// Worked out once before the page changes, so an index the archive cannot use leaves it as the server rendered it.
+	try {
+		const choice = choiceFrom( new URL( from ), index.filters, config.defaultSort );
+		shownCards( index, choice );
+		counts( index, choice );
+	} catch ( error ) {
+		console.error(
+			'The archive index could not be read; the archive stays as the server rendered it.',
+			error,
+		);
+
 		return;
 	}
 

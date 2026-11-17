@@ -326,15 +326,51 @@ export function anchorOf( filter: Filter, parent: Filter, choice: Choice ): stri
 		: null;
 }
 
+/**
+ * How many dependent attributes deep the server nests one inside another
+ * (`Archive\AttributeDependencies::MAX_DEPTH`): a frame's colour under the
+ * framing, a finish under the colour.
+ */
+const MAX_DEPTH = 2;
+
+/** The filters, those with no parent first, then each level of dependents; a circle stops at the deepest level. */
+export function byDepth( filters: Filter[] ): Filter[] {
+	const depthOf = ( filter: Filter ): number => {
+		let depth = 0;
+		let parent = filter.parent;
+
+		while ( parent && depth <= MAX_DEPTH ) {
+			const key = parent.key;
+			depth += 1;
+			parent = filters.find( ( other ) => other.key === key )?.parent;
+		}
+
+		return depth;
+	};
+
+	return filters
+		.map( ( filter ) => ( { filter, depth: depthOf( filter ) } ) )
+		.filter( ( { depth } ) => depth <= MAX_DEPTH )
+		.sort( ( a, b ) => a.depth - b.depth )
+		.map( ( { filter } ) => filter );
+}
+
 function syncNested(
 	drawer: DrawerState,
 	index: ArchiveIndex,
 	choice: Choice,
 	counts: Map< string, Map< string, number > >,
 ): void {
-	for ( const filter of index.filters ) {
+	// Parents before their dependents, so a dependent of a nested attribute finds its parent drawn.
+	for ( const filter of byDepth( index.filters ) ) {
 		const parent = index.filters.find( ( other ) => other.key === filter.parent?.key );
-		const parentList = parent ? drawer.lists.get( parent.key ) : undefined;
+		const parentList = parent
+			? ( drawer.lists.get( parent.key ) ??
+				drawer.panel.querySelector(
+					`.${ NESTED_CLASS }[${ NESTED_ATTRIBUTE }="${ CSS.escape( parent.key ) }"] ${ ATTRIBUTE_BLOCK }`,
+				) ??
+				undefined )
+			: undefined;
 
 		// A dependent with a section of its own is a list like any other.
 		if ( ! parent || ! parentList || drawer.lists.has( filter.key ) ) {

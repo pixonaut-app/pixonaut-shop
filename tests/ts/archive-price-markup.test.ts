@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import { formatAmount, priceMarkup } from '../../src/archive/index/price-markup.ts';
+import { formatAmount, parseAmount, priceMarkup } from '../../src/archive/index/price-markup.ts';
 import type { Currency } from '../../src/archive/index/types.ts';
 
 const SEK: Currency = {
@@ -80,5 +80,21 @@ describe( 'priceMarkup', () => {
 			),
 			'<span class="from">Från </span>249 kr<span class="note">Lägsta pris: 279 kr</span>',
 		);
+	} );
+} );
+
+describe( 'parseAmount', () => {
+	it( 'reads an amount typed in the store’s format', () => {
+		assert.equal( parseAmount( '1 249,50 kr', SEK ), 1249.5 );
+		assert.equal( parseAmount( '389', SEK ), 389 );
+		assert.equal(
+			parseAmount( '$1,249.50', { ...SEK, decimalSeparator: '.', thousandSeparator: ',' } ),
+			1249.5,
+		);
+	} );
+
+	it( 'is nothing for a field without digits', () => {
+		assert.equal( parseAmount( 'kr', SEK ), null );
+		assert.equal( parseAmount( '', SEK ), null );
 	} );
 } );

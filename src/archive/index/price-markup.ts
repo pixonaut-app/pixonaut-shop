@@ -87,3 +87,21 @@ export function priceMarkup(
 
 	return fill( templates.amount, lowest, currency ) + note;
 }
+
+/**
+ * An amount a shopper typed, in the store's format ("1 249,50 kr",
+ * "$1,249.50"): its grouping dropped, its decimal separator read as a
+ * point. Null for one with no digits.
+ */
+export function parseAmount( text: string, currency: Currency ): number | null {
+	const grouped =
+		currency.thousandSeparator === '' ? text : text.split( currency.thousandSeparator ).join( '' );
+	const pointed =
+		currency.decimalSeparator === ''
+			? grouped
+			: grouped.split( currency.decimalSeparator ).join( '.' );
+	const digits = pointed.replace( /[^\d.]/g, '' );
+	const amount = digits === '' ? Number.NaN : Number( digits );
+
+	return Number.isFinite( amount ) ? amount : null;
+}
