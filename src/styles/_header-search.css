@@ -239,13 +239,21 @@
 	object-fit: cover;
 }
 
+/*
+ * Up to two lines, which fit beside the picture, so the cards of one product
+ * (whose names differ only at their end) stay told apart on a phone.
+ */
 .pixonaut-shop-header-search__name {
+	display: -webkit-box;
 	flex: 1 1 0;
 	min-width: 0;
 	overflow: hidden;
 	font-weight: 600;
-	text-overflow: ellipsis;
-	white-space: nowrap;
+	line-height: 1.35;
+	overflow-wrap: anywhere;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	line-clamp: 2;
 }
 
 .pixonaut-shop-header-search__price {
