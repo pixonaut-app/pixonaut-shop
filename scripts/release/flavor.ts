@@ -76,8 +76,13 @@ const LEFT_OUT_CLASS = new RegExp(
 		.join( '|' ) })\\b`,
 );
 
-/** Text in any file of the wordpress.org flavor that means a block is registered. */
-const BLOCK_REGISTRATION = /register_block_type/;
+/**
+ * Text in any file of the wordpress.org flavor that means a block is
+ * registered: a call to either function, as Theme Check looks for it. A
+ * filter on another's registration, such as `register_block_type_args`,
+ * registers none.
+ */
+const BLOCK_REGISTRATION = /\bregister_block_type(?:_from_metadata)?\s*\(/;
 
 /** Text in any file of the wordpress.org flavor that means an updater was left in. */
 const UPDATER_REMNANT = /PluginUpdateChecker|plugin-update-checker|PIXONAUT_SHOP_UPDATE_TOKEN/;

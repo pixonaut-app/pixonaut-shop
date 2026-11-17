@@ -277,6 +277,14 @@ describe( 'stagedThemeProblems', () => {
 		assert.deepEqual( stagedThemeProblems( theme, 'wporg' ), [] );
 	} );
 
+	it( "passes a wordpress.org theme that changes another's block as it registers, which registers none", () => {
+		put(
+			'inc/Other.php',
+			"<?php add_filter( 'register_block_type_args', 'pixonaut_shop_args', 10, 2 );",
+		);
+		assert.deepEqual( stagedThemeProblems( theme, 'wporg' ), [] );
+	} );
+
 	for ( const [ remnant, path, content ] of [
 		[ 'the update checker library', UPDATER_ENTRY, '<?php' ],
 		[ "the theme's updater", 'inc/Updates/GitHubUpdater.php', '<?php' ],
@@ -293,6 +301,11 @@ describe( 'stagedThemeProblems', () => {
 			"<?php define('PIXONAUT_SHOP_UPDATE_TOKEN', 'x');",
 		],
 		[ 'a block registered by the theme', 'inc/Other.php', '<?php register_block_type( __DIR__ );' ],
+		[
+			'a block registered from its metadata',
+			'inc/Other.php',
+			'<?php register_block_type_from_metadata( __DIR__ );',
+		],
 		[ "a block's build", 'build/blocks/icon/block.json', '{}' ],
 		[ "a block's sources", 'src/blocks/icon/block.json', '{}' ],
 		[
