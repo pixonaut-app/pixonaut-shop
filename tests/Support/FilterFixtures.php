@@ -112,6 +112,24 @@ final class FilterFixtures
         self::forget_filter_counts();
     }
 
+    /**
+     * Gives both prints a picture, or takes it away again: the theme's
+     * screenshot, wider than tall, so a card that crops it to a square
+     * shows.
+     */
+    public static function picture(bool $pictured = true): void
+    {
+        foreach (array_keys(self::PRODUCTS) as $name) {
+            $existing = get_page_by_path(sanitize_title($name), OBJECT, 'product');
+            $product  = null === $existing ? null : wc_get_product($existing->ID);
+
+            if ($product instanceof WC_Product_Variable) {
+                $product->set_image_id($pictured ? ShopFixtures::card_picture() : 0);
+                $product->save();
+            }
+        }
+    }
+
     public static function forget(): void
     {
         foreach (array_keys(self::PRODUCTS) as $name) {

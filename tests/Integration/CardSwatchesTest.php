@@ -50,7 +50,8 @@ final class CardSwatchesTest extends TestCase
         self::assertMatchesRegularExpression('/<div class="' . CardSwatches::GROUP_CLASS . '" role="group" aria-label="Versions of Swatched print">/', $grid);
         self::assertMatchesRegularExpression('/<button type="button" class="' . CardSwatches::SWATCH_CLASS . '" aria-pressed="true" data-pixonaut-shop-link="https:\/\/example.test\/print\/\?framing=hanger"[^>]*>Hanger<\/button>/', $grid);
         self::assertMatchesRegularExpression('/aria-pressed="false"[^>]*data-pixonaut-shop-picture="[^"]*frame\.jpg[^"]*Framed print[^"]*" data-pixonaut-shop-title="Swatched print, framed">Frame \/ Oak &amp; ash<\/button>/', $grid);
-        self::assertMatchesRegularExpression('/wp-block-woocommerce-product-image.*<\/div><div class="' . CardSwatches::GROUP_CLASS . '"/s', $grid, 'After the card\'s picture.');
+        self::assertMatchesRegularExpression('/wp-block-woocommerce-product-price.*<\/div><div class="' . CardSwatches::GROUP_CLASS . '"/s', $grid, 'After the card\'s price.');
+        self::assertMatchesRegularExpression('/wp-block-post-title.*<div class="' . CardSwatches::GROUP_CLASS . '"/s', $grid, 'Not between the picture and the name.');
     }
 
     public function testACardShownOnceHasNone(): void

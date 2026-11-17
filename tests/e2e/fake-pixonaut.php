@@ -495,8 +495,35 @@ add_filter(
 /**
  * The cookie a suite turns the archive's index on with: `1` serves it, `404`
  * answers that the archive has none, `slow` takes longer than the theme waits.
+ * Added after a comma: `pictures` gives each framed variation a picture of
+ * its own, `missing` gives it one whose file is gone, and `split` lists a
+ * product once per framing while that filter is on (one design, a card per
+ * framing), as the plugin lists a split product.
  */
 const PIXONAUT_SHOP_FAKE_INDEX_COOKIE = 'fake_archive_index';
+
+/** The attribute a split product's cards hold one value each of, by its short name. */
+const PIXONAUT_SHOP_FAKE_SPLIT_KEY = 'framing';
+
+/** The framing whose variations get a picture of their own under `pictures` and `missing`. */
+const PIXONAUT_SHOP_FAKE_PICTURED_VALUE = 'frame';
+
+/** The size the shop's cards print a picture at: WooCommerce's Product Image block always prints `large`. */
+const PIXONAUT_SHOP_FAKE_CARD_IMAGE_SIZE = 'large';
+
+/** A card's picture as the index lists it, at the size the cards print; the placeholder for none. */
+function pixonaut_shop_fake_index_picture(int $attachment, string $alt): array
+{
+    $image = $attachment > 0 ? wp_get_attachment_image_src($attachment, PIXONAUT_SHOP_FAKE_CARD_IMAGE_SIZE) : false;
+
+    if (is_array($image)) {
+        return ['src' => $image[0], 'srcset' => (string) wp_get_attachment_image_srcset($attachment, PIXONAUT_SHOP_FAKE_CARD_IMAGE_SIZE), 'width' => (int) $image[1], 'height' => (int) $image[2], 'alt' => $alt];
+    }
+
+    $size = wc_get_image_size(PIXONAUT_SHOP_FAKE_CARD_IMAGE_SIZE);
+
+    return ['src' => wc_placeholder_img_src(PIXONAUT_SHOP_FAKE_CARD_IMAGE_SIZE), 'srcset' => '', 'width' => (int) ($size['width'] ?? 0), 'height' => (int) ($size['height'] ?? 0), 'alt' => $alt];
+}
 
 const PIXONAUT_SHOP_FAKE_INDEX_ROUTE = 'pixonaut-fake/v1';
 
@@ -566,7 +593,13 @@ add_action(
             'methods' => 'GET',
             'permission_callback' => '__return_true',
             'callback' => static function (WP_REST_Request $request): WP_REST_Response {
-                $mode = (string) $request->get_param('mode');
+                $modes = explode(',', (string) $request->get_param('mode'));
+                $mode  = $modes[0];
+                // A framed variation's own picture: the store's placeholder, or a file that is not there.
+                $images = in_array('missing', $modes, true)
+                    ? [['src' => content_url('uploads/pixonaut-shop-missing-picture.png'), 'srcset' => '', 'width' => 600, 'height' => 800]]
+                    : [array_diff_key(pixonaut_shop_fake_index_picture(0, ''), ['alt' => true])];
+                $pictured = in_array('pictures', $modes, true) || in_array('missing', $modes, true);
 
                 if ('404' === $mode) {
                     return new WP_REST_Response(['code' => 'no_index'], 404);
@@ -627,33 +660,61 @@ add_action(
 
                         $values = pixonaut_shop_fake_index_values($product, $offer);
                         $keys  += array_fill_keys(array_keys($values), true);
-                        $rows[] = apply_filters('pixonaut_wc_archive_index_variation', [
+                        $row    = [
                             'values' => $values,
                             'price' => (float) wc_get_price_to_display($offer),
                             'regularPrice' => (float) wc_get_price_to_display($offer, ['price' => $offer->get_regular_price()]),
-                        ], $offer, $product);
+                        ];
+
+                        if ($pictured && in_array(PIXONAUT_SHOP_FAKE_PICTURED_VALUE, $values[PIXONAUT_SHOP_FAKE_SPLIT_KEY] ?? [], true)) {
+                            $row['image'] = 0;
+                        }
+
+                        $rows[] = apply_filters('pixonaut_wc_archive_index_variation', $row, $offer, $product);
                     }
 
-                    $image   = wp_get_attachment_image_src((int) $product->get_image_id(), 'woocommerce_thumbnail');
-                    $cards[] = apply_filters('pixonaut_wc_archive_index_card', [
+                    $choices = array_values(array_map(
+                        static fn (WC_Product_Attribute $attribute): string => wc_attribute_taxonomy_slug($attribute->get_name()),
+                        array_filter($product->get_attributes(), static fn (mixed $attribute): bool => $attribute instanceof WC_Product_Attribute && $attribute->is_taxonomy() && $attribute->get_variation())
+                    ));
+                    $card    = [
                         'id' => (string) $product->get_id(),
                         'productId' => $product->get_id(),
                         'title' => $product->get_name(),
                         'url' => (string) get_permalink($product->get_id()),
                         'summary' => wp_strip_all_tags($product->get_short_description()),
-                        'image' => is_array($image)
-                            ? ['src' => $image[0], 'srcset' => '', 'width' => (int) $image[1], 'height' => (int) $image[2], 'alt' => $product->get_name()]
-                            : ['src' => wc_placeholder_img_src('woocommerce_thumbnail'), 'srcset' => '', 'width' => 600, 'height' => 600, 'alt' => $product->get_name()],
+                        'image' => pixonaut_shop_fake_index_picture((int) $product->get_image_id(), $product->get_name()),
                         'sort' => $positions[$product->get_id()] ?? [],
                         'holds' => new stdClass(),
                         'listedBy' => [],
                         'onlyFiltered' => [],
-                        'choices' => array_values(array_map(
-                            static fn (WC_Product_Attribute $attribute): string => wc_attribute_taxonomy_slug($attribute->get_name()),
-                            array_filter($product->get_attributes(), static fn (mixed $attribute): bool => $attribute instanceof WC_Product_Attribute && $attribute->is_taxonomy() && $attribute->get_variation())
-                        )),
+                        'choices' => $choices,
                         'variations' => $rows,
-                    ], $product);
+                    ];
+                    $framings = array_values(array_unique(array_merge(...array_map(static fn (array $row): array => $row['values'][PIXONAUT_SHOP_FAKE_SPLIT_KEY] ?? [], $rows))));
+
+                    if (! in_array('split', $modes, true) || count($framings) < 2) {
+                        $cards[] = apply_filters('pixonaut_wc_archive_index_card', $card, $product);
+                        continue;
+                    }
+
+                    // The product as itself while no framing is chosen, and a card per framing while one is.
+                    $cards[] = apply_filters('pixonaut_wc_archive_index_card', ['listedBy' => [PIXONAUT_SHOP_FAKE_SPLIT_KEY]] + $card, $product);
+
+                    foreach ($framings as $place => $framing) {
+                        $term    = get_term_by('slug', $framing, wc_attribute_taxonomy_name(PIXONAUT_SHOP_FAKE_SPLIT_KEY));
+                        $cards[] = apply_filters('pixonaut_wc_archive_index_card', [
+                            'id' => $product->get_id() . '-' . $framing,
+                            'title' => $product->get_name() . ', ' . ($term instanceof WP_Term ? $term->name : $framing),
+                            'url' => add_query_arg(PIXONAUT_SHOP_FAKE_SPLIT_KEY, $framing, $card['url']),
+                            // Every other card shows the placeholder, so the design's cards differ in picture.
+                            'image' => 0 === $place % 2 ? $card['image'] : pixonaut_shop_fake_index_picture(0, $product->get_name()),
+                            'holds' => [PIXONAUT_SHOP_FAKE_SPLIT_KEY => [$framing]],
+                            'listedBy' => [PIXONAUT_SHOP_FAKE_SPLIT_KEY],
+                            'onlyFiltered' => [PIXONAUT_SHOP_FAKE_SPLIT_KEY],
+                            'variations' => array_values(array_filter($rows, static fn (array $row): bool => in_array($framing, $row['values'][PIXONAUT_SHOP_FAKE_SPLIT_KEY] ?? [], true))),
+                        ] + $card, $product);
+                    }
                 }
 
                 $dependencies = (array) apply_filters('pixonaut_wc_storefront_attribute_dependencies', []);
@@ -691,7 +752,7 @@ add_action(
                     'filters' => $filters,
                     'sorts' => $sorts,
                     'cards' => $cards,
-                    'images' => [],
+                    'images' => $pictured ? $images : [],
                 ]);
             },
         ]);
