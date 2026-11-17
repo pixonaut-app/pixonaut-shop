@@ -83,7 +83,8 @@ final class ClientArchive
     public static function config(): array
     {
         $query = $GLOBALS['wp_query'] ?? null;
-        $size  = $query instanceof WP_Query ? (int) $query->get('posts_per_page') : 0;
+        $per   = $query instanceof WP_Query ? $query->get('posts_per_page') : 0;
+        $size  = is_numeric($per) ? (int) $per : 0;
         // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- WooCommerce's own filter, read as its sorting reads it.
         $sort = apply_filters(self::DEFAULT_SORT_OPTION, get_option(self::DEFAULT_SORT_OPTION, self::DEFAULT_SORT));
 
@@ -107,7 +108,7 @@ final class ClientArchive
     private static function prices(): array
     {
         $placeholder = static function (mixed $formatted, mixed $price): mixed {
-            $token = array_search((float) $price, self::AMOUNTS, true);
+            $token = is_numeric($price) ? array_search((float) $price, self::AMOUNTS, true) : false;
 
             return false === $token ? $formatted : $token;
         };
@@ -119,8 +120,8 @@ final class ClientArchive
 
             return [
                 'amount' => wc_price($a),
-                'sale' => wc_format_sale_price($a, $b),
-                'range' => wc_format_price_range($a, $b),
+                'sale' => wc_format_sale_price((string) $a, (string) $b),
+                'range' => wc_format_price_range((string) $a, (string) $b),
                 'from' => (new VariablePrice())->from_text() . wc_price($a),
                 'varied' => VariablePrice::RANGE === VariablePrice::current() ? 'range' : 'from',
                 'lowest' => LowestPrice::note($a),
@@ -137,7 +138,8 @@ final class ClientArchive
     private static function sale_badge(): string
     {
         $on_sale = wc_get_product_ids_on_sale();
-        $product = [] === $on_sale ? 0 : (int) reset($on_sale);
+        $first   = [] === $on_sale ? 0 : reset($on_sale);
+        $product = is_numeric($first) ? (int) $first : 0;
 
         if (0 === $product) {
             return '';
