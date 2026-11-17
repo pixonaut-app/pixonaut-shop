@@ -10,7 +10,8 @@ use WP_Block_Type_Registry;
 
 /**
  * WooCommerce's own empty cart, as a store's Cart page holds it, drawn as
- * the theme's: its message in a panel, and its newest products as the
+ * the theme's: its message in a panel, then the popular products as the
+ * cart pattern shows them, or the store's own newest products as the
  * product grid's cards.
  *
  * WooCommerce saves the empty cart's blocks into the Cart page: its heading
@@ -22,6 +23,12 @@ use WP_Block_Type_Registry;
  * spacer after them is left out, since the panel's edge divides; and each
  * Newest Products block becomes a product collection of the newest
  * products holding the product template of `patterns/product-grid.php`.
+ * When what follows the message is WooCommerce's own "New in store"
+ * heading and Newest Products block as it saved them, the store never
+ * chose them, so the popular products of `patterns/popular-products.php`
+ * take their place, as in `patterns/cart.php`; a renamed heading, a
+ * Newest Products block with choices of its own or any other block keeps
+ * the store's section.
  * An empty cart that does not start with WooCommerce's heading, such as
  * the cart pattern's, or that holds markup of its own between its blocks,
  * is left as it is; so is a Newest Products block that wants products in
@@ -50,6 +57,12 @@ final class EmptyCart
     /** The pattern whose product template draws the archive's cards. */
     public const CARD_PATTERN = 'pixonaut-shop/product-grid';
 
+    /** The pattern of the popular products, which the cart pattern shows under the message. */
+    public const POPULAR_PATTERN = 'pixonaut-shop/popular-products';
+
+    /** WooCommerce's heading above its Newest Products block, as its source string. */
+    public const NEW_IN_STORE = 'New in store';
+
     /** WooCommerce's Cart block, whose children hold the empty cart. */
     public const CART = 'woocommerce/cart';
 
@@ -73,6 +86,12 @@ final class EmptyCart
      * popular products' (1), so a page holding them pages each on its own.
      */
     private const QUERY_ID = 2;
+
+    /** The Newest Products block's attributes WooCommerce saves into a Cart page. */
+    private const DEFAULT_NEWEST_ATTRIBUTES = ['columns', 'rows'];
+
+    /** The heading's attributes WooCommerce saves above its Newest Products block. */
+    private const DEFAULT_HEADING_ATTRIBUTES = ['textAlign'];
 
     /** Blocks that belong to the message when they follow its heading. */
     private const MESSAGE_BLOCKS = ['core/paragraph', 'core/buttons'];
@@ -161,7 +180,12 @@ final class EmptyCart
             array_shift($inner);
         }
 
-        $blocks = [self::panel($message)];
+        $blocks  = [self::panel($message)];
+        $popular = self::is_woocommerce_newest($inner) ? self::parse(self::pattern_content(self::POPULAR_PATTERN) ?? '') : [];
+
+        if ([] !== $popular) {
+            $inner = $popular;
+        }
 
         foreach ($inner as $block) {
             $blocks[] = self::NEWEST_PRODUCTS === $block['blockName'] ? self::newest_products($block) ?? $block : $block;
@@ -198,6 +222,32 @@ final class EmptyCart
         }
 
         return $expanded;
+    }
+
+    /**
+     * Whether the blocks are WooCommerce's own "New in store" heading and
+     * Newest Products block, as it saves them into a Cart page: the
+     * heading in the site's language or in English, with no choice of the
+     * store's in either block.
+     *
+     * @param list<ParsedBlock> $blocks
+     */
+    private static function is_woocommerce_newest(array $blocks): bool
+    {
+        if (2 !== \count($blocks)) {
+            return false;
+        }
+
+        [$heading, $newest] = $blocks;
+
+        $text = trim(wp_strip_all_tags($heading['innerHTML']));
+
+        return self::HEADING === $heading['blockName']
+            && [] === array_diff(array_keys($heading['attrs']), self::DEFAULT_HEADING_ATTRIBUTES)
+            // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch -- WooCommerce's own heading, in the words it saved.
+            && \in_array($text, [self::NEW_IN_STORE, __('New in store', 'woocommerce')], true)
+            && self::NEWEST_PRODUCTS === $newest['blockName']
+            && [] === array_diff(array_keys($newest['attrs']), self::DEFAULT_NEWEST_ATTRIBUTES);
     }
 
     /**

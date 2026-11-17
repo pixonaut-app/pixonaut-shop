@@ -75,11 +75,12 @@ store is Site Editor work:
   from the editor, the hero is the page's own, and the option no longer
   changes it.
 - **The Cart page** — WooCommerce's own Cart page works as it is: the theme
-  styles its lines and totals, draws its empty cart's message in a panel, and
-  shows its newest products as the shop's product cards. For the designed
-  empty cart, with the popular products below the message instead, open
-  the Cart page, select all its content, delete it, and insert the **Cart**
-  pattern (Patterns → WooCommerce) in its place. A made-to-order notice or
+  styles its lines and totals, draws its empty cart's message in a panel,
+  and shows the popular products below it, with a link to the shop, in
+  place of WooCommerce's "New in store". A store that renamed that heading,
+  chose the newest products' categories or stock, or added blocks of its
+  own below them keeps its section, with the shop's product cards. The
+  **Cart** pattern (Patterns → WooCommerce) holds the same empty cart. A made-to-order notice or
   any other text under the cart is the store's own: add a group with the
   Notice style to the page.
 - **Pages** — the about and terms pages are the store's own content. A
