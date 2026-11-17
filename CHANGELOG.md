@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.2](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.14.1...v1.14.2) (2026-11-17)
+
+
+### Bug Fixes
+
+* **archive:** print the result count as "N products" from the first paint ([#86](https://github.com/pixonaut-app/pixonaut-shop/issues/86)) ([ed2e417](https://github.com/pixonaut-app/pixonaut-shop/commit/ed2e417085b8d6526f9c3226ba8cfa80c0eb0c26))
+
 ## [1.14.1](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.14.0...v1.14.1) (2026-11-17)
 
 
