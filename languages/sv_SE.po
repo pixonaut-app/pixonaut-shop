@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-11-17T09:44:20+00:00\n"
+"POT-Creation-Date: 2026-11-17T10:05:28+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -91,15 +91,43 @@ msgstr "Totalt"
 msgid "Status"
 msgstr "Status"
 
+#: inc/Archive/FilterDrawer.php:106
+msgid "Show filters"
+msgstr "Visa filter"
+
+#. translators: %s: how many filters the customer has chosen.
+#: inc/Archive/FilterDrawer.php:145
+#, php-format
+msgid "(%s chosen)"
+msgid_plural "(%s chosen)"
+msgstr[0] "(%s vald)"
+msgstr[1] "(%s valda)"
+
+#: inc/Archive/FilterDrawer.php:154
+msgid "Filters"
+msgstr "Filter"
+
+#: inc/Archive/FilterDrawer.php:171 patterns/chosen-filters.php:31
+msgid "Clear all"
+msgstr "Rensa alla"
+
+#: inc/Archive/FilterDrawer.php:181
+msgid "Show products"
+msgstr "Visa produkter"
+
+#. translators: %s: how many products the chosen filters list.
+#: inc/Archive/FilterDrawer.php:187
+#, php-format
+msgid "Show %s product"
+msgid_plural "Show %s products"
+msgstr[0] "Visa %s produkt"
+msgstr[1] "Visa %s produkter"
+
 #. translators: %s: what the customer searched for.
 #: inc/Archive/NoResultsTitle.php:33
 #, php-format
 msgid "No results for “%s”"
 msgstr "Inga träffar för ”%s”"
-
-#: inc/Archive/ProductFilters.php:128
-msgid "Show products"
-msgstr "Visa produkter"
 
 #: inc/Blocks/AspectRatios.php:108
 msgid "Square - 1:1"
@@ -334,10 +362,6 @@ msgctxt "Pattern title"
 msgid "Chosen product filters"
 msgstr "Valda produktfilter"
 
-#: patterns/chosen-filters.php:31
-msgid "Clear all"
-msgstr "Rensa alla"
-
 #: patterns/continue-shopping.php
 msgctxt "Pattern title"
 msgid "Continue shopping"
@@ -509,11 +533,7 @@ msgctxt "Pattern title"
 msgid "Product filters"
 msgstr "Produktfilter"
 
-#: patterns/product-filters.php:22
-msgid "Filter"
-msgstr "Filtrera"
-
-#: patterns/product-filters.php:28
+#: patterns/product-filters.php:27
 msgid "Price"
 msgstr "Pris"
 
