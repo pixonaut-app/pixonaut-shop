@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.2](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.7.1...v1.7.2) (2026-11-17)
+
+
+### Bug Fixes
+
+* **search:** find a product by another form of a word in its name or description ([#39](https://github.com/pixonaut-app/pixonaut-shop/issues/39)) ([f709a40](https://github.com/pixonaut-app/pixonaut-shop/commit/f709a409fc2bedb65f64ad9416a9619c317d4034))
+
 ## [1.7.1](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.7.0...v1.7.1) (2026-11-16)
 
 
