@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.4](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.7.3...v1.7.4) (2026-11-17)
+
+
+### Bug Fixes
+
+* **search:** let a suggestion's name take two lines, so a product's cards stay told apart ([#48](https://github.com/pixonaut-app/pixonaut-shop/issues/48)) ([392a9bd](https://github.com/pixonaut-app/pixonaut-shop/commit/392a9bddb72db509c7522003d7f641740bf23cce))
+
 ## [1.7.3](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.7.2...v1.7.3) (2026-11-17)
 
 
