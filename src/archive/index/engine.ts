@@ -204,10 +204,16 @@ function shownWith(
 	);
 }
 
-/** A swatch's label: the values its card is listed by only while filtered. */
-export function swatchLabel( index: ArchiveIndex, card: Card ): string {
+/**
+ * A swatch's label: the values its card holds of the attributes its
+ * design's cards differ in, those any of them is listed by only while
+ * filtered. The card always listed, holding a framing without being
+ * listed by it, is named by its framing too.
+ */
+export function swatchLabel( index: ArchiveIndex, card: Card, design: Card[] = [ card ] ): string {
+	const keys = new Set( design.flatMap( ( member ) => member.onlyFiltered ) );
 	const labels = index.filters
-		.filter( ( filter ) => card.onlyFiltered.includes( filter.key ) )
+		.filter( ( filter ) => keys.has( filter.key ) )
 		.flatMap( ( filter ) =>
 			( card.holds[ filter.key ] ?? [] ).map(
 				( id ) => filter.values?.find( ( value ) => value.id === id )?.label ?? id,

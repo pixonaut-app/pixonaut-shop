@@ -76,7 +76,7 @@ final class CardSwatches
     /**
      * The swatches the plugin names that carry what a button needs.
      *
-     * @return list<array{label: string, url: string, image: array{src: string, srcset: string, width: int, height: int, alt: string}, current: bool}>
+     * @return list<array{label: string, url: string, image: array{src: string, srcset: string, width: int, height: int, alt: string}, title: string|null, current: bool}>
      */
     private static function swatches(mixed $named): array
     {
@@ -101,6 +101,7 @@ final class CardSwatches
                     'height' => is_numeric($image['height'] ?? null) ? (int) $image['height'] : 0,
                     'alt' => \is_string($image['alt'] ?? null) ? $image['alt'] : '',
                 ],
+                'title' => \is_string($swatch['title'] ?? null) ? $swatch['title'] : null,
                 'current' => true === ($swatch['current'] ?? false),
             ];
         }
@@ -123,7 +124,7 @@ final class CardSwatches
     }
 
     /**
-     * @param list<array{label: string, url: string, image: array{src: string, srcset: string, width: int, height: int, alt: string}, current: bool}> $swatches
+     * @param list<array{label: string, url: string, image: array{src: string, srcset: string, width: int, height: int, alt: string}, title: string|null, current: bool}> $swatches
      */
     private static function markup(array $swatches, string $name): string
     {
@@ -131,12 +132,13 @@ final class CardSwatches
 
         foreach ($swatches as $swatch) {
             $buttons .= \sprintf(
-                '<button type="button" class="%1$s" aria-pressed="%2$s" data-pixonaut-shop-link="%3$s" data-pixonaut-shop-picture="%4$s">%5$s</button>',
+                '<button type="button" class="%1$s" aria-pressed="%2$s" data-pixonaut-shop-link="%3$s" data-pixonaut-shop-picture="%4$s"%6$s>%5$s</button>',
                 esc_attr(self::SWATCH_CLASS),
                 $swatch['current'] ? 'true' : 'false',
                 esc_url($swatch['url']),
                 esc_attr((string) wp_json_encode($swatch['image'])),
-                esc_html($swatch['label'])
+                esc_html($swatch['label']),
+                null === $swatch['title'] ? '' : ' data-pixonaut-shop-title="' . esc_attr($swatch['title']) . '"'
             );
         }
 

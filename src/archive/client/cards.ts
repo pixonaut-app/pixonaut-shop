@@ -146,7 +146,12 @@ export function drawCard( model: HTMLElement, entry: Shown, look: CardLook ): HT
 			const memberPicture = pictureOf( index, member, choice );
 
 			return {
-				label: swatchLabel( index, member.card ),
+				label: swatchLabel(
+					index,
+					member.card,
+					entry.swatches.map( ( other ) => other.card ),
+				),
+				title: member.card.title,
 				url: linkOf( member, window.location.href, choice ),
 				picture: {
 					src: memberPicture.src,
