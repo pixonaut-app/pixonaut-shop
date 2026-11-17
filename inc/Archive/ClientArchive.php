@@ -71,6 +71,8 @@ final class ClientArchive
     public function enqueue(string $block_content, array $block): string
     {
         if (ProductFilters::is_the_panel($block) && BuiltScript::enqueue(self::SCRIPT_HANDLE, self::SCRIPT) && ! $this->printed) {
+            // The swatches it draws on a card answer through the same script as the server's.
+            BuiltScript::enqueue(CardSwatches::SCRIPT_HANDLE, CardSwatches::SCRIPT);
             $this->printed = true;
             add_action('wp_footer', [$this, 'print_config']);
         }
@@ -188,6 +190,7 @@ final class ClientArchive
             'seenAll' => $plural(static fn (int $n): string => _n('You have seen %s product', 'You have seen all %s products', $n, 'pixonaut-shop')),
             'showMore' => __('Show more', 'pixonaut-shop'),
             'toTop' => __('Back to top', 'pixonaut-shop'),
+            'swatchGroup' => CardSwatches::group_label(),
         ];
     }
 }

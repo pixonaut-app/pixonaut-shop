@@ -8,6 +8,7 @@ import {
 	pictureOf,
 	priceRange,
 	shownCards,
+	swatchLabel,
 } from '../../src/archive/index/engine.ts';
 import type { ArchiveIndex, Card, Variation } from '../../src/archive/index/types.ts';
 import { generatedIndex } from './archive-index-fixture.ts';
@@ -245,6 +246,57 @@ describe( 'a shown card', () => {
 		const [ p1 ] = shownCards( index, choice( { colour: [ 'oak' ] } ) );
 		assert.equal( pictureOf( index, p1, choice( { colour: [ 'oak' ] } ) ).src, 'p1-oak.jpg' );
 		assert.equal( pictureOf( index, p1, choice() ).src, 'p1.jpg' );
+	} );
+} );
+
+describe( 'a design shown in several chosen values', () => {
+	const split: ArchiveIndex = {
+		...index,
+		cards: [
+			card( 'p7-none', [ variation( { framing: [ 'none' ], size: [ 's' ] }, 100 ) ], {
+				productId: 7,
+				holds: { framing: [ 'none' ] },
+				listedBy: [ 'framing' ],
+				onlyFiltered: [ 'framing' ],
+			} ),
+			card( 'p7-frame', [ variation( { framing: [ 'frame' ], size: [ 's' ] }, 300, 0 ) ], {
+				productId: 7,
+				holds: { framing: [ 'frame' ] },
+				listedBy: [ 'framing' ],
+				onlyFiltered: [ 'framing' ],
+			} ),
+			// The same product with a photo is another design.
+			card( 'p7-photo-frame', [ variation( { framing: [ 'frame' ], size: [ 's' ] }, 350 ) ], {
+				productId: 7,
+				holds: { framing: [ 'frame' ], photo: [ 'yes' ] },
+				listedBy: [ 'framing', 'photo' ],
+				onlyFiltered: [ 'framing' ],
+			} ),
+		],
+	};
+	const both = choice( { framing: [ 'none', 'frame' ] } );
+
+	it( 'is shown once, its first card first, the others as its swatches', () => {
+		const shown = shownCards( split, both );
+
+		assert.deepEqual(
+			shown.map( ( entry ) => entry.card.id ),
+			[ 'p7-none', 'p7-photo-frame' ],
+		);
+		assert.deepEqual(
+			shown[ 0 ].swatches.map( ( entry ) => entry.card.id ),
+			[ 'p7-none', 'p7-frame' ],
+		);
+		assert.deepEqual( shown[ 1 ].swatches, [], 'A design shown once has no swatches.' );
+		assert.equal( swatchLabel( split, shown[ 0 ].swatches[ 1 ].card ), 'Frame' );
+	} );
+
+	it( 'counts once in every value’s count', () => {
+		const result = counts( split, both );
+
+		assert.equal( result.get( 'framing' )?.get( 'frame' ), 2 );
+		assert.equal( result.get( 'framing' )?.get( 'none' ), 2 );
+		assert.equal( result.get( 'size' )?.get( 's' ), 2 );
 	} );
 } );
 

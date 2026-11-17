@@ -187,6 +187,7 @@ describe( 'affected', () => {
 			integration: true,
 			specs: [
 				'buy-row',
+				'card-swatches',
 				'cart',
 				'checkout',
 				'client-archive',
@@ -224,7 +225,14 @@ describe( 'affected', () => {
 			...NO_JOBS,
 			php: true,
 			integration: true,
-			specs: [ 'client-archive', 'mega-menu', 'product-filters', 'search', 'shop' ],
+			specs: [
+				'card-swatches',
+				'client-archive',
+				'mega-menu',
+				'product-filters',
+				'search',
+				'shop',
+			],
 			shards: 1,
 		} );
 	} );
@@ -355,6 +363,7 @@ describe( 'affected', () => {
 			integration: true,
 			specs: [
 				'buy-row',
+				'card-swatches',
 				'cart',
 				'checkout',
 				'client-archive',

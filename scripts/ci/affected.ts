@@ -120,6 +120,7 @@ export const BLOCK_SPECS: readonly string[] = [
  */
 export const PLUGIN_SPECS: readonly string[] = [
 	'buy-row',
+	'card-swatches',
 	'cart',
 	'checkout',
 	'client-archive',
@@ -146,7 +147,14 @@ export const E2E_OWNERS: Readonly< Record< string, SpecSelection > > = {
 	// shows instead.
 	// The category picture the mega header's menu shares with the categories block.
 	// The filters beside an archive's grid.
-	'inc/Archive': [ 'client-archive', 'mega-menu', 'product-filters', 'search', 'shop' ],
+	'inc/Archive': [
+		'card-swatches',
+		'client-archive',
+		'mega-menu',
+		'product-filters',
+		'search',
+		'shop',
+	],
 	'inc/Assets': 'all',
 	// The block styles, which reach every page's global stylesheet, the
 	// menu heading, on every page's footer, and the theme's own blocks.
@@ -272,7 +280,11 @@ export const PRODUCT_SCRIPT_SPECS: readonly string[] = [ 'product-options', 'sec
  * What a change to an archive's script can break: a customer's place while
  * they filter, and the archive filtered in the browser.
  */
-export const ARCHIVE_SCRIPT_SPECS: readonly string[] = [ 'client-archive', 'product-filters' ];
+export const ARCHIVE_SCRIPT_SPECS: readonly string[] = [
+	'card-swatches',
+	'client-archive',
+	'product-filters',
+];
 
 /**
  * The specs a pattern has of its own, run with `PAGE_SPECS` when it changes.

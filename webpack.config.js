@@ -24,5 +24,6 @@ module.exports = {
 		'filters-loading': './src/archive/filters-loading.ts',
 		'dependent-values': './src/archive/dependent-values.ts',
 		'client-archive': './src/archive/client-archive.ts',
+		'card-swatches': './src/archive/card-swatches.ts',
 	} ),
 };

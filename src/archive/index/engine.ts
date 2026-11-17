@@ -33,6 +33,11 @@ export interface Shown {
 	card: Card;
 	/** The card's variations the choice matches: every one while nothing is chosen. */
 	variations: Variation[];
+	/**
+	 * With a filter on, the cards of the same design the choice shows, this
+	 * one first, each a swatch on this card; none for a design shown once.
+	 */
+	swatches: Shown[];
 }
 
 type Values = Map< string, Set< string > >;
@@ -128,6 +133,36 @@ function shownVariations(
 	return matched.length > 0 ? matched : null;
 }
 
+/**
+ * The design a card is of: its product, and the values it holds but for
+ * those it is listed by only while filtered. A product's cards per framing
+ * are one design; its cards with and without a photo are two.
+ */
+export function designOf( card: Card ): string {
+	const known = designs.get( card );
+
+	if ( known !== undefined ) {
+		return known;
+	}
+
+	const design = designKey( card );
+	designs.set( card, design );
+
+	return design;
+}
+
+/** Each card's design, worked out once: a card's values do not change. */
+const designs = new WeakMap< Card, string >();
+
+function designKey( card: Card ): string {
+	const held = Object.entries( card.holds )
+		.filter( ( [ key ] ) => ! card.onlyFiltered.includes( key ) )
+		.map( ( [ key, ids ] ) => `${ key }=${ [ ...ids ].sort().join( ',' ) }` )
+		.sort();
+
+	return `${ card.productId }|${ held.join( '&' ) }`;
+}
+
 function shownWith(
 	index: ArchiveIndex,
 	values: Values,
@@ -141,11 +176,45 @@ function shownWith(
 		const variations = shownVariations( card, values, min, max, waived );
 
 		if ( variations ) {
-			shown.push( { card, variations } );
+			shown.push( { card, variations, swatches: [] } );
 		}
 	}
 
-	return shown;
+	if ( ! isFiltered( values, min, max ) ) {
+		return shown;
+	}
+
+	// Each design once: its first card the choice shows, with the others as its swatches.
+	const designs = new Map< string, Shown >();
+
+	for ( const entry of shown ) {
+		const design = designOf( entry.card );
+		const first = designs.get( design );
+
+		if ( first ) {
+			first.swatches.push( entry );
+		} else {
+			entry.swatches.push( entry );
+			designs.set( design, entry );
+		}
+	}
+
+	return [ ...designs.values() ].map( ( entry ) =>
+		entry.swatches.length > 1 ? entry : { ...entry, swatches: [] },
+	);
+}
+
+/** A swatch's label: the values its card is listed by only while filtered. */
+export function swatchLabel( index: ArchiveIndex, card: Card ): string {
+	const labels = index.filters
+		.filter( ( filter ) => card.onlyFiltered.includes( filter.key ) )
+		.flatMap( ( filter ) =>
+			( card.holds[ filter.key ] ?? [] ).map(
+				( id ) => filter.values?.find( ( value ) => value.id === id )?.label ?? id,
+			),
+		);
+
+	return labels.length > 0 ? labels.join( ' / ' ) : card.title;
 }
 
 /** The cards a choice shows, in its sort's order. */
@@ -253,7 +322,8 @@ function countAll(
 	withFilter.set( key, new Set( [ ...chosen, '' ] ) );
 	const waived = waivers( index.filters, withFilter );
 	const filterWaived = waived.has( key );
-	const perValue = new Map< string, number >();
+	// The designs counted for each value: a design shown as several cards counts once.
+	const perValue = new Map< string, Set< string > >();
 	const ids = ( filter.values ?? [] ).map( ( value ) => value.id );
 
 	const own = fails.bits.get( key ) ?? 0;
@@ -308,12 +378,12 @@ function countAll(
 				( filterWaived && cardHolds.length === 0 );
 
 			if ( listed && ( holdsChosen || held.has( id ) ) ) {
-				perValue.set( id, ( perValue.get( id ) ?? 0 ) + 1 );
+				perValue.set( id, ( perValue.get( id ) ?? new Set() ).add( designOf( card ) ) );
 			}
 		}
 	} );
 
-	return perValue;
+	return new Map( [ ...perValue ].map( ( [ id, designs ] ) => [ id, designs.size ] ) );
 }
 
 /** Each attribute value's count, by the filter's key: values that would show no card are left out. */

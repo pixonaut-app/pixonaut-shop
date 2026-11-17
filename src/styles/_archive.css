@@ -433,3 +433,47 @@
 	text-decoration: underline;
 	cursor: pointer;
 }
+
+/* ---------- A card's swatches (inc/Archive/CardSwatches.php) ---------- */
+
+/*
+ * Under the card's picture: a pill for each chosen value the design comes
+ * in, the shown one filled. Each is 2rem tall, its hit area the 44px a
+ * finger needs, reached through the gap around it.
+ */
+.pixonaut-shop-card-swatches {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var( --wp--preset--spacing--20 );
+	padding-block: var( --wp--preset--spacing--30 ) var( --wp--preset--spacing--20 );
+}
+
+.pixonaut-shop-card-swatch {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	min-height: 2rem;
+	padding: 0 0.625rem;
+	border: 1px solid var( --wp--preset--color--border-strong );
+	border-radius: 999px;
+	background: var( --wp--preset--color--base );
+	color: var( --wp--preset--color--contrast );
+	font: inherit;
+	font-size: var( --wp--preset--font-size--small );
+	font-weight: 600;
+	line-height: 1;
+	cursor: pointer;
+}
+
+/* The 44px (2.75rem) a finger needs: 0.375rem above and below a 2rem pill. */
+.pixonaut-shop-card-swatch::after {
+	content: "";
+	position: absolute;
+	inset: -0.375rem 0;
+}
+
+.pixonaut-shop-card-swatch[ aria-pressed="true" ] {
+	border-color: var( --wp--preset--color--accent );
+	background: var( --wp--preset--color--accent );
+	color: var( --wp--preset--color--accent-contrast );
+}

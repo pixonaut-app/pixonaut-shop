@@ -5,12 +5,14 @@
  * summary, sale badge and price of another card in it.
  */
 
-import { type Choice, linkOf, pictureOf, type Shown } from '../index/engine.ts';
+import { drawSwatches, SWATCHES_CLASS } from '../card-swatch.ts';
+import { type Choice, linkOf, pictureOf, type Shown, swatchLabel } from '../index/engine.ts';
 import { type PriceTemplates, priceMarkup } from '../index/price-markup.ts';
 import type { ArchiveIndex, Picture } from '../index/types.ts';
 
 export const CARD = 'li.wc-block-product';
-const IMAGE_LINK = '.wp-block-woocommerce-product-image a';
+const IMAGE_BLOCK = '.wp-block-woocommerce-product-image';
+const IMAGE_LINK = `${ IMAGE_BLOCK } a`;
 const FIRST_PICTURE = '.wp-block-woocommerce-product-image img:not(.pixonaut-shop-second-picture)';
 const SECOND_PICTURE = 'img.pixonaut-shop-second-picture';
 const SECOND_PICTURE_CLASS = 'pixonaut-shop-second-picture';
@@ -31,6 +33,8 @@ export interface CardLook {
 	prices: PriceTemplates;
 	saleBadge: string;
 	choice: Choice;
+	/** The name of a card's swatches, `%s` for the design. */
+	swatchGroup: string;
 }
 
 function withoutDirectives( element: Element ): void {
@@ -49,6 +53,7 @@ export function modelOf( card: Element ): HTMLElement {
 	withoutDirectives( model );
 	model.querySelector( SECOND_PICTURE )?.remove();
 	model.querySelector( SALE_BADGE )?.remove();
+	model.querySelector( `.${ SWATCHES_CLASS }` )?.remove();
 
 	return model;
 }
@@ -132,6 +137,29 @@ export function drawCard( model: HTMLElement, entry: Shown, look: CardLook ): HT
 		const paragraph = document.createElement( 'p' );
 		paragraph.textContent = entry.card.summary;
 		summary.replaceChildren( ...( entry.card.summary === '' ? [] : [ paragraph ] ) );
+	}
+
+	// A design shown in several of the chosen values: a swatch for each, this one pressed.
+	if ( entry.swatches.length > 1 ) {
+		const swatches = entry.swatches.map( ( member ) => {
+			const memberPicture = pictureOf( index, member, choice );
+
+			return {
+				label: swatchLabel( index, member.card ),
+				url: linkOf( member, window.location.href, choice ),
+				picture: {
+					src: memberPicture.src,
+					srcset: memberPicture.srcset,
+					width: memberPicture.width,
+					height: memberPicture.height,
+				},
+				current: member === entry,
+			};
+		} );
+
+		card
+			.querySelector( IMAGE_BLOCK )
+			?.after( drawSwatches( swatches, look.swatchGroup.replace( '%s', entry.card.title ) ) );
 	}
 
 	const price = card.querySelector( PRICE );
