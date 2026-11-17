@@ -456,7 +456,7 @@ final class LowestPrice
     }
 
     /** The reference price's line, escaped, with the price as WooCommerce formats it. */
-    private static function note(float $reference): string
+    public static function note(float $reference): string
     {
         return '<span class="' . esc_attr(self::NOTE_CLASS) . '">' . esc_html(self::label()) . ': ' . wc_price($reference) . '</span>';
     }

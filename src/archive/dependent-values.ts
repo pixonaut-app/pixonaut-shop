@@ -6,9 +6,10 @@
  *
  * The chosen values are unticked as a customer would untick them, before the
  * value itself, so WooCommerce asks for the results without any of them at
- * once. The client-side archive (`src/archive/client/`) clears them itself.
+ * once. The archive filtered in the browser (`src/archive/client-archive.ts`) clears them itself.
  */
 
+import { CLIENT_ARCHIVE_ATTRIBUTE } from './client-archive-flag.ts';
 import { openedAlone } from './opened-alone.ts';
 
 const PANEL = '.pixonaut-shop-archive-filters';
@@ -19,8 +20,6 @@ const INPUT = 'input.wc-block-product-filter-checkbox-list__input';
 const OPENS = 'data-pixonaut-shop-opens';
 /** On a nested group: the attribute it is. */
 const NESTED_ATTRIBUTE = 'data-pixonaut-shop-attribute';
-/** Set on the page's root while the client-side archive filters it. */
-export const CLIENT_ARCHIVE_ATTRIBUTE = 'data-pixonaut-shop-client-archive';
 
 function opensOf( item: Element | null ): string[] {
 	return ( item?.getAttribute( OPENS ) ?? '' ).split( ' ' ).filter( ( name ) => name !== '' );
