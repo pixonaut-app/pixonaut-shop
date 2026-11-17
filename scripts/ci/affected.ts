@@ -150,6 +150,8 @@ export const E2E_OWNERS: Readonly< Record< string, SpecSelection > > = {
 	// menu heading, on every page's footer, and the theme's own blocks.
 	'inc/Blocks': 'all',
 	'inc/Bootstrap.php': 'all',
+	// The Cart page's empty cart, drawn as the theme's.
+	'inc/Cart': [ 'cart' ],
 	// A page's excerpt, which no spec opens a page to see; the integration
 	// suite renders a page with and without one.
 	// The campaign band in the header's announcement part, which the header

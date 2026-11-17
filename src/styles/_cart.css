@@ -309,12 +309,25 @@
 /* ---------- The empty cart (woocommerce/empty-cart-block) ---------- */
 
 /*
- * WooCommerce's message: its heading, under the bag in a tint circle, and
- * its link back to the shop, drawn as a button. Both the store's own Cart
- * page and the cart page pattern (patterns/cart.php) hold it.
+ * WooCommerce's message in a Panel (patterns/cart.php, or as `Cart\EmptyCart`
+ * draws a store's own Cart page): its heading, under the bag in a tint
+ * circle, and its way back to the shop, centred with even spacing.
  */
+.pixonaut-shop-empty-cart.pixonaut-shop-empty-cart {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var( --wp--preset--spacing--40 );
+	padding-block: var( --wp--preset--spacing--70 );
+	text-align: center;
+}
+
+.pixonaut-shop-empty-cart.pixonaut-shop-empty-cart > :is( h2, p, .wp-block-buttons ) {
+	margin: 0;
+}
+
 .wp-block-woocommerce-empty-cart-block
-.wc-block-cart__empty-cart__title.wc-block-cart__empty-cart__title {
+	.wc-block-cart__empty-cart__title.wc-block-cart__empty-cart__title {
 	position: relative;
 	margin: 0;
 	font-size: var( --wp--preset--font-size--x-large );
@@ -349,15 +362,10 @@
 	mask: var( --ps-icon-bag ) center / contain no-repeat;
 }
 
-.wp-block-woocommerce-empty-cart-block .wc-block-cart__empty-cart__title + p {
-	margin: var( --wp--preset--spacing--40 ) 0 0;
-	text-align: center;
-}
-
 /*
- * WooCommerce prints the link as a plain link in a paragraph; it is drawn as
- * the theme's button (theme.json's `styles.elements.button`) with the same
- * presets.
+ * An older WooCommerce prints the way back as a plain link in a paragraph;
+ * it is drawn as the theme's button (theme.json's `styles.elements.button`)
+ * with the same presets. A newer one prints a Buttons block, which is one.
  */
 .wp-block-woocommerce-empty-cart-block .wc-block-cart__empty-cart__title + p > a {
 	display: inline-flex;
@@ -381,72 +389,9 @@
 	filter: brightness( 1.15 );
 }
 
-/* In the cart page pattern: the message in a Panel, then the popular products. */
-.pixonaut-shop-empty-cart.pixonaut-shop-empty-cart {
-	padding-block: var( --wp--preset--spacing--70 );
-}
-
-.wp-block-woocommerce-empty-cart-block > .pixonaut-shop-popular-products {
+/* What follows the panel: the popular products, or the store's newest. */
+.wp-block-woocommerce-empty-cart-block > .pixonaut-shop-empty-cart + :is( div, h2, section ) {
 	margin-top: var( --wp--preset--spacing--70 );
-}
-
-/*
- * On a store's own Cart page the message is not in a group, so the panel is
- * drawn behind its two blocks: the empty cart becomes a grid, and its
- * `::before` fills their two rows.
- */
-.wp-block-woocommerce-empty-cart-block:has( > .wc-block-cart__empty-cart__title ) {
-	display: grid;
-	grid-template-columns: minmax( 0, 1fr );
-}
-
-.wp-block-woocommerce-empty-cart-block:has( > .wc-block-cart__empty-cart__title )::before {
-	content: "";
-	grid-row: 1 / span 2;
-	grid-column: 1;
-	border: 1px solid var( --wp--preset--color--border );
-	border-radius: var( --wp--custom--radius--large );
-	background: var( --wp--preset--color--base );
-	box-shadow: var( --wp--preset--shadow--card );
-}
-
-.wp-block-woocommerce-empty-cart-block
-	> .wc-block-cart__empty-cart__title.wc-block-cart__empty-cart__title {
-	grid-row: 1;
-	grid-column: 1;
-	padding-top: calc(
-		var( --wp--preset--spacing--70 ) +
-		var( --ps-empty-cart-circle ) +
-		var( --wp--preset--spacing--40 )
-	);
-}
-
-.wp-block-woocommerce-empty-cart-block > .wc-block-cart__empty-cart__title::before {
-	top: var( --wp--preset--spacing--70 );
-}
-
-.wp-block-woocommerce-empty-cart-block > .wc-block-cart__empty-cart__title::after {
-	top: calc(
-		var( --wp--preset--spacing--70 ) +
-		( var( --ps-empty-cart-circle ) - var( --ps-empty-cart-icon ) ) /
-		2
-	);
-}
-
-.wp-block-woocommerce-empty-cart-block > .wc-block-cart__empty-cart__title + p {
-	grid-row: 2;
-	grid-column: 1;
-	margin: 0;
-	padding: var( --wp--preset--spacing--40 ) var( --wp--preset--spacing--50 )
-		var( --wp--preset--spacing--70 );
-}
-
-.wp-block-woocommerce-cart
-	.wp-block-woocommerce-empty-cart-block
-	> .wc-block-cart__empty-cart__title.wc-block-cart__empty-cart__title
-	+ p
-	~ * {
-	margin-top: var( --wp--preset--spacing--60 );
 }
 
 /* ---------- Promises, on their band (`_components.css`) ---------- */
