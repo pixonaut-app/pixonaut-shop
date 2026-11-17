@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.1](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.11.0...v1.11.1) (2026-11-17)
+
+
+### Bug Fixes
+
+* **cart:** draw WooCommerce's empty cart in one panel with the shop's product cards ([#64](https://github.com/pixonaut-app/pixonaut-shop/issues/64)) ([445a1e1](https://github.com/pixonaut-app/pixonaut-shop/commit/445a1e1c04275fc605f2974220a1a8125b5fd7cf))
+
 ## [1.11.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.10.0...v1.11.0) (2026-11-17)
 
 
