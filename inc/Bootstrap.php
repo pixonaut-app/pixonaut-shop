@@ -110,6 +110,7 @@ final class Bootstrap
     {
         (new Archive\ArchiveIndexFields($lowest_price))->register();
         (new Archive\ClientArchive())->register();
+        (new Archive\ResultCount())->register();
         (new Archive\CardSwatches())->register();
         (new Archive\ProductGridDefaults())->register();
         (new Archive\ShownWhenEmpty())->register();

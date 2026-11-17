@@ -65,6 +65,12 @@ final class ShopArchiveTest extends TestCase
 
     private const PAGED_PRODUCTS = ['Archive product A', 'Archive product B', 'Archive product C'];
 
+    /** A sorting other than the default, which WooCommerce names in the count for screen readers. */
+    private const PRICE_SORT = 'price';
+
+    /** The results count's text, as the archive filtered in the browser writes it too. */
+    private const COUNT_TEXT = '/<p class="woocommerce-result-count"[^>]*>(.*?)<\/p>/s';
+
     /** @var array<string, mixed> The Product Catalog setting as it was before a test changed it. */
     private array $catalogue_options = [];
 
@@ -202,6 +208,44 @@ final class ShopArchiveTest extends TestCase
         );
     }
 
+    public function testTheCountNamesEveryProductTheArchiveListsNotThePageShown(): void
+    {
+        foreach ([self::ROWS_OPTION => 1, self::COLUMNS_OPTION => 2] as $option => $value) {
+            $this->catalogue_options[$option] = get_option($option);
+            update_option($option, $value);
+        }
+        $category = $this->category(self::FULL_CATEGORY);
+        foreach (self::PAGED_PRODUCTS as $name) {
+            $this->product($name, $category);
+        }
+
+        self::assertSame('3 products', $this->count_text($this->render($category)));
+    }
+
+    public function testTheCountOfOneProductIsSingular(): void
+    {
+        $category = $this->category(self::FULL_CATEGORY);
+        $this->product(self::PRODUCT, $category);
+
+        self::assertSame('1 product', $this->count_text($this->render($category)));
+    }
+
+    public function testASortedArchiveKeepsTheSortingForScreenReaders(): void
+    {
+        $category = $this->category(self::FULL_CATEGORY);
+        $this->product(self::PRODUCT, $category);
+        $this->product(self::PAGED_PRODUCTS[0], $category);
+        $_GET['orderby'] = self::PRICE_SORT;
+
+        try {
+            $count = $this->count_text($this->render($category));
+        } finally {
+            unset($_GET['orderby']);
+        }
+
+        self::assertMatchesRegularExpression('/^2 products<span class="screen-reader-text">[^<]+<\/span>\s*$/', $count);
+    }
+
     public function testThePopularProductsLeaveOutWhatIsOutOfStock(): void
     {
         $this->product(self::OUT_OF_STOCK_PRODUCT, $this->category(self::FULL_CATEGORY), false);
@@ -209,6 +253,13 @@ final class ShopArchiveTest extends TestCase
         $archive = $this->render($this->category(self::EMPTY_CATEGORY));
 
         self::assertStringNotContainsString(self::OUT_OF_STOCK_PRODUCT, $archive);
+    }
+
+    private function count_text(string $archive): string
+    {
+        self::assertSame(1, preg_match(self::COUNT_TEXT, $archive, $count));
+
+        return $count[1];
     }
 
     private function category(string $name, string $description = ''): int

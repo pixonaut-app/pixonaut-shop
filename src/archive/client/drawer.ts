@@ -620,7 +620,10 @@ export function syncCounts( shown: number, chosen: number, words: Words ): void 
 
 	const count = document.querySelector( `main ${ RESULT_COUNT }` );
 
-	if ( count ) {
-		count.textContent = shown === 0 ? words.none : plural( words.count, shown );
+	const text = shown === 0 ? words.none : plural( words.count, shown );
+
+	// The server printed the same words; left as they are, they keep its sorting for screen readers.
+	if ( count && count.firstChild?.textContent?.trim() !== text ) {
+		count.textContent = text;
 	}
 }

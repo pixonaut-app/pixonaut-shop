@@ -23,9 +23,6 @@ final class SearchSuggestionsTest extends TestCase
     /** WooCommerce's results count, which the results page prints above its products. */
     private const RESULTS_COUNT = '/<p class="woocommerce-result-count"[^>]*>(.*?)<\/p>/s';
 
-    /** The count's wording when the search found one product, which names no number. */
-    private const SINGLE_RESULT = 'single result';
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -122,13 +119,9 @@ final class SearchSuggestionsTest extends TestCase
 
         $text = wp_strip_all_tags($count[1]);
 
-        if (str_contains($text, self::SINGLE_RESULT)) {
-            return 1;
-        }
+        // The count reads as one or more products, with its number first.
+        self::assertSame(1, preg_match('/^(\d+) products?$/', $text, $number), "The results count names no number: {$text}");
 
-        self::assertGreaterThan(0, preg_match_all('/\d+/', $text, $numbers), "The results count names no number: {$text}");
-
-        // "Showing all 3 results", or "Showing 1–12 of 30 results": the last number is the count.
-        return (int) end($numbers[0]);
+        return (int) $number[1];
     }
 }
