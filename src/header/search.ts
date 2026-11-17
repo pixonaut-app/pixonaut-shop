@@ -4,10 +4,12 @@
  * panel is a popover the icon opens, so the browser opens and closes it,
  * Escape and a click outside included, and focuses its field.
  *
- * This script adds the rest. From two letters on, the panel lists up to
- * five products that match, from WooCommerce's Store API, with their
- * picture and price, the count of every match and a link to them all on the
- * results page. The field is a combobox: the arrow keys move among the
+ * This script adds the rest. From two letters on, the panel lists the
+ * first five products the results page lists for the query, asked of that
+ * page's own search (`inc/Header/SearchSuggestions.php`), with their picture
+ * and price, the page's count and a link to it. A product the page lists
+ * once per card is suggested and counted once per card, each with the
+ * card's own picture, name, price and link. The field is a combobox: the arrow keys move among the
  * suggestions, Enter opens the active one, or the results page when none is
  * active. An empty search keeps the panel open. When focus leaves the panel
  * it closes, and when it closes, focus goes back to the icon if it was in
@@ -23,12 +25,7 @@
 import { __, _n, sprintf } from '@wordpress/i18n';
 
 import { controlPanel, supportsPopover } from './mega-menu-panel.ts';
-import {
-	optionStep,
-	type StoreApiProduct,
-	type Suggestion,
-	suggestionFrom,
-} from './search-suggestions.ts';
+import { type Found, foundFrom, optionStep, type Suggestion } from './search-suggestions.ts';
 
 const ROOT = '.pixonaut-shop-header-search';
 const CLASS = 'pixonaut-shop-header-search';
@@ -40,20 +37,14 @@ const CLASS = 'pixonaut-shop-header-search';
 const HEADER = '.pixonaut-shop-header';
 const TOP_PROPERTY = '--pixonaut-shop-header-search-top';
 
-/** How many suggestions the panel lists, and from how many letters. */
-const SUGGESTIONS = 5;
+/** From how many letters the panel suggests. */
 const MIN_LETTERS = 2;
 
 /** How long typing pauses before the suggestions are fetched, in milliseconds. */
 const TYPING_PAUSE_MS = 200;
 
-/** The Store API's catalogue visibility that a product search lists. */
-const SEARCH_VISIBILITY = 'search';
-
-/** The header the Store API sends a listing's total in. */
-const TOTAL_HEADER = 'X-WP-Total';
-
-const DECIMAL_BASE = 10;
+/** The value of the query variable that asks the results page for its suggestions. */
+const ASKS_FOR_SUGGESTIONS = '1';
 
 /** The active suggestion's class, and no suggestion's index. */
 const ACTIVE_CLASS = 'is-active';
@@ -62,14 +53,16 @@ const NO_OPTION = -1;
 const ESCAPE = 'Escape';
 const ENTER = 'Enter';
 
-interface Found {
-	suggestions: Suggestion[];
-	total: number;
-}
-
-/** Turns the HTML entities in a product's name into text, without running any markup. */
-function decode( text: string ): string {
-	return new DOMParser().parseFromString( text, 'text/html' ).documentElement.textContent ?? '';
+/**
+ * Puts a price's markup in an element, parsed where no script runs. The
+ * server keeps it to the inline markup a price holds
+ * (`SearchSuggestions::PRICE_MARKUP`).
+ */
+function appendPrice( element: HTMLElement, html: string ): void {
+	const parsed = new DOMParser().parseFromString( html, 'text/html' ).body;
+	while ( parsed.firstChild ) {
+		element.append( parsed.firstChild );
+	}
 }
 
 function part< T extends Element >( root: ParentNode, name: string ): T | null {
@@ -105,21 +98,7 @@ function optionFor( suggestion: Suggestion, id: string ): HTMLLIElement {
 
 	const price = document.createElement( 'span' );
 	price.className = `${ CLASS }__price`;
-	if ( suggestion.fromPrice ) {
-		const from = document.createElement( 'span' );
-		from.className = `${ CLASS }__from`;
-		from.textContent = `${ __( 'From', 'pixonaut-shop' ) } `;
-		price.append( from );
-	}
-	if ( suggestion.regularPrice ) {
-		const regular = document.createElement( 'del' );
-		const said = document.createElement( 'span' );
-		said.className = 'screen-reader-text';
-		said.textContent = `${ __( 'Regular price:', 'pixonaut-shop' ) } `;
-		regular.append( said, suggestion.regularPrice );
-		price.append( regular, ' ' );
-	}
-	price.append( suggestion.price );
+	appendPrice( price, suggestion.price );
 
 	option.append( picture, name, price );
 	option.addEventListener( 'click', () => window.location.assign( suggestion.url ) );
@@ -139,7 +118,7 @@ function setUp( root: HTMLElement ): void {
 	const list = part< HTMLUListElement >( root, 'list' );
 	const help = part< HTMLElement >( root, 'help' );
 	const announce = part< HTMLElement >( root, 'announce' );
-	const products = panel?.dataset.products;
+	const suggestionsVar = panel?.dataset.suggestions;
 
 	if (
 		! toggle ||
@@ -153,7 +132,7 @@ function setUp( root: HTMLElement ): void {
 		! list ||
 		! help ||
 		! announce ||
-		! products
+		! suggestionsVar
 	) {
 		return;
 	}
@@ -265,11 +244,9 @@ function setUp( root: HTMLElement ): void {
 		const controller = new AbortController();
 		pending = controller;
 
-		const url = new URL( products );
-		url.searchParams.set( 'search', query );
-		url.searchParams.set( 'per_page', String( SUGGESTIONS ) );
-		// Only what the store's own search shows: no product hidden, or shown in the shop alone.
-		url.searchParams.set( 'catalog_visibility', SEARCH_VISIBILITY );
+		// The results page's own search, so the panel lists and counts what that page does.
+		const url = new URL( resultsUrl( query ) );
+		url.searchParams.set( suggestionsVar, ASKS_FOR_SUGGESTIONS );
 
 		try {
 			const response = await fetch( url, {
@@ -277,15 +254,12 @@ function setUp( root: HTMLElement ): void {
 				credentials: 'same-origin',
 			} );
 			if ( ! response.ok ) {
-				throw new Error( `The Store API answered ${ response.status }.` );
+				throw new Error( `The search answered ${ response.status }.` );
 			}
-			const items = ( await response.json() ) as StoreApiProduct[];
-			const result = {
-				suggestions: items.map( ( item ) => suggestionFrom( item, decode ) ),
-				total:
-					Number.parseInt( response.headers.get( TOTAL_HEADER ) ?? '', DECIMAL_BASE ) ||
-					items.length,
-			};
+			const result = foundFrom( await response.json() );
+			if ( ! result ) {
+				throw new Error( 'The search answered something other than suggestions.' );
+			}
 			found.set( query, result );
 			// Only the latest query's answer is shown, and only while it is still in the field.
 			if ( pending === controller && field.value.trim() === query ) {

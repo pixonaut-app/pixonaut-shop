@@ -12,8 +12,8 @@ use WP_Query;
 use WP_REST_Request;
 
 /**
- * A product search in a Swedish store, on the results page and in the
- * header's suggestions from the Store API alike: a word finds a product
+ * A product search in a Swedish store, on the results page and in
+ * WooCommerce's Store API alike: a word finds a product
  * that holds another form of it, at the start of a word in its name or
  * description, after the products that hold it as typed.
  *
@@ -46,7 +46,7 @@ final class ProductSearchTest extends TestCase
 
     private const PRICE = '100';
 
-    /** The Store API's product listing, which the header's suggestions read. */
+    /** The Store API's product listing. */
     private const STORE_API_PRODUCTS = '/wc/store/v1/products';
 
     /** @var callable(): string */

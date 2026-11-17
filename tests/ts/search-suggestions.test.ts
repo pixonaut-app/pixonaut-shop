@@ -1,112 +1,48 @@
 /**
- * The header search's suggestions (`src/header/search-suggestions.ts`): a
- * product from WooCommerce's Store API as a suggestion, its price as the
- * store writes prices, and where the arrow keys move among them. Run with
- * Node's own test runner: `pnpm test:ts`.
+ * The header search's suggestions (`src/header/search-suggestions.ts`): the
+ * results page's answer for the panel as the suggestions it lists, and
+ * where the arrow keys move among them. Run with Node's own test runner:
+ * `pnpm test:ts`.
  */
 
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
-import {
-	formatAmount,
-	optionStep,
-	type StoreApiProduct,
-	suggestionFrom,
-} from '../../src/header/search-suggestions.ts';
+import { foundFrom, optionStep } from '../../src/header/search-suggestions.ts';
 
-/** Swedish kronor as a Swedish store sets them: whole kronor, a space between thousands, " kr" after. */
-const KRONOR = {
-	currency_minor_unit: 0,
-	currency_decimal_separator: ',',
-	currency_thousand_separator: ' ',
-	currency_prefix: '',
-	currency_suffix: ' kr',
+/** A card of a product the results page lists once per card, as the search answers it. */
+const CARD = {
+	id: 7,
+	name: 'Mugg ”Världens bästa” – Röd',
+	url: 'https://shop.test/produkt/mugg/?attribute_pa_farg=rod',
+	image: 'https://shop.test/mugg-rod-300x300.jpg',
+	price: '<span class="woocommerce-Price-amount amount"><bdi>169&nbsp;kr</bdi></span>',
 };
 
-/** Euros with cents, written before the amount. */
-const EUROS = {
-	currency_minor_unit: 2,
-	currency_decimal_separator: '.',
-	currency_thousand_separator: ',',
-	currency_prefix: '€',
-	currency_suffix: '',
-};
-
-/** Decodes the two entities the samples hold, as the page's own decoder would. */
-const decode = ( text: string ): string =>
-	text.replaceAll( '&#8221;', '”' ).replaceAll( '&amp;', '&' );
-
-function product( overrides: Partial< StoreApiProduct > = {} ): StoreApiProduct {
-	return {
-		id: 7,
-		name: 'Mugg &#8221;Världens bästa&#8221;',
-		permalink: 'https://shop.test/produkt/mugg/',
-		images: [ { thumbnail: 'https://shop.test/mugg-300x300.jpg', alt: 'En vit mugg' } ],
-		prices: { ...KRONOR, price: '169', regular_price: '169', sale_price: '169', price_range: null },
-		on_sale: false,
-		...overrides,
-	};
-}
-
-describe( 'formatAmount', () => {
-	it( 'writes whole kronor with the store’s thousands separator and suffix', () => {
-		assert.equal( formatAmount( '1250', KRONOR ), '1 250 kr' );
-		assert.equal( formatAmount( '49', KRONOR ), '49 kr' );
-	} );
-
-	it( 'writes the minor units with the store’s decimal separator and prefix', () => {
-		assert.equal( formatAmount( '123456', EUROS ), '€1,234.56' );
-		assert.equal( formatAmount( '5', EUROS ), '€0.05' );
-	} );
-} );
-
-describe( 'suggestionFrom', () => {
-	it( 'takes the name, the link, the thumbnail and the price', () => {
-		assert.deepEqual( suggestionFrom( product(), decode ), {
-			id: 7,
-			name: 'Mugg ”Världens bästa”',
-			url: 'https://shop.test/produkt/mugg/',
-			image: 'https://shop.test/mugg-300x300.jpg',
-			price: '169 kr',
-			regularPrice: null,
-			fromPrice: false,
+describe( 'foundFrom', () => {
+	it( 'takes the count and each suggestion’s name, link, picture and price', () => {
+		assert.deepEqual( foundFrom( { total: 12, suggestions: [ CARD ] } ), {
+			total: 12,
+			suggestions: [ CARD ],
 		} );
 	} );
 
-	it( 'keeps the regular price of a product on sale', () => {
-		const reduced = product( {
-			on_sale: true,
-			prices: {
-				...KRONOR,
-				price: '349',
-				regular_price: '399',
-				sale_price: '349',
-				price_range: null,
-			},
-		} );
+	it( 'gives a suggestion without a picture none', () => {
+		const found = foundFrom( { total: 1, suggestions: [ { ...CARD, image: null } ] } );
 
-		assert.equal( suggestionFrom( reduced, decode ).regularPrice, '399 kr' );
-		assert.equal( suggestionFrom( reduced, decode ).price, '349 kr' );
+		assert.equal( found?.suggestions[ 0 ]?.image, null );
 	} );
 
-	it( 'gives a product with a range of prices its lowest', () => {
-		const variable = product( {
-			prices: {
-				...KRONOR,
-				price: '299',
-				regular_price: '299',
-				sale_price: '299',
-				price_range: { min_amount: '299', max_amount: '549' },
-			},
-		} );
+	it( 'leaves out a suggestion it cannot read, and never counts fewer than it shows', () => {
+		const found = foundFrom( { suggestions: [ CARD, { id: 'eight' } ] } );
 
-		assert.equal( suggestionFrom( variable, decode ).price, '299 kr' );
-		assert.equal( suggestionFrom( variable, decode ).fromPrice, true );
+		assert.deepEqual( found, { total: 1, suggestions: [ CARD ] } );
 	} );
 
-	it( 'gives a product without a picture none', () => {
-		assert.equal( suggestionFrom( product( { images: [] } ), decode ).image, null );
+	it( 'reads nothing from an answer of another shape', () => {
+		assert.equal( foundFrom( [ CARD ] ), null );
+		assert.equal( foundFrom( null ), null );
+		assert.equal( foundFrom( { total: 3 } ), null );
 	} );
 } );
 

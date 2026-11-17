@@ -254,13 +254,25 @@
 	font-family: var( --wp--preset--font-family--heading );
 	font-variant-numeric: tabular-nums;
 	font-weight: 700;
+	text-align: end;
 	white-space: nowrap;
 }
 
-.pixonaut-shop-header-search__price del,
-.pixonaut-shop-header-search__from {
+.pixonaut-shop-header-search__price del {
 	color: var( --wp--preset--color--muted );
 	font-weight: 400;
+}
+
+.pixonaut-shop-header-search__price ins {
+	text-decoration: none;
+}
+
+/* The lowest price before a reduction, under the price, wrapping rather than squeezing the name. */
+.pixonaut-shop-header-search__price .pixonaut-shop-lowest-price {
+	max-width: 12em;
+	margin-inline-start: auto;
+	text-align: end;
+	white-space: normal;
 }
 
 /* Phones, from WordPress's own 782px breakpoint: the keyboard's search key submits, so the button gives way. */
@@ -272,5 +284,14 @@
 
 	.pixonaut-shop-header-search__submit {
 		display: none;
+	}
+
+	/* A reduced price stacks, the price before it above, so the name keeps its room. */
+	.pixonaut-shop-header-search__price del {
+		display: block;
+	}
+
+	.pixonaut-shop-header-search__price .pixonaut-shop-lowest-price {
+		max-width: 9em;
 	}
 }

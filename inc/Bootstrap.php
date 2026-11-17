@@ -84,6 +84,7 @@ final class Bootstrap
     {
         $menus = new Header\NamedMenus();
         (new Header\HeaderSearch())->register();
+        (new Header\SearchSuggestions())->register();
         $menus->register();
         (new Header\MegaMenu($menus))->register();
     }

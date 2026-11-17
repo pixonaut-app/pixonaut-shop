@@ -6,12 +6,14 @@ import { TEST_SUPPORT, wpEval } from './support/wp-cli';
 /**
  * The header's search (`inc/Header/HeaderSearch.php`, `src/header/search.ts`):
  * the icon opens a panel under the header with the field focused; typing a
- * product's name suggests it with its picture and price, from WooCommerce's
- * Store API; Enter on a suggestion opens the product, Enter in the field the
+ * product's name suggests it with its picture and price, from the results
+ * page's own search, a product the page lists once per card once per card;
+ * Enter on a suggestion opens the product, Enter in the field the
  * results page; Escape closes the panel and focus goes back to the icon.
  * Nothing on the page moves while the panel opens, suggests and closes. The
  * fixture's products have a picture each, in a category of their own
- * (`ShopFixtures::searchable_products()`).
+ * (`ShopFixtures::searchable_products()`); another fixture's has a card per
+ * value (`SplitCardFixtures`, `fake-split-cards.php`).
  */
 
 const TOGGLE = '.pixonaut-shop-header .pixonaut-shop-header-search__toggle';
@@ -20,6 +22,10 @@ const FIELD = '.pixonaut-shop-header-search__input';
 const OPTION = '.pixonaut-shop-header-search__option';
 const ALL = '.pixonaut-shop-header-search__all';
 const NONE = '.pixonaut-shop-header-search__none';
+const COUNT = '.pixonaut-shop-header-search__count';
+
+/** The address the panel asks the results page's search for its suggestions at. */
+const SUGGESTIONS = '**/?*pixonaut_shop_suggestions=*';
 
 /** The design's sizes: a laptop's and a phone's. */
 const VIEWPORTS = [
@@ -40,6 +46,7 @@ const WCAG = [ 'wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa' ];
 test.describe.configure( { mode: 'default' } );
 
 let product: { slug: string; name: string; hidden: string };
+let split: { query: string; name: string; cards: string[] };
 
 test.beforeAll( () => {
 	const [ slug, name, hidden ] = wpEval(
@@ -49,10 +56,17 @@ test.beforeAll( () => {
 				.join( ' ' ),
 	).split( '\n' );
 	product = { slug, name, hidden };
+
+	const fixtures = `${ TEST_SUPPORT }SplitCardFixtures`;
+	const [ query, splitName, cards ] = wpEval(
+		`${ fixtures }::make(); echo ${ fixtures }::QUERY, "\\n", ${ fixtures }::SPLIT_NAME, "\\n", implode( ",", ${ fixtures }::CARDS ), "\\n";`,
+	).split( '\n' );
+	split = { query, name: splitName, cards: cards.split( ',' ) };
 } );
 
 test.afterAll( () => {
 	wpEval( `${ TEST_SUPPORT }ShopFixtures::forget_searchable_products();` );
+	wpEval( `${ TEST_SUPPORT }SplitCardFixtures::forget();` );
 } );
 
 async function open( page: Page ): Promise< void > {
@@ -94,7 +108,28 @@ test( 'a product hidden from the search is never suggested, nor counted', async 
 	await expect( page.getByRole( 'option', { name: new RegExp( product.hidden ) } ) ).toHaveCount(
 		0,
 	);
-	await expect( page.locator( '.pixonaut-shop-header-search__count' ) ).toHaveText( '2 products' );
+	await expect( page.locator( COUNT ) ).toHaveText( '2 products' );
+} );
+
+test( 'a product the results page lists once per card is suggested and counted per card', async ( {
+	page,
+} ) => {
+	await open( page );
+	await suggest( page, split.query );
+
+	// The split product's cards, and the plain product the query also finds.
+	await expect( page.locator( COUNT ) ).toHaveText( `${ split.cards.length + 1 } products` );
+	await expect( page.locator( OPTION ) ).toHaveCount( split.cards.length + 1 );
+	await expect( page.locator( ALL ) ).toHaveText( `Show all ${ split.cards.length + 1 } results` );
+
+	for ( const card of split.cards ) {
+		const option = page.getByRole( 'option', { name: `${ split.name } – ${ card }` } );
+		await expect( option ).toBeVisible();
+		await option.click();
+		await expect.poll( () => new URL( page.url() ).searchParams.get( 'fake_card' ) ).toBe( card );
+		await open( page );
+		await suggest( page, split.query );
+	}
 } );
 
 test( 'Enter after the query changed searches the new query, not the suggestion picked before', async ( {
@@ -106,7 +141,7 @@ test( 'Enter after the query changed searches the new query, not the suggestion 
 	await field.press( 'ArrowDown' );
 
 	// The new query's suggestions never arrive, so only what was listed before is in view.
-	await page.route( '**/wc/store/v1/products?*', () => {} );
+	await page.route( SUGGESTIONS, () => {} );
 	// A query nothing matches, so WooCommerce shows its results page rather than one product's.
 	const query = `${ product.name } ${ UNMATCHED }`;
 	await field.pressSequentially( query.slice( product.name.length ) );
