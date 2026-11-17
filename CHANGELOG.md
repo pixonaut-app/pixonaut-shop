@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.11.2...v1.12.0) (2026-11-17)
+
+
+### Features
+
+* **archive:** filter, sort and page an archive in place, with skeleton cards ([#66](https://github.com/pixonaut-app/pixonaut-shop/issues/66)) ([219aba1](https://github.com/pixonaut-app/pixonaut-shop/commit/219aba18ab626d658a09c446b4b566dcada6dbb0))
+
 ## [1.11.2](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.11.1...v1.11.2) (2026-11-17)
 
 
