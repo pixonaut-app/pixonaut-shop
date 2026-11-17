@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.9.0...v1.10.0) (2026-11-17)
+
+
+### Features
+
+* **prices:** keep the variable price choice among WooCommerce's product settings ([#57](https://github.com/pixonaut-app/pixonaut-shop/issues/57)) ([caefec7](https://github.com/pixonaut-app/pixonaut-shop/commit/caefec7bb9d2bf343282b3a087e8b67fffc8db2f))
+
 ## [1.9.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.8.0...v1.9.0) (2026-11-17)
 
 
