@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.1](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.14.0...v1.14.1) (2026-11-17)
+
+
+### Bug Fixes
+
+* **archive:** name a design's always listed card by its value, and swap the card's name with its swatch ([#83](https://github.com/pixonaut-app/pixonaut-shop/issues/83)) ([1045412](https://github.com/pixonaut-app/pixonaut-shop/commit/1045412e2f8a56dd5ef6f699789009a1cca51d2f))
+
 ## [1.14.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.13.0...v1.14.0) (2026-11-17)
 
 
