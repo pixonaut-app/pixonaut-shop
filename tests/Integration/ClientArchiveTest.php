@@ -37,6 +37,11 @@ final class ClientArchiveTest extends TestCase
         parent::tearDown();
     }
 
+    public function testTheThemeAsksThePluginForItsArchivesIndexes(): void
+    {
+        self::assertTrue(current_theme_supports(ClientArchive::INDEX_SUPPORT));
+    }
+
     public function testThePriceMarkupHasPlaceholdersForTheAmounts(): void
     {
         $prices = ClientArchive::config()['prices'];

@@ -29,6 +29,9 @@ final class ClientArchive
 
     public const SCRIPT_HANDLE = 'pixonaut-shop-client-archive';
 
+    /** The theme feature Pixonaut for WooCommerce builds archive indexes for. */
+    public const INDEX_SUPPORT = 'pixonaut-archive-index';
+
     private const SCRIPT = 'client-archive';
 
     /** How many times the grid loads more on its own before it asks with "Show more", so the footer can be reached. */
@@ -52,7 +55,14 @@ final class ClientArchive
 
     public function register(): void
     {
+        add_action('after_setup_theme', [$this, 'add_support']);
         add_filter('render_block_woocommerce/product-filters', [$this, 'enqueue'], 10, 2);
+    }
+
+    /** Asks Pixonaut for WooCommerce for its archives' indexes: without this it builds and names none. */
+    public function add_support(): void
+    {
+        add_theme_support(self::INDEX_SUPPORT);
     }
 
     /**
