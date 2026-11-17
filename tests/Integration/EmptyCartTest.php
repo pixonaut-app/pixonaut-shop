@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Pixonaut\Shop\Cart\EmptyCart;
 use WC_Product_Simple;
 use WP_Block_Patterns_Registry;
+use WP_Block_Type_Registry;
 
 /**
  * WooCommerce's own empty cart, as a store's Cart page saves it, rendered as
@@ -128,6 +129,83 @@ HTML;
 
         self::assertSame(1, substr_count($html, 'pixonaut-shop-empty-cart'));
         self::assertStringContainsString('pixonaut-shop-popular-products', $html);
+    }
+
+    public function testTheCartBlockRewritesItsEmptyCartBeforeItsChildrenAreBuilt(): void
+    {
+        $cart = parse_blocks('<!-- wp:woocommerce/cart --><div class="wp-block-woocommerce-cart">' . self::BY_PATTERN . '</div><!-- /wp:woocommerce/cart -->')[0];
+
+        $filtered = apply_filters('render_block_data', $cart, $cart, null);
+
+        $empty_cart = $filtered['innerBlocks'][0];
+        self::assertSame('core/group', $empty_cart['innerBlocks'][0]['blockName']);
+        self::assertSame(EmptyCart::PANEL_CLASSES, $empty_cart['innerBlocks'][0]['attrs']['className']);
+        self::assertStringContainsString(self::CARDS, do_blocks(serialize_block($filtered)));
+    }
+
+    public function testAnEmptyCartWithMarkupOfItsOwnBetweenItsBlocksIsLeftAsItIs(): void
+    {
+        $own = str_replace('<!-- wp:separator', '<p>Made to order</p><!-- wp:separator', self::IN_PLACE);
+
+        self::assertNull(EmptyCart::rewrite($this->parse_one($own)));
+    }
+
+    public function testANewestProductsBlockWithoutASizeTakesWooCommercesDefaultSize(): void
+    {
+        $query = $this->collection_attributes(str_replace('{"columns":2,"rows":1}', '{}', self::IN_PLACE));
+        $type  = WP_Block_Type_Registry::get_instance()->get_registered(EmptyCart::NEWEST_PRODUCTS);
+        self::assertNotNull($type);
+        $columns = $type->attributes['columns']['default'];
+        $rows    = $type->attributes['rows']['default'];
+
+        self::assertSame($columns, $query['displayLayout']['columns']);
+        self::assertSame($columns * $rows, $query['query']['perPage']);
+    }
+
+    public function testTheNewestProductsKeepTheirStockStatuses(): void
+    {
+        $query = $this->collection_attributes(str_replace('{"columns":2,"rows":1}', '{"columns":2,"rows":1,"stockStatus":["instock"]}', self::IN_PLACE));
+
+        self::assertSame(['instock'], $query['query']['woocommerceStockStatus']);
+    }
+
+    public function testNewestProductsInEveryOneOfSeveralCategoriesStayWooCommerces(): void
+    {
+        $rewritten = EmptyCart::rewrite($this->parse_one(str_replace('{"columns":2,"rows":1}', '{"columns":2,"rows":1,"categories":[3,4],"catOperator":"all"}', self::IN_PLACE)));
+
+        self::assertNotNull($rewritten);
+        self::assertContains(EmptyCart::NEWEST_PRODUCTS, array_column($rewritten['innerBlocks'], 'blockName'));
+    }
+
+    /**
+     * The attributes of the product collection a rewritten empty cart holds.
+     *
+     * @return array<array-key, mixed>
+     */
+    private function collection_attributes(string $markup): array
+    {
+        $rewritten = EmptyCart::rewrite($this->parse_one($markup));
+        self::assertNotNull($rewritten);
+
+        foreach ($rewritten['innerBlocks'] as $block) {
+            if ('woocommerce/product-collection' === $block['blockName']) {
+                return $block['attrs'];
+            }
+        }
+
+        self::fail('The empty cart holds no product collection.');
+    }
+
+    /**
+     * @return array{blockName: string|null, attrs: array<array-key, mixed>, innerBlocks: list<array<array-key, mixed>>, innerHTML: string, innerContent: list<string|null>}
+     */
+    private function parse_one(string $markup): array
+    {
+        $block = parse_blocks($markup)[0];
+        $block['innerBlocks'] = array_values($block['innerBlocks']);
+        $block['innerContent'] = array_values($block['innerContent']);
+
+        return $block;
     }
 
     private function product(string $name): void

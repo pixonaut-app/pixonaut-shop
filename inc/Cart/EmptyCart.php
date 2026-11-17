@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Pixonaut\Shop\Cart;
 
-use Pixonaut\Shop\Archive\ProductGridDefaults;
 use stdClass;
 use WP_Block_Patterns_Registry;
+use WP_Block_Type_Registry;
 
 /**
  * WooCommerce's own empty cart, as a store's Cart page holds it, drawn as
@@ -23,7 +23,14 @@ use WP_Block_Patterns_Registry;
  * Newest Products block becomes a product collection of the newest
  * products holding the product template of `patterns/product-grid.php`.
  * An empty cart that does not start with WooCommerce's heading, such as
- * the cart pattern's, is left as it is.
+ * the cart pattern's, or that holds markup of its own between its blocks,
+ * is left as it is; so is a Newest Products block that wants products in
+ * every one of several categories, which a collection cannot ask for.
+ *
+ * The empty cart is rewritten from its Cart block's parsed data, before
+ * WordPress builds the Cart block's children: before WordPress 6.8, a
+ * child's own changed data is not rendered. It is also rewritten from its
+ * own, for a Cart block that is itself nested on a newer WordPress.
  *
  * @phpstan-type ParsedBlock array{blockName: string|null, attrs: array<array-key, mixed>, innerBlocks: list<array<array-key, mixed>>, innerHTML: string, innerContent: list<string|null>}
  */
@@ -43,14 +50,23 @@ final class EmptyCart
     /** The pattern whose product template draws the archive's cards. */
     public const CARD_PATTERN = 'pixonaut-shop/product-grid';
 
-    /** Every stock status, as the Newest Products block lists them. */
+    /** WooCommerce's Cart block, whose children hold the empty cart. */
+    public const CART = 'woocommerce/cart';
+
+    /** Every stock status, as the Newest Products block lists them when it sets none. */
     private const STOCK_STATUSES = ['instock', 'outofstock', 'onbackorder'];
 
     /** WooCommerce's collection of the newest products, which the editor names it by. */
     private const NEW_ARRIVALS = 'woocommerce/product-collection/new-arrivals';
 
-    /** The Newest Products block's rows when it sets none, as WooCommerce defaults it. */
-    private const DEFAULT_ROWS = 1;
+    /**
+     * The Newest Products block's columns and rows when it sets none and its
+     * block type gives no default, as WooCommerce's own block type does.
+     */
+    private const LEGACY_DEFAULT_SIZE = 3;
+
+    /** The Newest Products block's category operator that wants every category. */
+    private const ALL_CATEGORIES = 'all';
 
     /**
      * The collection's query id, apart from the archive grid's (0) and the
@@ -91,13 +107,29 @@ final class EmptyCart
      */
     public function render_data(array $parsed_block): array
     {
-        if (self::BLOCK !== ($parsed_block['blockName'] ?? null)) {
+        $name = $parsed_block['blockName'] ?? null;
+
+        if (self::BLOCK !== $name && self::CART !== $name) {
             return $parsed_block;
         }
 
         $block = self::block($parsed_block);
 
-        return (null !== $block ? self::rewrite($block) : null) ?? $parsed_block;
+        if (null === $block) {
+            return $parsed_block;
+        }
+
+        if (self::BLOCK === $name) {
+            return self::rewrite($block) ?? $parsed_block;
+        }
+
+        // The Cart block's children keep their count, so its own markup stays as it is.
+        $block['innerBlocks'] = array_map(
+            static fn (array $child): array => self::BLOCK === $child['blockName'] ? self::rewrite($child) ?? $child : $child,
+            self::blocks($block['innerBlocks'])
+        );
+
+        return \count($block['innerBlocks']) === \count(array_filter($block['innerContent'], 'is_null')) ? $block : $parsed_block;
     }
 
     /**
@@ -109,6 +141,10 @@ final class EmptyCart
      */
     public static function rewrite(array $empty_cart): ?array
     {
+        if (self::has_own_markup($empty_cart['innerContent'])) {
+            return null;
+        }
+
         $inner = self::expand_patterns(self::blocks($empty_cart['innerBlocks']));
 
         if ([] === $inner || ! self::is_title($inner[0])) {
@@ -165,6 +201,23 @@ final class EmptyCart
     }
 
     /**
+     * Whether markup other than whitespace sits between the empty cart's
+     * blocks, which rebuilding its markup around new blocks would lose.
+     *
+     * @param list<string|null> $chunks
+     */
+    private static function has_own_markup(array $chunks): bool
+    {
+        foreach (\array_slice($chunks, 1, -1) as $chunk) {
+            if (null !== $chunk && '' !== trim($chunk)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * @param ParsedBlock $block
      */
     private static function is_title(array $block): bool
@@ -196,25 +249,35 @@ final class EmptyCart
 
     /**
      * A product collection of the newest products, as many and in as many
-     * columns as the Newest Products block showed, with the product grid's
-     * cards; null when the theme's product grid has no product template.
+     * columns as the Newest Products block showed, from its categories and
+     * stock statuses, with the product grid's cards; null when the theme's
+     * product grid has no product template, or the block wants products in
+     * every one of several categories.
      *
      * @param ParsedBlock $newest
      * @return ParsedBlock|null
      */
     private static function newest_products(array $newest): ?array
     {
+        $attributes = $newest['attrs'];
+        $categories = \is_array($attributes['categories'] ?? null)
+            ? array_values(array_filter(array_map(static fn (mixed $id): int => is_numeric($id) ? (int) $id : 0, $attributes['categories'])))
+            : [];
+
+        if (self::ALL_CATEGORIES === ($attributes['catOperator'] ?? null) && \count($categories) > 1) {
+            return null;
+        }
+
         $card = self::card();
 
         if (null === $card) {
             return null;
         }
 
-        $attributes = $newest['attrs'];
-        $columns    = self::positive_int($attributes['columns'] ?? null, ProductGridDefaults::COLUMNS);
-        $rows       = self::positive_int($attributes['rows'] ?? null, self::DEFAULT_ROWS);
-        $categories = \is_array($attributes['categories'] ?? null)
-            ? array_values(array_filter(array_map(static fn (mixed $id): int => is_numeric($id) ? (int) $id : 0, $attributes['categories'])))
+        $columns  = self::positive_int($attributes['columns'] ?? null, self::legacy_default('columns'));
+        $rows     = self::positive_int($attributes['rows'] ?? null, self::legacy_default('rows'));
+        $statuses = \is_array($attributes['stockStatus'] ?? null)
+            ? array_values(array_filter($attributes['stockStatus'], 'is_string'))
             : [];
 
         $collection = [
@@ -231,7 +294,7 @@ final class EmptyCart
                 'inherit'                       => false,
                 'taxQuery'                      => [] === $categories ? new stdClass() : ['product_cat' => $categories],
                 'isProductCollectionBlock'      => true,
-                'woocommerceStockStatus'        => self::STOCK_STATUSES,
+                'woocommerceStockStatus'        => [] === $statuses ? self::STOCK_STATUSES : $statuses,
                 'woocommerceAttributes'         => [],
                 'woocommerceHandPickedProducts' => [],
             ],
@@ -280,6 +343,16 @@ final class EmptyCart
         $content = \is_array($pattern) ? ($pattern['content'] ?? null) : null;
 
         return \is_string($content) ? $content : null;
+    }
+
+    /** The Newest Products block type's default for an attribute it leaves unset. */
+    private static function legacy_default(string $attribute): int
+    {
+        $type    = WP_Block_Type_Registry::get_instance()->get_registered(self::NEWEST_PRODUCTS);
+        $schema  = null !== $type ? ($type->attributes[$attribute] ?? null) : null;
+        $default = \is_array($schema) ? ($schema['default'] ?? null) : null;
+
+        return self::positive_int($default, self::LEGACY_DEFAULT_SIZE);
     }
 
     private static function positive_int(mixed $value, int $fallback): int
