@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.2](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.11.1...v1.11.2) (2026-11-17)
+
+
+### Bug Fixes
+
+* **cart:** show the popular products under an empty cart in place of WooCommerce's "New in store" ([#68](https://github.com/pixonaut-app/pixonaut-shop/issues/68)) ([e411eb0](https://github.com/pixonaut-app/pixonaut-shop/commit/e411eb02546188e9ebf3952b38af30d9f9e6997f))
+
 ## [1.11.1](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.11.0...v1.11.1) (2026-11-17)
 
 
