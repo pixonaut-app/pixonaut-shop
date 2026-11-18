@@ -41,7 +41,7 @@ its modules and calling their `register()`:
 | --- | --- | --- |
 | i18n | `I18n\TextDomain` | Loads `languages/` under the `pixonaut-shop` text domain on `init`. |
 | assets | `Assets\AssetManager` | Enqueues `build/app.css` on the front end and in the editor canvas. |
-| assets | `Assets\DeferredJquery` | Marks jQuery and jQuery Migrate `defer`; WordPress defers them only while every enqueued script needing them is deferred and none has inline code after it. |
+| assets | `Assets\DeferredJquery` | Marks jQuery and jQuery Migrate `defer` just before the head's scripts print; WordPress defers them only while every enqueued script needing them is deferred and none has inline code after it, and the theme keeps them blocking when such a script has inline code before it. WooCommerce's queued inline code (`wc_enqueue_js()`) waits for `DOMContentLoaded`. A store with other inline jQuery code returns false from `pixonaut_shop_defers_jquery`. |
 | blocks | `Blocks\BlockStyles` | Registers the block styles templates and content build pages from — Panel, Band (tint 1), Band (tint 2) and Notice on core/group, Pill on core/paragraph, Text link on core/button — with their values as presets, which a store's Styles edits. |
 | blocks | `Blocks\AspectRatios` | Adds the print shapes — square, then 4:5, 5:7, 3:4 and 2:3 and their landscape turns — to the theme's aspect-ratio presets, which the Site Editor lists for a picture in place of WordPress's own; a developer changes them through the `pixonaut_shop_aspect_ratios` filter. |
 | blocks | `Blocks\BlockLoader` | Registers every block built into `build/blocks/` on `init`. Not in the wordpress.org build. |

@@ -58,6 +58,37 @@ final class DeferredJqueryTest extends TestCase
         self::assertFalse(self::deferred('jquery-core', self::printed()));
     }
 
+    public function testJqueryBlocksWhenInlineCodeBeforeAScriptNeedingItRunsFirst(): void
+    {
+        wp_enqueue_script('deferred-shop-script', 'https://example.test/shop.js', ['jquery'], '1', ['strategy' => 'defer']);
+        wp_add_inline_script('deferred-shop-script', 'jQuery(function () {});', 'before');
+
+        self::assertFalse(self::deferred('jquery-core', self::printed()));
+    }
+
+    public function testAStoreCanKeepJqueryBlocking(): void
+    {
+        wp_enqueue_script('deferred-shop-script', 'https://example.test/shop.js', ['jquery'], '1', ['strategy' => 'defer']);
+        add_filter(DeferredJquery::FILTER, '__return_false');
+
+        try {
+            self::assertFalse(self::deferred('jquery-core', self::printed()));
+        } finally {
+            remove_filter(DeferredJquery::FILTER, '__return_false');
+        }
+    }
+
+    public function testWooCommercesQueuedCodeRunsOnceThePageHasLoaded(): void
+    {
+        $queued = "<!-- WooCommerce JavaScript -->\n<script type=\"text/javascript\">\njQuery(function($) { \n$('.x').show();\n });\n</script>\n";
+
+        $printed = (new DeferredJquery())->after_load($queued);
+
+        self::assertIsString($printed);
+        self::assertStringContainsString('document.addEventListener("DOMContentLoaded", function () { jQuery(function($) {', $printed);
+        self::assertStringContainsString("$('.x').show();\n }); });\n</script>", $printed);
+    }
+
     /**
      * Whether the printed tag of a script carries `defer`.
      */
