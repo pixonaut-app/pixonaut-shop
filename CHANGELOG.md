@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.4](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.14.3...v1.14.4) (2026-11-18)
+
+
+### Bug Fixes
+
+* **categories:** count the cards a category's archive lists on its tile ([#92](https://github.com/pixonaut-app/pixonaut-shop/issues/92)) ([0b18314](https://github.com/pixonaut-app/pixonaut-shop/commit/0b1831468236cd844ee4d8b7e9bd83c9b1f8bcf6))
+
 ## [1.14.3](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.14.2...v1.14.3) (2026-11-17)
 
 
