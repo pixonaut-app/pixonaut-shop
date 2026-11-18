@@ -42,6 +42,17 @@ final class DeferredJqueryTest extends TestCase
         self::assertTrue(self::deferred('jquery-migrate', $printed));
     }
 
+    public function testJqueryIsDeferredWithTheVariationFormsUtilities(): void
+    {
+        wp_enqueue_script('variation-form', 'https://example.test/variation.js', ['jquery', 'wp-util'], '1', ['strategy' => 'defer']);
+
+        $printed = self::printed();
+
+        self::assertTrue(self::deferred('jquery-core', $printed));
+        self::assertTrue(self::deferred('underscore', $printed));
+        self::assertTrue(self::deferred('wp-util', $printed));
+    }
+
     public function testJqueryBlocksWhenAScriptNeedingItDoesNot(): void
     {
         wp_enqueue_script('deferred-shop-script', 'https://example.test/shop.js', ['jquery'], '1', ['strategy' => 'defer']);
@@ -64,6 +75,26 @@ final class DeferredJqueryTest extends TestCase
         wp_add_inline_script('deferred-shop-script', 'jQuery(function () {});', 'before');
 
         self::assertFalse(self::deferred('jquery-core', self::printed()));
+    }
+
+    public function testUnderscoreBlocksWhenInlineCodeBeforeAScriptNeedingItRunsFirst(): void
+    {
+        wp_enqueue_script('deferred-shop-script', 'https://example.test/shop.js', ['jquery'], '1', ['strategy' => 'defer']);
+        wp_enqueue_script('templating-plugin', 'https://example.test/templates.js', ['underscore'], '1', ['strategy' => 'defer', 'in_footer' => true]);
+        wp_add_inline_script('templating-plugin', '_.template("");', 'before');
+
+        $printed = self::printed();
+
+        self::assertFalse(self::deferred('underscore', $printed));
+        self::assertFalse(self::deferred('jquery-core', $printed));
+    }
+
+    public function testUnderscoreBlocksWhenInlineCodeBeforeItRunsFirst(): void
+    {
+        wp_enqueue_script('deferred-shop-script', 'https://example.test/shop.js', ['jquery', 'wp-util'], '1', ['strategy' => 'defer']);
+        wp_add_inline_script('underscore', 'window.beforeUnderscore = true;', 'before');
+
+        self::assertFalse(self::deferred('underscore', self::printed()));
     }
 
     public function testAStoreCanKeepJqueryBlocking(): void
