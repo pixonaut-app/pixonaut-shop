@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pixonaut\Shop\Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
+use WP_Term;
 
 /**
  * The product categories block against categories made here: the store's
@@ -19,6 +20,9 @@ final class ProductCategoriesTest extends TestCase
 
     /** The term meta WooCommerce keeps a category's place in the store's own order in. */
     private const ORDER_META = 'order';
+
+    /** What the theme asks Pixonaut for WooCommerce for the cards a category's archive lists. */
+    private const CARD_COUNT_FILTER = 'pixonaut_wc_archive_card_count';
 
     protected function setUp(): void
     {
@@ -126,6 +130,48 @@ final class ProductCategoriesTest extends TestCase
         );
         self::assertStringNotContainsString('products', $buttons);
         self::assertStringNotContainsString('Empty shelf', $buttons);
+    }
+
+    public function testCountsTheCardsTheCategorysArchiveListsAndOrdersByThem(): void
+    {
+        $this->category('Mugs', 2);
+        $posters = $this->category('Posters', 2);
+        // One poster is listed as two cards, as with and without a picture.
+        $this->split_into_cards($posters, 2);
+
+        self::assertMatchesRegularExpression('/Posters<.*3 products<.*Mugs<.*2 products</s', $this->render());
+    }
+
+    public function testLeavesOutACategoryWhoseArchiveListsNoCards(): void
+    {
+        $this->category('Mugs', 1);
+        $this->category('Unsold', 1);
+        $no_cards = static fn (mixed $count, mixed $term): mixed => $term instanceof WP_Term && 'Unsold' === $term->name ? 0 : $count;
+        add_filter(self::CARD_COUNT_FILTER, $no_cards, 20, 2);
+
+        try {
+            $tiles = $this->render();
+        } finally {
+            remove_filter(self::CARD_COUNT_FILTER, $no_cards, 20);
+        }
+
+        self::assertStringContainsString('Mugs', $tiles);
+        self::assertStringNotContainsString('Unsold', $tiles);
+    }
+
+    public function testKeepsWooCommercesCountWhenThePluginAnswersNoNumber(): void
+    {
+        $this->category('Mugs', 2);
+        $no_number = static fn (): mixed => null;
+        add_filter(self::CARD_COUNT_FILTER, $no_number, 20);
+
+        try {
+            $tiles = $this->render();
+        } finally {
+            remove_filter(self::CARD_COUNT_FILTER, $no_number, 20);
+        }
+
+        self::assertMatchesRegularExpression('/Mugs<.*2 products</s', $tiles);
     }
 
     public function testRendersNothingWithoutACategoryThatHasProducts(): void

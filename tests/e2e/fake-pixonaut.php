@@ -30,6 +30,9 @@
  * - On order lines: the design's field rows and the line's state row through
  *   `woocommerce_order_item_get_formatted_meta_data`, filtered through
  *   `pixonaut_wc_fulfilment_line_display`.
+ * - For a category: how many cards its archive lists, through
+ *   `pixonaut_wc_archive_card_count`, a product once or as many times as
+ *   the suite says.
  * - For a visitor whose cookie names them: which product attribute applies
  *   only under which values of another, through
  *   `pixonaut_wc_storefront_attribute_dependencies`. The plugin reads them
@@ -774,6 +777,40 @@ add_filter(
         $decoded = json_decode(wp_unslash($named), true);
 
         return is_array($decoded) && is_array($decoded[$product->get_name()] ?? null) ? $decoded[$product->get_name()] : $swatches;
+    },
+    10,
+    2
+);
+
+/** The meta a suite gives a product listed as several cards, how many: the plugin lists a split product once per card. */
+const PIXONAUT_SHOP_FAKE_CARDS_META = 'fake_archive_cards';
+
+/**
+ * How many cards a category's archive lists, as the plugin answers from the
+ * archive's index: each catalogue-visible product in the category or one of
+ * its subcategories once, or as many times as its meta says.
+ */
+add_filter(
+    'pixonaut_wc_archive_card_count',
+    static function (mixed $count, mixed $term): mixed {
+        if (! $term instanceof WP_Term || 'product_cat' !== $term->taxonomy || ! pixonaut_shop_fake_is_standing_in()) {
+            return $count;
+        }
+
+        $products = wc_get_products([
+            'status'     => 'publish',
+            'visibility' => 'catalog',
+            'category'   => [$term->slug],
+            'limit'      => -1,
+            'return'     => 'ids',
+        ]);
+        $cards = 0;
+
+        foreach (is_array($products) ? $products : [] as $id) {
+            $cards += max(1, (int) get_post_meta((int) $id, PIXONAUT_SHOP_FAKE_CARDS_META, true));
+        }
+
+        return $cards;
     },
     10,
     2

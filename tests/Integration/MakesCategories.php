@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pixonaut\Shop\Tests\Integration;
 
 use WC_Product_Simple;
+use WP_Term;
 
 /**
  * Product categories, their products and pictures made for one test and
@@ -18,6 +19,9 @@ use WC_Product_Simple;
 trait MakesCategories
 {
     private const CATEGORY_TAXONOMY = 'product_cat';
+
+    /** The meta the fake plugin reads how many cards a product is listed as from. */
+    private const FAKE_CARDS_META = 'fake_archive_cards';
 
     /** @var list<int> */
     private array $term_ids = [];
@@ -99,5 +103,20 @@ trait MakesCategories
         $comment_attributes = [] === $attributes ? '' : wp_json_encode($attributes) . ' ';
 
         return do_blocks('<!-- wp:' . $name . ' ' . $comment_attributes . '/-->');
+    }
+
+    /**
+     * Lists the category's first product as this many cards, as Pixonaut for
+     * WooCommerce lists a product split by an attribute's values; the fake
+     * plugin counts them (tests/e2e/fake-pixonaut.php).
+     */
+    private function split_into_cards(int $category, int $cards): void
+    {
+        $term = get_term($category, self::CATEGORY_TAXONOMY);
+        self::assertInstanceOf(WP_Term::class, $term);
+        $products = wc_get_products(['category' => [$term->slug], 'limit' => 1, 'return' => 'ids']);
+        self::assertIsArray($products);
+        self::assertNotEmpty($products);
+        update_post_meta((int) $products[0], self::FAKE_CARDS_META, $cards);
     }
 }

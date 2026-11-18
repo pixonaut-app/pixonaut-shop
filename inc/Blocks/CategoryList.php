@@ -29,6 +29,15 @@ final class CategoryList
      */
     private const PRODUCT_COUNT_META = 'product_count_product_cat';
 
+    /**
+     * What Pixonaut for WooCommerce answers how many cards a category's
+     * archive lists unfiltered with: a product it lists once per card, such
+     * as with and without a picture, counts once per card, as the archive
+     * shows it. Without the plugin, or until it has counted, WooCommerce's
+     * count passed in stands.
+     */
+    public const CARD_COUNT_FILTER = 'pixonaut_wc_archive_card_count';
+
     /** The option naming the category WooCommerce files a product under when it has none. */
     private const DEFAULT_CATEGORY_OPTION = 'default_product_cat';
 
@@ -55,8 +64,9 @@ final class CategoryList
     }
 
     /**
-     * The categories that have products in the catalogue, each with that
-     * count, in the order given.
+     * The categories that have products in the catalogue, each with the
+     * count of cards its archive lists, the count every other count of
+     * products a shopper sees uses, in the order given.
      *
      * @param list<WP_Term> $terms
      *
@@ -67,14 +77,34 @@ final class CategoryList
         $categories = [];
 
         foreach ($terms as $term) {
-            $count = get_term_meta($term->term_id, self::PRODUCT_COUNT_META, true);
+            $count = self::card_count($term);
 
-            if (is_numeric($count) && (int) $count > 0) {
-                $categories[] = ['term' => $term, 'count' => (int) $count];
+            if ($count > 0) {
+                $categories[] = ['term' => $term, 'count' => $count];
             }
         }
 
         return $categories;
+    }
+
+    /**
+     * How many cards the category's archive lists unfiltered: Pixonaut for
+     * WooCommerce's count, else WooCommerce's count of its products. A
+     * category WooCommerce counts no products in lists no cards.
+     */
+    public static function card_count(WP_Term $term): int
+    {
+        $products = get_term_meta($term->term_id, self::PRODUCT_COUNT_META, true);
+        $products = is_numeric($products) ? (int) $products : 0;
+
+        if ($products < 1) {
+            return 0;
+        }
+
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Pixonaut for WooCommerce's own filter, which it answers from the archive's index.
+        $cards = apply_filters(self::CARD_COUNT_FILTER, $products, $term);
+
+        return is_numeric($cards) ? (int) $cards : $products;
     }
 
     /**
