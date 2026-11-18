@@ -42,6 +42,17 @@ final class DeferredJqueryTest extends TestCase
         self::assertTrue(self::deferred('jquery-migrate', $printed));
     }
 
+    public function testJqueryIsDeferredWithTheVariationFormsUtilities(): void
+    {
+        wp_enqueue_script('variation-form', 'https://example.test/variation.js', ['jquery', 'wp-util'], '1', ['strategy' => 'defer']);
+
+        $printed = self::printed();
+
+        self::assertTrue(self::deferred('jquery-core', $printed));
+        self::assertTrue(self::deferred('underscore', $printed));
+        self::assertTrue(self::deferred('wp-util', $printed));
+    }
+
     public function testJqueryBlocksWhenAScriptNeedingItDoesNot(): void
     {
         wp_enqueue_script('deferred-shop-script', 'https://example.test/shop.js', ['jquery'], '1', ['strategy' => 'defer']);

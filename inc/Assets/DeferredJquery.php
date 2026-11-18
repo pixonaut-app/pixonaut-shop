@@ -13,8 +13,9 @@ use WP_Scripts;
  * the browser waited for jQuery before drawing anything, about 80 ms on a
  * phone's connection.
  *
- * Just before the head's scripts are printed, jQuery and its migrate layer
- * are marked for deferring, and WordPress defers them only when every
+ * Just before the head's scripts are printed, jQuery, its migrate layer and
+ * the utilities WooCommerce's variation form needs with it are marked for
+ * deferring, and WordPress defers them only when every
  * enqueued script that needs them is deferred too and none has inline code
  * after it. They stay blocking as well when a script needing them has
  * inline code before it, which would run first. WooCommerce's queue of
@@ -31,8 +32,12 @@ final class DeferredJquery
      */
     public const FILTER = 'pixonaut_shop_defers_jquery';
 
-    /** jQuery and its migrate layer, which the `jquery` handle stands for. */
-    private const HANDLES = ['jquery-core', 'jquery-migrate'];
+    /**
+     * jQuery and its migrate layer, which the `jquery` handle stands for,
+     * and the two WordPress scripts WooCommerce's variation form loads with
+     * it: blocking, `wp-util` kept jQuery blocking on a variable product.
+     */
+    private const HANDLES = ['jquery-core', 'jquery-migrate', 'underscore', 'wp-util'];
 
     /** The handles a script needing jQuery names. */
     private const DEPENDED_ON = ['jquery', 'jquery-core', 'jquery-migrate'];
