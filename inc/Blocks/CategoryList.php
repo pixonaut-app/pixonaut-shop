@@ -29,6 +29,15 @@ final class CategoryList
      */
     private const PRODUCT_COUNT_META = 'product_count_product_cat';
 
+    /**
+     * What Pixonaut for WooCommerce answers how many cards a category's
+     * archive lists unfiltered with: a product it lists once per card, such
+     * as with and without a picture, counts once per card, as the archive
+     * shows it. Without the plugin, or until it has counted, WooCommerce's
+     * count passed in stands.
+     */
+    public const CARD_COUNT_FILTER = 'pixonaut_wc_archive_card_count';
+
     /** The option naming the category WooCommerce files a product under when it has none. */
     private const DEFAULT_CATEGORY_OPTION = 'default_product_cat';
 
@@ -55,26 +64,50 @@ final class CategoryList
     }
 
     /**
-     * The categories that have products in the catalogue, each with that
-     * count, in the order given.
+     * The categories that have products in the catalogue, each with its
+     * count, in the order given: the cards its archive lists when
+     * `$count_cards`, for a block that prints the count, so it reads as the
+     * archive's own count; else WooCommerce's count of its products, which
+     * asks Pixonaut for WooCommerce nothing.
      *
      * @param list<WP_Term> $terms
      *
      * @return list<array{term: WP_Term, count: int}>
      */
-    public static function with_products(array $terms): array
+    public static function with_products(array $terms, bool $count_cards = false): array
     {
         $categories = [];
 
         foreach ($terms as $term) {
-            $count = get_term_meta($term->term_id, self::PRODUCT_COUNT_META, true);
+            $products = self::product_count($term);
+            $count    = $count_cards && $products > 0 ? self::card_count($term, $products) : $products;
 
-            if (is_numeric($count) && (int) $count > 0) {
-                $categories[] = ['term' => $term, 'count' => (int) $count];
+            if ($count > 0) {
+                $categories[] = ['term' => $term, 'count' => $count];
             }
         }
 
         return $categories;
+    }
+
+    /** WooCommerce's count of the category's catalogue-visible products, its subcategories' included. */
+    private static function product_count(WP_Term $term): int
+    {
+        $products = get_term_meta($term->term_id, self::PRODUCT_COUNT_META, true);
+
+        return is_numeric($products) ? (int) $products : 0;
+    }
+
+    /**
+     * How many cards the category's archive lists unfiltered: Pixonaut for
+     * WooCommerce's count, else its `$products`.
+     */
+    private static function card_count(WP_Term $term, int $products): int
+    {
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Pixonaut for WooCommerce's own filter, which it answers from the archive's index.
+        $cards = apply_filters(self::CARD_COUNT_FILTER, $products, $term);
+
+        return is_numeric($cards) ? (int) $cards : $products;
     }
 
     /**

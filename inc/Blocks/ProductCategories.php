@@ -131,7 +131,8 @@ final class ProductCategories
      */
     private function with_products(array $terms, array $attributes): array
     {
-        $categories = CategoryList::with_products($terms);
+        // Only tiles print a count; buttons need no card count from the plugin.
+        $categories = CategoryList::with_products($terms, self::LAYOUT_TILES === $attributes['layout']);
 
         if (self::ORDER_BY_COUNT === $attributes['orderBy']) {
             // usort is stable, so categories with as many products keep the store's order.
