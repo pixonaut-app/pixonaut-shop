@@ -13,6 +13,9 @@ final class CardShapeTest extends TestCase
 {
     private const PATTERN = 'pixonaut-shop/product-grid';
 
+    /** A synced pattern's post ID. */
+    private const SYNCED_PATTERN = 42;
+
     public function testACardsPictureWithoutAShapeKeepsItsOwn(): void
     {
         self::assertNull(CardShape::of_blocks([self::cards(self::picture([]))], self::no_patterns(...)));
@@ -61,7 +64,7 @@ final class CardShapeTest extends TestCase
 
     public function testReadsTheCardsInAPatternTheTemplateInserts(): void
     {
-        $patterns = static fn (string $slug): array => self::PATTERN === $slug ? [self::cards(self::picture(['aspectRatio' => '4/5']))] : [];
+        $patterns = static fn (string $name, string $slug): array => 'core/pattern' === $name && self::PATTERN === $slug ? [self::cards(self::picture(['aspectRatio' => '4/5']))] : [];
 
         self::assertSame(
             ['aspect' => 0.8, 'fit' => 'cover'],
@@ -71,17 +74,35 @@ final class CardShapeTest extends TestCase
 
     public function testAPatternThatInsertsItselfEnds(): void
     {
-        $patterns = static fn (string $slug): array => [self::block('core/pattern', ['slug' => $slug])];
+        $patterns = static fn (string $name, string $slug): array => [self::block('core/pattern', ['slug' => $slug])];
 
         self::assertNull(CardShape::of_blocks([self::block('core/pattern', ['slug' => self::PATTERN])], $patterns));
+    }
+
+    public function testReadsTheCardsInASyncedPatternTheStoreSaved(): void
+    {
+        $patterns = static fn (string $name, string $ref): array => 'core/block' === $name && (string) self::SYNCED_PATTERN === $ref ? [self::cards(self::picture(['aspectRatio' => '2/3']))] : [];
+
+        self::assertEqualsWithDelta(2 / 3, CardShape::of_blocks([self::block('core/block', ['ref' => self::SYNCED_PATTERN])], $patterns)['aspect'] ?? null, 0.0001);
+    }
+
+    public function testAPatternReadOutsideTheCardsIsReadAgainInsideThem(): void
+    {
+        $patterns = static fn (string $name, string $slug): array => 'core/pattern' === $name && self::PATTERN === $slug ? [self::picture(['aspectRatio' => '4/5'])] : [];
+        $blocks   = [
+            self::block('core/pattern', ['slug' => self::PATTERN]),
+            self::block('woocommerce/product-template', [], [self::block('core/pattern', ['slug' => self::PATTERN])]),
+        ];
+
+        self::assertSame(['aspect' => 0.8, 'fit' => 'cover'], CardShape::of_blocks($blocks, $patterns));
     }
 
     /**
      * @return array<array-key, mixed>
      */
-    private static function no_patterns(string $slug): array
+    private static function no_patterns(string $name, string $reference): array
     {
-        self::fail("No pattern is inserted, yet {$slug} was read.");
+        self::fail("No pattern is inserted, yet {$name} {$reference} was read.");
     }
 
     /**

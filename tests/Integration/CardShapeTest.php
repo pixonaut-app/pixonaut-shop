@@ -30,10 +30,14 @@ final class CardShapeTest extends TestCase
 
     private int $template = 0;
 
+    private int $synced_pattern = 0;
+
     protected function tearDown(): void
     {
-        if ($this->template > 0) {
-            wp_delete_post($this->template, true);
+        foreach ([$this->template, $this->synced_pattern] as $post) {
+            if ($post > 0) {
+                wp_delete_post($post, true);
+            }
         }
 
         wp_dequeue_style(AssetManager::HANDLE);
@@ -67,6 +71,19 @@ final class CardShapeTest extends TestCase
             [':root{--pixonaut-shop-card-aspect:0.75;--pixonaut-shop-card-fit:contain}'],
             wp_styles()->get_data(AssetManager::HANDLE, 'after')
         );
+    }
+
+    public function testReadsTheCardsInASyncedPatternTheShopInserts(): void
+    {
+        $this->synced_pattern = (int) wp_insert_post([
+            'post_type'    => 'wp_block',
+            'post_title'   => 'Shop grid',
+            'post_status'  => 'publish',
+            'post_content' => self::SHAPED_CARDS,
+        ]);
+        $this->save_template('<!-- wp:block {"ref":' . $this->synced_pattern . '} /-->');
+
+        self::assertSame(['aspect' => 0.75, 'fit' => 'contain'], (new CardShape())->shape());
     }
 
     public function testTheGallerysThumbnailsKeepTheirPicturesShape(): void

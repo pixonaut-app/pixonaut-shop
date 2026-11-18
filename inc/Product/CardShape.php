@@ -8,6 +8,7 @@ use Pixonaut\Shop\Assets\AssetManager;
 use Pixonaut\Shop\Blocks\AspectRatios;
 use WP_Block_Patterns_Registry;
 use WP_Block_Template;
+use WP_Post;
 
 /**
  * The shape of a product card's picture, the one place it is set: the store
@@ -50,7 +51,18 @@ final class CardShape
 
     private const PICTURE_BLOCK = 'woocommerce/product-image';
 
+    /** A registered pattern, inserted by its slug. */
     private const PATTERN_BLOCK = 'core/pattern';
+
+    /** A synced pattern the store saved, inserted by its post's ID. */
+    private const SYNCED_PATTERN_BLOCK = 'core/block';
+
+    /** Each pattern block, and the attribute naming what it inserts. */
+    private const PATTERN_REFERENCES = [self::PATTERN_BLOCK => 'slug', self::SYNCED_PATTERN_BLOCK => 'ref'];
+
+    private const SYNCED_PATTERN_TYPE = 'wp_block';
+
+    private const PUBLISHED = 'publish';
 
     /** The Product Image block's Scale choices, `object-fit` values all. */
     private const FITS = ['cover', 'contain', 'fill'];
@@ -120,7 +132,7 @@ final class CardShape
         if (null === $this->shape) {
             $template    = get_block_template(get_stylesheet() . '//' . self::TEMPLATE);
             $this->shape = ($template instanceof WP_Block_Template && \is_string($template->content)
-                ? self::of_blocks(parse_blocks($template->content), self::registered_pattern(...))
+                ? self::of_blocks(parse_blocks($template->content), self::pattern_blocks(...))
                 : null) ?? false;
         }
 
@@ -129,11 +141,11 @@ final class CardShape
 
     /**
      * The shape of the first card's picture in these blocks, reading the
-     * blocks of each pattern they insert; null when that picture keeps its
-     * own shape, or there is no card.
+     * blocks of each pattern they insert, registered or synced; null when
+     * that picture keeps its own shape, or there is no card.
      *
-     * @param array<array-key, mixed>   $blocks  Parsed blocks.
-     * @param callable(string): array<array-key, mixed> $pattern A registered pattern's parsed blocks by its slug.
+     * @param array<array-key, mixed>                   $blocks  Parsed blocks.
+     * @param callable(string, string): array<array-key, mixed> $pattern A pattern's parsed blocks by its block's name and reference.
      * @return array{aspect: float, fit: string}|null
      */
     public static function of_blocks(array $blocks, callable $pattern): ?array
@@ -146,9 +158,9 @@ final class CardShape
     /**
      * The attributes of the first Product Image block inside a card.
      *
-     * @param array<array-key, mixed>   $blocks
-     * @param callable(string): array<array-key, mixed> $pattern
-     * @param list<string>              $reading The patterns being read, so a pattern that inserts itself ends.
+     * @param array<array-key, mixed>                   $blocks
+     * @param callable(string, string): array<array-key, mixed> $pattern
+     * @param list<string>                              $reading The patterns this branch is inside, so a pattern that inserts itself ends.
      * @return array<array-key, mixed>|null
      */
     private static function first_card_picture(array $blocks, callable $pattern, bool $in_card, array $reading): ?array
@@ -165,14 +177,17 @@ final class CardShape
                 return $attributes;
             }
 
-            $inner = \is_array($block['innerBlocks'] ?? null) ? $block['innerBlocks'] : [];
-            $slug  = $attributes['slug'] ?? null;
-            if (self::PATTERN_BLOCK === $name && \is_string($slug) && ! \in_array($slug, $reading, true)) {
-                $inner     = $pattern($slug);
-                $reading[] = $slug;
+            $inner  = \is_array($block['innerBlocks'] ?? null) ? $block['innerBlocks'] : [];
+            $inside = $reading;
+            $key    = \is_string($name) ? (self::PATTERN_REFERENCES[$name] ?? null) : null;
+            $ref    = null === $key ? null : ($attributes[$key] ?? null);
+            if (\is_string($name) && (\is_string($ref) || \is_int($ref))) {
+                $pattern_id = $name . ':' . $ref;
+                $inner      = \in_array($pattern_id, $reading, true) ? [] : $pattern($name, (string) $ref);
+                $inside[]   = $pattern_id;
             }
 
-            $found = self::first_card_picture($inner, $pattern, $in_card || self::CARDS_BLOCK === $name, $reading);
+            $found = self::first_card_picture($inner, $pattern, $in_card || self::CARDS_BLOCK === $name, $inside);
             if (null !== $found) {
                 return $found;
             }
@@ -208,12 +223,22 @@ final class CardShape
     }
 
     /**
+     * The blocks a pattern block inserts: a registered pattern by its slug,
+     * or a published synced pattern by its post's ID.
+     *
      * @return array<array-key, mixed>
      */
-    private static function registered_pattern(string $slug): array
+    private static function pattern_blocks(string $name, string $reference): array
     {
-        $pattern = WP_Block_Patterns_Registry::get_instance()->get_registered($slug);
-        $content = \is_array($pattern) ? ($pattern['content'] ?? null) : null;
+        if (self::SYNCED_PATTERN_BLOCK === $name) {
+            $post    = get_post((int) $reference);
+            $content = $post instanceof WP_Post && self::SYNCED_PATTERN_TYPE === $post->post_type && self::PUBLISHED === $post->post_status
+                ? $post->post_content
+                : null;
+        } else {
+            $pattern = WP_Block_Patterns_Registry::get_instance()->get_registered($reference);
+            $content = \is_array($pattern) ? ($pattern['content'] ?? null) : null;
+        }
 
         return \is_string($content) ? parse_blocks($content) : [];
     }
