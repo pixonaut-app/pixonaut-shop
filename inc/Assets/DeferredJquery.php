@@ -21,14 +21,16 @@ use WP_Scripts;
  * inline code before it, which would run first. WooCommerce's queue of
  * inline jQuery code (`wc_enqueue_js()`, printed in the footer) waits for
  * the page to load. A store with other inline code that uses jQuery as the
- * page is read returns false from `pixonaut_shop_defers_jquery`.
+ * page is read, or `_` or `wp.template`, returns false from
+ * `pixonaut_shop_defers_jquery`.
  */
 final class DeferredJquery
 {
     /**
-     * Filters whether jQuery may be deferred; true. Return false where code
-     * printed into the page, outside WordPress's scripts, uses jQuery
-     * before the page has loaded.
+     * Filters whether jQuery, `underscore` and `wp-util` may be deferred;
+     * true. Return false where code printed into the page, outside
+     * WordPress's scripts, uses jQuery, `_` or `wp.template` before the
+     * page has loaded.
      */
     public const FILTER = 'pixonaut_shop_defers_jquery';
 
@@ -39,8 +41,8 @@ final class DeferredJquery
      */
     private const HANDLES = ['jquery-core', 'jquery-migrate', 'underscore', 'wp-util'];
 
-    /** The handles a script needing jQuery names. */
-    private const DEPENDED_ON = ['jquery', 'jquery-core', 'jquery-migrate'];
+    /** The handles a script needing one of them names: theirs, and the `jquery` alias. */
+    private const DEPENDED_ON = ['jquery', 'jquery-core', 'jquery-migrate', 'underscore', 'wp-util'];
 
     private const STRATEGY = 'defer';
 
@@ -92,7 +94,8 @@ final class DeferredJquery
     }
 
     /**
-     * Whether an enqueued script needing jQuery has inline code before it.
+     * Whether one of the scripts, or an enqueued script needing one of them,
+     * has inline code before it.
      */
     private static function needed_before(WP_Scripts $scripts): bool
     {
@@ -100,7 +103,7 @@ final class DeferredJquery
             if (
                 [] !== array_filter((array) $scripts->get_data($handle, 'before'))
                 && $scripts->query($handle, 'enqueued')
-                && self::needs_jquery($scripts, $handle, [])
+                && (\in_array($handle, self::DEPENDED_ON, true) || self::needs_one_of_them($scripts, $handle, []))
             ) {
                 return true;
             }
@@ -112,7 +115,7 @@ final class DeferredJquery
     /**
      * @param array<string, true> $seen
      */
-    private static function needs_jquery(WP_Scripts $scripts, string $handle, array $seen): bool
+    private static function needs_one_of_them(WP_Scripts $scripts, string $handle, array $seen): bool
     {
         $registered    = $scripts->registered[$handle] ?? null;
         $deps          = null !== $registered ? $registered->deps : [];
@@ -123,7 +126,7 @@ final class DeferredJquery
                 return true;
             }
 
-            if (! isset($seen[$dependency]) && self::needs_jquery($scripts, $dependency, $seen)) {
+            if (! isset($seen[$dependency]) && self::needs_one_of_them($scripts, $dependency, $seen)) {
                 return true;
             }
         }
