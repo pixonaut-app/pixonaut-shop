@@ -37,6 +37,9 @@ final class AspectRatios
     /** A slug's characters, as WordPress prints them into a preset's custom property. */
     private const SLUG_PATTERN = '/^[a-z0-9-]+$/';
 
+    /** Decimals of a shape's width per unit of height in CSS, finer than a pixel at any picture's width. */
+    private const CSS_DECIMALS = 4;
+
     /** A ratio: one positive number, or two with a slash between them. */
     private const RATIO_PATTERN = '#^\s*(\d+(?:\.\d+)?)\s*(?:/\s*(\d+(?:\.\d+)?)\s*)?$#';
 
@@ -98,6 +101,12 @@ final class AspectRatios
         $height = isset($parts[2]) ? (float) $parts[2] : 1.0;
 
         return $width > 0 && $height > 0 ? $width / $height : null;
+    }
+
+    /** A shape's width per unit of height as CSS writes it: `0.7143`, `1`. */
+    public static function css_number(float $aspect): string
+    {
+        return rtrim(rtrim(number_format($aspect, self::CSS_DECIMALS, '.', ''), '0'), '.');
     }
 
     /**
