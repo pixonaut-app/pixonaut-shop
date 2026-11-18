@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.5](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.14.4...v1.14.5) (2026-11-18)
+
+
+### Performance Improvements
+
+* **assets:** load jQuery without holding up the first paint ([#94](https://github.com/pixonaut-app/pixonaut-shop/issues/94)) ([8017012](https://github.com/pixonaut-app/pixonaut-shop/commit/801701210f7509b33975fd49ac6b7c6bafb6a04b))
+
 ## [1.14.4](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.14.3...v1.14.4) (2026-11-18)
 
 
