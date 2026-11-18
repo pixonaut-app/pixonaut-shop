@@ -230,20 +230,39 @@
 	box-shadow: inset 0 0 0 2px var( --wp--preset--color--accent );
 }
 
+/*
+ * A suggestion's picture, the whole print in a square slot, so every row's
+ * name starts in line: at the shape of the store's product cards once it
+ * picks one (`Product\CardShape`), else in its own.
+ */
 .pixonaut-shop-header-search__picture {
+	display: flex;
 	flex: none;
+	align-items: center;
+	justify-content: center;
 	width: var( --pixonaut-shop-header-search-picture );
 	height: var( --pixonaut-shop-header-search-picture );
-	overflow: hidden;
-	border-radius: var( --wp--custom--radius--small );
-	background: var( --wp--preset--color--surface );
 }
 
 .pixonaut-shop-header-search__picture img {
 	display: block;
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
+	width: auto;
+	max-width: 100%;
+	height: auto;
+	max-height: 100%;
+	border-radius: var( --wp--custom--radius--small );
+	background: var( --wp--preset--color--surface );
+}
+
+.pixonaut-shop-card-shaped .pixonaut-shop-header-search__picture img {
+	/* As wide as the slot's height allows the shape, and no wider than the slot. */
+	width: min(
+		100%,
+		var( --pixonaut-shop-header-search-picture ) *
+		var( --pixonaut-shop-card-aspect )
+	);
+	aspect-ratio: var( --pixonaut-shop-card-aspect );
+	object-fit: var( --pixonaut-shop-card-fit );
 }
 
 /*
@@ -363,11 +382,22 @@
 	background: var( --wp--preset--color--base );
 }
 
+/*
+ * A popular product's picture, as the product grid's card shows it: its
+ * width and height hold its room open, so a picture arriving moves nothing.
+ */
 .pixonaut-shop-header-search__card .pixonaut-shop-header-search__picture {
 	width: 100%;
 	height: auto;
-	/* Square, so a picture arriving moves nothing. */
-	aspect-ratio: 1;
+}
+
+.pixonaut-shop-header-search__card .pixonaut-shop-header-search__picture img,
+.pixonaut-shop-card-shaped
+	.pixonaut-shop-header-search__card
+	.pixonaut-shop-header-search__picture
+	img {
+	width: 100%;
+	max-height: none;
 	border-radius: 0;
 }
 

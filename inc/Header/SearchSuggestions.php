@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pixonaut\Shop\Header;
 
+use Pixonaut\Shop\Product\CardShape;
 use WC_Product;
 use WP_Post;
 use WP_Query;
@@ -44,9 +45,6 @@ final class SearchSuggestions
 
     /** The post type the search looks among: the store's products. */
     private const PRODUCT = 'product';
-
-    /** The size of a suggestion's picture: WooCommerce's, for a product in a grid. */
-    private const IMAGE_SIZE = 'woocommerce_thumbnail';
 
     /**
      * The markup a price may keep: WooCommerce's amounts and their currency,
@@ -151,7 +149,7 @@ final class SearchSuggestions
      */
     private static function suggestion(WP_Post $post, WC_Product $product): array
     {
-        $image = wp_get_attachment_image_url((int) $product->get_image_id(), self::IMAGE_SIZE);
+        $image = wp_get_attachment_image_url((int) $product->get_image_id(), CardShape::THUMBNAIL_SIZE);
 
         return [
             'id'    => $post->ID,

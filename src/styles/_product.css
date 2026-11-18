@@ -307,8 +307,6 @@
 	img {
 	display: block;
 	width: 100%;
-	aspect-ratio: 1;
-	object-fit: cover;
 	border: 2px solid transparent;
 	border-radius: var( --wp--custom--radius--small );
 	background: var( --wp--preset--color--base );
@@ -321,6 +319,16 @@
 	.flex-control-thumbs.flex-control-thumbs
 	img.flex-active {
 	border-color: var( --wp--preset--color--accent );
+}
+
+/* The thumbnails at the shape of the store's product cards (`Product\CardShape`); until it picks one, each in its own. */
+.pixonaut-shop-card-shaped
+	.pixonaut-shop-product
+	.woocommerce-product-gallery.woocommerce-product-gallery
+	.flex-control-thumbs.flex-control-thumbs
+	img {
+	aspect-ratio: var( --pixonaut-shop-card-aspect );
+	object-fit: var( --pixonaut-shop-card-fit );
 }
 
 /* ---------- The plugin's preview and form ---------- */

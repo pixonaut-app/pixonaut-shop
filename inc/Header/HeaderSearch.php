@@ -7,6 +7,7 @@ namespace Pixonaut\Shop\Header;
 use Pixonaut\Shop\Assets\BuiltScript;
 use Pixonaut\Shop\Blocks\Icons;
 use Pixonaut\Shop\I18n\TextDomain;
+use Pixonaut\Shop\Product\CardShape;
 use Pixonaut\Shop\Product\PopularProducts;
 use Pixonaut\Shop\Search\PopularSearches;
 
@@ -198,7 +199,7 @@ final class HeaderSearch
                 esc_attr($list_id . '-product-' . \count($cards)),
                 self::CLASS_NAME,
                 esc_url($card['url']),
-                null === $card['image'] ? '' : '<img src="' . esc_url($card['image']) . '" alt="" loading="lazy" decoding="async">',
+                wp_get_attachment_image((int) $product->get_image_id(), CardShape::PICTURE_SIZE, false, ['alt' => '', 'loading' => 'lazy', 'decoding' => 'async']),
                 esc_html($card['name']),
                 $card['price']
             );

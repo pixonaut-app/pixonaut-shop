@@ -549,6 +549,19 @@ main:has(
 }
 
 /*
+ * A card whose Product Image block has no shape of its own (the related and
+ * popular products, a search's results) shows its picture at the shape the
+ * store picked for the shop's cards (`Product\CardShape`). A block's own
+ * shape is printed on its picture and wins.
+ */
+.pixonaut-shop-card-shaped
+	.wc-block-product
+	.wc-block-components-product-image
+	img:not( .pixonaut-shop-second-picture ) {
+	aspect-ratio: var( --pixonaut-shop-card-aspect );
+}
+
+/*
  * The card's second picture (`Product\SecondPicture`), over the first one's
  * box so it never moves the card. The first stays under it, so a second
  * picture that is still loading, or never loads, leaves the first in view.

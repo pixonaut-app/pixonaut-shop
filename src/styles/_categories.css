@@ -46,7 +46,7 @@
 	text-decoration: none;
 }
 
-/* Square, like the product card's picture; empty, it shows the ground. */
+/* A category's picture, square whatever shape the product cards take; empty, it shows the ground. */
 .pixonaut-shop-category-tiles .wc-block-product-categories-list-item__image {
 	display: block;
 	width: 100%;
