@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.6](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.14.5...v1.14.6) (2026-11-18)
+
+
+### Performance Improvements
+
+* **assets:** defer jQuery on variable product pages too ([#96](https://github.com/pixonaut-app/pixonaut-shop/issues/96)) ([8def4eb](https://github.com/pixonaut-app/pixonaut-shop/commit/8def4ebd7919406e773e1e52e5932952a93b381d))
+
 ## [1.14.5](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.14.4...v1.14.5) (2026-11-18)
 
 
