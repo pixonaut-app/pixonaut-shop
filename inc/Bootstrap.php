@@ -44,6 +44,7 @@ final class Bootstrap
     private function register_assets(): void
     {
         (new Assets\AssetManager())->register();
+        (new Assets\DeferredJquery())->register();
         (new Fonts\FallbackFaces())->register();
         (new Fonts\TitleFontPreload())->register();
     }
