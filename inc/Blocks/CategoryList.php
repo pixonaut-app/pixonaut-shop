@@ -64,20 +64,23 @@ final class CategoryList
     }
 
     /**
-     * The categories that have products in the catalogue, each with the
-     * count of cards its archive lists, the count every other count of
-     * products a shopper sees uses, in the order given.
+     * The categories that have products in the catalogue, each with its
+     * count, in the order given: the cards its archive lists when
+     * `$count_cards`, for a block that prints the count, so it reads as the
+     * archive's own count; else WooCommerce's count of its products, which
+     * asks Pixonaut for WooCommerce nothing.
      *
      * @param list<WP_Term> $terms
      *
      * @return list<array{term: WP_Term, count: int}>
      */
-    public static function with_products(array $terms): array
+    public static function with_products(array $terms, bool $count_cards = false): array
     {
         $categories = [];
 
         foreach ($terms as $term) {
-            $count = self::card_count($term);
+            $products = self::product_count($term);
+            $count    = $count_cards && $products > 0 ? self::card_count($term, $products) : $products;
 
             if ($count > 0) {
                 $categories[] = ['term' => $term, 'count' => $count];
@@ -87,20 +90,20 @@ final class CategoryList
         return $categories;
     }
 
-    /**
-     * How many cards the category's archive lists unfiltered: Pixonaut for
-     * WooCommerce's count, else WooCommerce's count of its products. A
-     * category WooCommerce counts no products in lists no cards.
-     */
-    public static function card_count(WP_Term $term): int
+    /** WooCommerce's count of the category's catalogue-visible products, its subcategories' included. */
+    private static function product_count(WP_Term $term): int
     {
         $products = get_term_meta($term->term_id, self::PRODUCT_COUNT_META, true);
-        $products = is_numeric($products) ? (int) $products : 0;
 
-        if ($products < 1) {
-            return 0;
-        }
+        return is_numeric($products) ? (int) $products : 0;
+    }
 
+    /**
+     * How many cards the category's archive lists unfiltered: Pixonaut for
+     * WooCommerce's count, else its `$products`.
+     */
+    private static function card_count(WP_Term $term, int $products): int
+    {
         // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- Pixonaut for WooCommerce's own filter, which it answers from the archive's index.
         $cards = apply_filters(self::CARD_COUNT_FILTER, $products, $term);
 

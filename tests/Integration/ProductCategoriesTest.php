@@ -159,6 +159,27 @@ final class ProductCategoriesTest extends TestCase
         self::assertStringNotContainsString('Unsold', $tiles);
     }
 
+    public function testButtonsAskThePluginForNoCardCount(): void
+    {
+        $this->category('Mugs', 1);
+        $asked = 0;
+        $count = static function (mixed $cards) use (&$asked): mixed {
+            ++$asked;
+
+            return $cards;
+        };
+        add_filter(self::CARD_COUNT_FILTER, $count);
+
+        try {
+            $buttons = $this->render(['layout' => 'buttons']);
+        } finally {
+            remove_filter(self::CARD_COUNT_FILTER, $count);
+        }
+
+        self::assertStringContainsString('Mugs', $buttons);
+        self::assertSame(0, $asked);
+    }
+
     public function testKeepsWooCommercesCountWhenThePluginAnswersNoNumber(): void
     {
         $this->category('Mugs', 2);
