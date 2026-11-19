@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.14.6...v1.15.0) (2026-11-19)
+
+
+### Features
+
+* **product:** show every product picture at the product card's shape ([#99](https://github.com/pixonaut-app/pixonaut-shop/issues/99)) ([e8d4f4a](https://github.com/pixonaut-app/pixonaut-shop/commit/e8d4f4aefbed203bf037fac5a385719d44979110))
+
 ## [1.14.6](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.14.5...v1.14.6) (2026-11-18)
 
 
