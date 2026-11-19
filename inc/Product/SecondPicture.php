@@ -38,9 +38,6 @@ final class SecondPicture
     /** The built script's name in `build/`. */
     private const SCRIPT = 'second-picture';
 
-    /** The size WooCommerce's Product Image block prints its picture at. */
-    private const IMAGE_SIZE = 'large';
-
     /** The block's attributes the second picture follows, and the CSS property each sets. */
     private const STYLE_ATTRIBUTES = ['width' => 'width', 'scale' => 'object-fit'];
 
@@ -76,7 +73,7 @@ final class SecondPicture
         }
 
         $style = self::style(\is_array($block['attrs'] ?? null) ? $block['attrs'] : []);
-        $image = wp_get_attachment_image($picture, self::IMAGE_SIZE, false, [
+        $image = wp_get_attachment_image($picture, CardShape::PICTURE_SIZE, false, [
             'class'   => self::CLASS_NAME,
             'alt'     => '',
             'loading' => 'lazy',

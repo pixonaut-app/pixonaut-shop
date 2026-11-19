@@ -170,6 +170,7 @@ final class Bootstrap
         (new Product\WholeAmounts())->register();
         (new Product\VariationSwatches())->register();
         (new Product\SecondPicture())->register();
+        (new Product\CardShape())->register();
         $lowest_price->register();
     }
 

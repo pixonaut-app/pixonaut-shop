@@ -36,9 +36,6 @@ final class PreviewFrame
     /** After the plugin prints its preview in the gallery's place, at the default priority. */
     private const AFTER_THE_PLUGIN = 20;
 
-    /** Decimals of the shape's width per unit of height, finer than a pixel at any frame width. */
-    private const ASPECT_DECIMALS = 4;
-
     public function __construct(private readonly AspectRatios $ratios)
     {
     }
@@ -61,7 +58,7 @@ final class PreviewFrame
                     '.wp-block-woocommerce-product-image-gallery.%1$s%2$s{--ps-frame-aspect:%3$s}',
                     self::STYLE_CLASS_PREFIX,
                     $name,
-                    self::css_number($aspect)
+                    AspectRatios::css_number($aspect)
                 ),
             ]);
         }
@@ -80,7 +77,7 @@ final class PreviewFrame
         return \sprintf(
             '<div class="%1$s" style="--ps-frame-aspect: %2$s">%3$s</div>',
             esc_attr(self::FRAME_CLASS),
-            esc_attr(self::css_number($aspect)),
+            esc_attr(AspectRatios::css_number($aspect)),
             $block_content
         );
     }
@@ -101,10 +98,5 @@ final class PreviewFrame
         }
 
         return null;
-    }
-
-    private static function css_number(float $value): string
-    {
-        return rtrim(rtrim(number_format($value, self::ASPECT_DECIMALS, '.', ''), '0'), '.');
     }
 }

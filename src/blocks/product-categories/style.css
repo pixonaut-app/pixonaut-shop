@@ -40,7 +40,7 @@
 	text-decoration: none;
 }
 
-/* Square, like the product card's picture; empty, it shows the ground. */
+/* A category's picture, square whatever shape the product cards take; empty, it shows the ground. */
 .wp-block-pixonaut-shop-product-categories__picture {
 	display: block;
 	aspect-ratio: 1;
