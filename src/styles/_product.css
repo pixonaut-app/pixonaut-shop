@@ -934,6 +934,12 @@
 	}
 }
 
+/* ---------- More in the theme (pixonaut-shop/theme-products) ---------- */
+
+.pixonaut-shop-theme-products {
+	margin-top: var( --wp--preset--spacing--60 );
+}
+
 /* ---------- Related products (pixonaut-shop/related-products) ---------- */
 
 .pixonaut-shop-related-products > .wp-block-heading {

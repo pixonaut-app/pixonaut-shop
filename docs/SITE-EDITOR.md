@@ -150,9 +150,9 @@ WooCommerce's own `loop_shop_per_page`.
   showcase set is the gallery's first picture.
 - **Cards elsewhere** — the popular products (in the Product Catalog and
   Product Search Results templates, and on the Cart page made from the Cart
-  pattern), the related products (Single Product template) and the front
-  page's best sellers (the store's own front page) each have their own
-  Product Image block, set the same way.
+  pattern), the theme products and the related products (Single Product
+  template) and the front page's best sellers (the store's own front page)
+  each have their own Product Image block, set the same way.
 - **Thumbnail cropping** — Appearance → Customize → WooCommerce → Product
   Images → Thumbnail cropping. A Product Image block set to WooCommerce's
   cropped thumbnail (a card inserted from an older WooCommerce pattern)

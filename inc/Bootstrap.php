@@ -160,7 +160,8 @@ final class Bootstrap
      * first, for the card to show while it is hovered. A variable product's price "from" its lowest, or its
      * range, as the store picks in the Customizer. Beside every reduced
      * price, the lowest price of the 30 days before the reduction, from the
-     * price history it keeps.
+     * price history it keeps. Below the description, the other products in
+     * the product's theme: its first tag.
      */
     private function register_product(Product\LowestPrice $lowest_price): void
     {
@@ -171,6 +172,7 @@ final class Bootstrap
         (new Product\VariationSwatches())->register();
         (new Product\SecondPicture())->register();
         (new Product\CardShape())->register();
+        (new Product\ThemeProducts())->register();
         $lowest_price->register();
     }
 

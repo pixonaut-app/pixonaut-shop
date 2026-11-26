@@ -53,6 +53,7 @@ its modules and calling their `register()`:
 | archive | `Archive\NoResultsTitle` | Prints a search's no-results title again as it renders, with this request's query, since a template saved in the Site Editor holds the query of the request that saved it. |
 | product | `Product\PreviewFrame` | Offers a frame style per print shape on the Product Image Gallery block, and holds the product page's preview, or the gallery, at the one the store picks; without one each side's frame takes the shape of the picture Pixonaut for WooCommerce's designer shows. |
 | product | `Product\SecondPicture` | Prints a product card's second picture after the first inside WooCommerce's Product Image block, in a product loop: the product's next gallery picture, lazy and sized, with an empty alt text. The card's styles lay it over the first, which stays under it, and show it while the card is hovered or holds the focus, on devices that hover; it takes the Width and Scale the store set on the block. Nothing is printed for a product with no other picture. Its script (`src/product/second-picture.ts`), loaded with the first card that has one, takes a second picture that fails to load out of its card. The picture and the gallery are read through WooCommerce (`get_image_id()`, `get_gallery_image_ids()`), so a card a plugin shows with another picture takes the gallery picture after that one. |
+| product | `Product\ThemeProducts` | Fills in the product page's "More in the theme" section (`patterns/theme-products.php`) as it renders: products with the product's first tag (by name, then by ID), in any category, without the product itself. It narrows the section's product collection to that tag through `query_loop_block_query_vars`, after WooCommerce builds the query, names the tag in the heading and points the "See all" link at the tag's archive. The section renders nothing off a product's page, for a product without a tag, or with fewer than two other products a customer can buy that share it. The related products below it relate by category alone. |
 | dependencies | `Dependencies\WooCommerceNotice` | Tells an administrator who can install plugins that the shop needs WooCommerce, while it is inactive, in a notice they can dismiss for good. |
 | pixonaut | `Pixonaut\Integration` | Holds the theme's callbacks on Pixonaut for WooCommerce's documented hooks, and their names; they run only when the plugin fires them. |
 | pixonaut | `Pixonaut\ThemeSettings` | Declares the store's settings below ([Options other tools write](#options-other-tools-write)) through the plugin's `pixonaut_wc_theme_settings` filter, so its tools read and change them. |
@@ -173,9 +174,11 @@ stay above it. The price's wrapper,
 plugin rewrites when the chosen size changes the price; the plugin finds it
 by `data-pixonaut-price` only, so that attribute stays. Below the purchase
 panel, the `pixonaut-shop/product-description` pattern puts
-`woocommerce/product-details` in a panel, and
-`pixonaut-shop/related-products` shows four related products as the product
-grid draws them.
+`woocommerce/product-details` in a panel, then
+`pixonaut-shop/theme-products` shows four other products with the product's
+first tag ("More in the theme {tag}", with a link to the tag's archive;
+`Product\ThemeProducts`), and `pixonaut-shop/related-products` four products
+from the same categories, both as the product grid draws them.
 
 ### The lowest price beside a reduction
 
