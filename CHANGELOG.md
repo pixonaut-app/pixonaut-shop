@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.15.0...v1.16.0) (2026-11-26)
+
+
+### Features
+
+* **product:** show more products in the product's theme on its page ([#101](https://github.com/pixonaut-app/pixonaut-shop/issues/101)) ([261eda2](https://github.com/pixonaut-app/pixonaut-shop/commit/261eda2f18a8054ca70a38489d1bba2e2198840e))
+
 ## [1.15.0](https://github.com/pixonaut-app/pixonaut-shop/compare/v1.14.6...v1.15.0) (2026-11-19)
 
 
