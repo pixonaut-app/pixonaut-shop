@@ -20,6 +20,8 @@ final class ThemeProductsTest extends TestCase
 {
     private const PRODUCT = 7;
 
+    private const TAG = 40;
+
     private const SECTION = ['blockName' => 'core/group', 'attrs' => ['className' => 'alignwide ' . ThemeProducts::CLASS_NAME]];
 
     public function testRegistersAroundTheSectionAndOnTheCollectionsQuery(): void
@@ -92,6 +94,47 @@ final class ThemeProductsTest extends TestCase
         $markup = '<section class="' . ThemeProducts::CLASS_NAME . '"><div class="wp-block-woocommerce-product-collection"></div></section>';
 
         self::assertSame('', (new ThemeProducts())->render($markup, self::SECTION));
+    }
+
+    public function testNarrowsTheSectionsCollectionToTheTagWithoutTheProduct(): void
+    {
+        $query = $this->rendering(new ThemeProducts())->narrow(
+            ['tax_query' => [['taxonomy' => 'product_visibility']], 'post__not_in' => [3]],
+            $this->collection_block()
+        );
+
+        self::assertSame([['taxonomy' => 'product_visibility'], ['taxonomy' => ThemeProducts::TAXONOMY, 'field' => 'term_id', 'terms' => [self::TAG]]], $query['tax_query']);
+        self::assertSame([3, self::PRODUCT], $query['post__not_in']);
+    }
+
+    /**
+     * WP_Query ignores `post__not_in` beside `post__in`, which WooCommerce
+     * sets for products on sale or picked by hand.
+     */
+    public function testTakesTheProductOutOfAListOfProducts(): void
+    {
+        $products = $this->rendering(new ThemeProducts());
+
+        self::assertSame([5], $products->narrow(['post__in' => [self::PRODUCT, 5]], $this->collection_block())['post__in']);
+        self::assertSame([0], $products->narrow(['post__in' => [(string) self::PRODUCT]], $this->collection_block())['post__in'], 'A list of the product alone lists nothing.');
+    }
+
+    public function testDropsTheSectionWhenItsCollectionShowsFewerCardsThanCounted(): void
+    {
+        $markup = '<section class="' . ThemeProducts::CLASS_NAME . '"><ul><li class="wc-block-product post-5">Mug</li></ul></section>';
+
+        self::assertSame('', $this->rendering(new ThemeProducts())->render($markup, self::SECTION));
+    }
+
+    private function rendering(ThemeProducts $products): ThemeProducts
+    {
+        $shown = new ThemeProductsShown(self::PRODUCT, self::TAG, 'Sloths');
+        $start = function () use ($shown): void {
+            $this->rendering = $shown;
+        };
+        $start->call($products);
+
+        return $products;
     }
 
     private function tag(int $id, string $name): object

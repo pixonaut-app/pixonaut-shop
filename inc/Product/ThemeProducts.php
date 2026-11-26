@@ -55,6 +55,9 @@ final class ThemeProducts
 
     private const GROUP_BLOCK = 'core/group';
 
+    /** A post ID no post has, for a `post__in` that must list nothing, as WooCommerce writes one. */
+    private const NO_PRODUCT = 0;
+
     private const PRODUCT_POST_TYPE = 'product';
 
     private const PUBLISHED = 'publish';
@@ -63,10 +66,11 @@ final class ThemeProducts
     private const CATALOGUE = 'catalog';
 
     /**
-     * The class of a product collection's wrapper, which WooCommerce prints
-     * only when the collection has a product to show.
+     * A product card as WooCommerce's product template prints it: the
+     * store's own settings on the collection may show fewer than were
+     * counted before it rendered.
      */
-    private const COLLECTION_CLASS = 'wp-block-woocommerce-product-collection';
+    private const CARD = '#<li\b[^>]*\bclass="(?:[^"]*\s)?wc-block-product(?:\s[^"]*)?"#';
 
     /** The product and tag the section was found for, before it renders. */
     private ?ThemeProductsShown $found = null;
@@ -181,10 +185,34 @@ final class ThemeProducts
             'terms'    => [$this->rendering->tag_id],
         ];
 
-        $excluded = \is_array($query['post__not_in'] ?? null) ? $query['post__not_in'] : [];
-        $excluded[] = $this->rendering->product_id;
-
         $query['tax_query'] = $tax_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- the tag the section is about.
+
+        return $this->without_product($query, $this->rendering->product_id);
+    }
+
+    /**
+     * A query without a product. WP_Query ignores `post__not_in` beside
+     * `post__in`, which WooCommerce sets for a collection of products on
+     * sale or picked by hand, so the product leaves that list instead.
+     *
+     * @param array<array-key, mixed> $query
+     *
+     * @return array<array-key, mixed>
+     */
+    private function without_product(array $query, int $product_id): array
+    {
+        $included = \is_array($query['post__in'] ?? null) ? $query['post__in'] : [];
+
+        if ([] !== $included) {
+            $kept = array_values(array_filter($included, static fn (mixed $id): bool => ! is_numeric($id) || (int) $id !== $product_id));
+            // An empty post__in lists every product; a list of none lists nothing.
+            $query['post__in'] = [] === $kept ? [self::NO_PRODUCT] : $kept;
+
+            return $query;
+        }
+
+        $excluded = \is_array($query['post__not_in'] ?? null) ? $query['post__not_in'] : [];
+        $excluded[] = $product_id;
         $query['post__not_in'] = $excluded; // phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post__not_in -- the product the page is for.
 
         return $query;
@@ -192,7 +220,8 @@ final class ThemeProducts
 
     /**
      * Names the tag in the heading and links its archive, or drops the
-     * section when its collection found nothing after all.
+     * section when its collection shows fewer than `MINIMUM_OTHERS` cards
+     * after all, as one the store narrowed in the Site Editor may.
      *
      * @param array<array-key, mixed> $block
      */
@@ -205,7 +234,7 @@ final class ThemeProducts
         $shown = $this->rendering;
         $this->rendering = null;
 
-        if (null === $shown || ! str_contains($block_content, self::COLLECTION_CLASS)) {
+        if (null === $shown || preg_match_all(self::CARD, $block_content) < self::MINIMUM_OTHERS) {
             return '';
         }
 
@@ -229,8 +258,22 @@ final class ThemeProducts
 
         $processor = new WP_HTML_Tag_Processor($html);
 
-        if ($processor->next_tag(['class_name' => self::LINK_CLASS]) && $processor->next_tag(['tag_name' => 'a'])) {
-            $processor->set_attribute('href', esc_url($url));
+        if (! $processor->next_tag(['class_name' => self::LINK_CLASS])) {
+            return $html;
+        }
+
+        $holder = $processor->get_tag();
+
+        // The link inside the paragraph only: never a card's, after it.
+        while ($processor->next_tag(['tag_closers' => 'visit'])) {
+            if ($processor->is_tag_closer() && $holder === $processor->get_tag()) {
+                break;
+            }
+
+            if (! $processor->is_tag_closer() && 'A' === $processor->get_tag()) {
+                $processor->set_attribute('href', $url);
+                break;
+            }
         }
 
         return $processor->get_updated_html();
