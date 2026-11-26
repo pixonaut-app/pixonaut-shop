@@ -247,12 +247,19 @@ describe( 'affected', () => {
 		} );
 	} );
 
-	it( "runs the product page, its options, the lowest price and a card's second picture for a change to the product area", () => {
+	it( "runs the product page, its options, the lowest price, a card's second picture and the theme's products for a change to the product area", () => {
 		assert.deepEqual( jobsFor( 'inc/Product/PriceRow.php' ), {
 			...NO_JOBS,
 			php: true,
 			integration: true,
-			specs: [ 'buy-row', 'lowest-price', 'product-options', 'product-page', 'second-picture' ],
+			specs: [
+				'buy-row',
+				'lowest-price',
+				'product-options',
+				'product-page',
+				'second-picture',
+				'theme-products',
+			],
 			shards: 1,
 		} );
 	} );

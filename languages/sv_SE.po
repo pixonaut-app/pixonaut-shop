@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Pixonaut Shop 0.1.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/theme/pixonaut-shop\n"
-"POT-Creation-Date: 2026-11-17T18:48:41+00:00\n"
+"POT-Creation-Date: 2026-11-26T12:51:25+00:00\n"
 "PO-Revision-Date: 2026-10-20 20:00+0000\n"
 "Last-Translator: Pixonaut\n"
 "Language-Team: Swedish\n"
@@ -92,21 +92,10 @@ msgid "Status"
 msgstr "Status"
 
 #. translators: %s: a product's name.
-#: inc/Archive/CardSwatches.php:69
+#: inc/Archive/CardSwatches.php:78
 #, php-format
 msgid "Versions of %s"
 msgstr "Varianter av %s"
-
-#. translators: %s: how many products the archive shows.
-#. translators: %s: the number of products in a category.
-#. translators: %s: how many products match the search.
-#: inc/Archive/ClientArchive.php:177 inc/Blocks/ProductCategories.php:173
-#: build/header-search.js:3
-#, php-format
-msgid "%s product"
-msgid_plural "%s products"
-msgstr[0] "%s produkt"
-msgstr[1] "%s produkter"
 
 #: inc/Archive/ClientArchive.php:178
 msgid "No products"
@@ -186,18 +175,29 @@ msgstr "Visa produkter"
 msgid "No results for “%s”"
 msgstr "Inga träffar för ”%s”"
 
-#: inc/Blocks/AspectRatios.php:108
+#. translators: %s: how many products the archive shows.
+#. translators: %s: the number of products in a category.
+#. translators: %s: how many products match the search.
+#: inc/Archive/ResultCount.php:62 inc/Blocks/ProductCategories.php:174
+#: build/header-search.js:3
+#, php-format
+msgid "%s product"
+msgid_plural "%s products"
+msgstr[0] "%s produkt"
+msgstr[1] "%s produkter"
+
+#: inc/Blocks/AspectRatios.php:117
 msgid "Square - 1:1"
 msgstr "Kvadrat - 1:1"
 
 #. translators: %s: a print size's width and height, such as 5:7.
-#: inc/Blocks/AspectRatios.php:114
+#: inc/Blocks/AspectRatios.php:123
 #, php-format
 msgid "Portrait - %s"
 msgstr "Stående - %s"
 
 #. translators: %s: a print size's width and height, such as 7:5.
-#: inc/Blocks/AspectRatios.php:120
+#: inc/Blocks/AspectRatios.php:129
 #, php-format
 msgid "Landscape - %s"
 msgstr "Liggande - %s"
@@ -268,31 +268,31 @@ msgstr "Installera WooCommerce"
 msgid "Do not show this again"
 msgstr "Visa inte det här igen"
 
-#: inc/Header/HeaderSearch.php:107
+#: inc/Header/HeaderSearch.php:108
 msgid "Search products…"
 msgstr "Sök bland produkter…"
 
-#: inc/Header/HeaderSearch.php:108
+#: inc/Header/HeaderSearch.php:109
 msgid "Search products"
 msgstr "Sök bland produkter"
 
-#: inc/Header/HeaderSearch.php:109
+#: inc/Header/HeaderSearch.php:110
 msgid "Close search"
 msgstr "Stäng sökningen"
 
-#: inc/Header/HeaderSearch.php:151
+#: inc/Header/HeaderSearch.php:152
 msgid "Search"
 msgstr "Sök"
 
-#: inc/Header/HeaderSearch.php:154
+#: inc/Header/HeaderSearch.php:155
 msgid "Type two letters or more to see suggestions."
 msgstr "Skriv minst två bokstäver så visas förslag medan du skriver."
 
-#: inc/Header/HeaderSearch.php:155
+#: inc/Header/HeaderSearch.php:156
 msgid "Suggestions"
 msgstr "Förslag"
 
-#: inc/Header/HeaderSearch.php:156
+#: inc/Header/HeaderSearch.php:157
 msgid ""
 "Check the spelling or try a shorter word. Press Enter to search the whole "
 "store."
@@ -300,11 +300,11 @@ msgstr ""
 "Kontrollera stavningen eller prova ett kortare ord. Tryck Enter för att söka "
 "i hela butiken."
 
-#: inc/Header/HeaderSearch.php:207
+#: inc/Header/HeaderSearch.php:208
 msgid "Popular searches"
 msgstr "Populära sökningar"
 
-#: inc/Header/HeaderSearch.php:208
+#: inc/Header/HeaderSearch.php:209
 msgid "Popular products"
 msgstr "Populära produkter"
 
@@ -390,6 +390,12 @@ msgstr ""
 #, php-format
 msgid "Lowest price in the last %d days"
 msgstr "Lägsta pris senaste %d dagarna"
+
+#. translators: %s: the name of a product tag, such as a design's theme.
+#: inc/Product/ThemeProducts.php:91
+#, php-format
+msgid "More in the theme %s"
+msgstr "Mer i temat %s"
 
 #: inc/Product/VariablePrice.php:115 inc/Product/VariablePrice.php:176
 msgid "Prices"
@@ -667,7 +673,7 @@ msgctxt "Pattern title"
 msgid "Related products"
 msgstr "Relaterade produkter"
 
-#: patterns/related-products.php:22
+#: patterns/related-products.php:24
 msgid "You may also like"
 msgstr "Du kanske också gillar"
 
@@ -687,6 +693,15 @@ msgstr ""
 #: patterns/search-no-results.php:37
 msgid "Popular categories"
 msgstr "Populära kategorier"
+
+#: patterns/theme-products.php
+msgctxt "Pattern title"
+msgid "More in the theme"
+msgstr "Mer i temat"
+
+#: patterns/theme-products.php:31
+msgid "See all"
+msgstr "Se alla"
 
 #: build/blocks/category-carousel/index.js:1
 #: build/blocks/group-tiles/index.js:1

@@ -69,6 +69,7 @@ final class TemplatesTest extends TestCase
         'pixonaut-shop/related-products'    => 'related-products',
         'pixonaut-shop/promises'            => 'promises',
         'pixonaut-shop/search-no-results'   => 'search-no-results',
+        'pixonaut-shop/theme-products'      => 'theme-products',
     ];
 
     /**
@@ -554,6 +555,37 @@ final class TemplatesTest extends TestCase
             $this->product_template('patterns/product-grid.php'),
             $this->product_template('patterns/related-products.php'),
             'The related products and the product grid show different cards.'
+        );
+    }
+
+    public function testTheThemeProductsShowTheGridsCards(): void
+    {
+        self::assertSame(
+            $this->product_template('patterns/product-grid.php'),
+            $this->product_template('patterns/theme-products.php'),
+            'The theme products and the product grid show different cards.'
+        );
+    }
+
+    /**
+     * The products that share the product's tag have a section of their
+     * own, so the related products below it relate by category alone.
+     */
+    public function testShowsTheThemeProductsAboveTheRelatedProductsByCategory(): void
+    {
+        $template = $this->read('templates/single-product.html');
+        $details = strpos($template, '<!-- wp:pattern {"slug":"pixonaut-shop/product-description"} /-->');
+        $theme = strpos($template, '<!-- wp:pattern {"slug":"pixonaut-shop/theme-products"} /-->');
+        $related = strpos($template, '<!-- wp:pattern {"slug":"pixonaut-shop/related-products"} /-->');
+
+        self::assertNotFalse($details);
+        self::assertNotFalse($theme, 'single-product.html must place the theme products.');
+        self::assertNotFalse($related);
+        self::assertGreaterThan($details, $theme);
+        self::assertGreaterThan($theme, $related);
+        self::assertStringContainsString(
+            '"relatedBy":{"categories":true,"tags":false}',
+            $this->read('patterns/related-products.php')
         );
     }
 

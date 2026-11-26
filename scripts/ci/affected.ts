@@ -186,8 +186,15 @@ export const E2E_OWNERS: Readonly< Record< string, SpecSelection > > = {
 	// The price row the product page's add-to-cart form prints, a variable
 	// product's options as swatches, and the lowest price beside a reduced
 	// price on the product page, its card and its cart line. A card's second
-	// picture.
-	'inc/Product': [ 'buy-row', 'lowest-price', 'product-options', 'product-page', 'second-picture' ],
+	// picture. The other products in a product's theme, on its page.
+	'inc/Product': [
+		'buy-row',
+		'lowest-price',
+		'product-options',
+		'product-page',
+		'second-picture',
+		'theme-products',
+	],
 	// What a product search finds and in which order: the results page and the header's suggestions.
 	'inc/Search': [ 'header-search', 'search' ],
 	'inc/Support': 'all',
@@ -294,6 +301,8 @@ export const ARCHIVE_SCRIPT_SPECS: readonly string[] = [
 export const PATTERN_SPECS: Readonly< Record< string, readonly string[] > > = {
 	'not-found': [ 'not-found' ],
 	promises: [ 'blocks' ],
+	'related-products': [ 'theme-products' ],
+	'theme-products': [ 'theme-products' ],
 };
 
 /** The specs a changed pattern file needs. */

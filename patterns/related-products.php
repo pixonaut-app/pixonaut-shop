@@ -8,7 +8,9 @@
  *
  * The product page's related products: a heading and four product cards, as
  * the product grid (`pixonaut-shop/product-grid`) draws them, from
- * WooCommerce's related collection. No add-to-cart button, since every
+ * WooCommerce's related collection, by category alone: the products that
+ * share the product's tag have their own section above
+ * (`pixonaut-shop/theme-products`). No add-to-cart button, since every
  * product is personalised on its own page. Renders nothing when the product
  * has no related products.
  */
@@ -16,7 +18,7 @@
 declare(strict_types=1);
 
 ?>
-<!-- wp:woocommerce/product-collection {"queryId":0,"query":{"perPage":4,"pages":1,"offset":0,"postType":"product","order":"asc","orderBy":"title","search":"","exclude":[],"inherit":false,"taxQuery":{},"isProductCollectionBlock":true,"featured":false,"woocommerceOnSale":false,"woocommerceStockStatus":["instock","onbackorder"],"woocommerceAttributes":[],"woocommerceHandPickedProducts":[],"filterable":false,"relatedBy":{"categories":true,"tags":true}},"tagName":"section","displayLayout":{"type":"flex","columns":4,"shrinkColumns":false},"dimensions":{"widthType":"fill"},"collection":"woocommerce/product-collection/related","hideControls":["inherit"],"queryContextIncludes":["collection"],"align":"wide","className":"pixonaut-shop-related-products"} -->
+<!-- wp:woocommerce/product-collection {"queryId":0,"query":{"perPage":4,"pages":1,"offset":0,"postType":"product","order":"asc","orderBy":"title","search":"","exclude":[],"inherit":false,"taxQuery":{},"isProductCollectionBlock":true,"featured":false,"woocommerceOnSale":false,"woocommerceStockStatus":["instock","onbackorder"],"woocommerceAttributes":[],"woocommerceHandPickedProducts":[],"filterable":false,"relatedBy":{"categories":true,"tags":false}},"tagName":"section","displayLayout":{"type":"flex","columns":4,"shrinkColumns":false},"dimensions":{"widthType":"fill"},"collection":"woocommerce/product-collection/related","hideControls":["inherit"],"queryContextIncludes":["collection"],"align":"wide","className":"pixonaut-shop-related-products"} -->
 <section class="wp-block-woocommerce-product-collection alignwide pixonaut-shop-related-products">
 	<!-- wp:heading {"level":2} -->
 	<h2 class="wp-block-heading"><?php echo esc_html__( 'You may also like', 'pixonaut-shop' ); ?></h2>
